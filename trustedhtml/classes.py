@@ -10,41 +10,42 @@ TRUSTED_PREPARINGS = 2
 TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
-class TrustedBaseError(ValueError):
+class TrustedException(ValueError):
+    """Base trustedhtml error"""
     pass
 
-class TrustedRequiredError(TrustedBaseError):
+class RequiredException(TrustedException):
     """Example: src attribute for <img />"""
     pass
  
-class TrustedInvalidError(TrustedBaseError):
+class InvalidException(TrustedException):
     """Example: "none" value for "display" style property"""
     pass
     
-class TrustedEmptyError(TrustedBaseError):
+class EmptyException(TrustedException):
     """Example: width attribute for <div />"""
     pass
  
-class TrustedDefaultError(TrustedBaseError):
+class DefaultException(TrustedException):
     """Example: alt attribute for <img />"""
     pass
     
-class TrustedSequenceError(TrustedBaseError):
+class SequenceException(TrustedException):
     pass
  
-class TrustedTag(object):
+class Tag(object):
     def __init__(self, name='', attrs=[]):
         self.name = name
         self.attrs = attrs
     
-class TrustedHandler(object):
+class Handler(object):
     def __init__(self, profile):
         self.profile = profile
         
     def listener(self, rule, value, state):
         return None
         
-class TrustedRun(object):
+class Run(object):
     def __init__(self, trusted_list, handler=None, equivalents={}):
         self.trusted_list = trusted_list
         self.handler = handler
@@ -71,7 +72,7 @@ class TrustedRun(object):
                             try:
                                 correct[attribute] = validator.validate(tag.name, attribute, value, 
                                     parent=self, handler=self.handler, quite=quite)
-                            except TrustedEmptyError:
+                            except EmptyException:
                                 pass
                     order = [attr for attr, value in tag.attrs]
                     other = [attr for attr, value in correct.iteritems() if attr not in order]
@@ -80,13 +81,13 @@ class TrustedRun(object):
                     sequence.sort()
                     tag.attrs = [(item, value) for index, item, value in sequence]
                     return True
-                except TrustedRequiredError:
+                except RequiredException:
                     continue
-        except TrustedInvalidError:
+        except InvalidException:
             return None
         return False
 
-class TrustedStr(object):
+class Str(object):
     def __init__(self, required=False, strip=True, allow_empty=True, case_sensitive=False, 
             invalid=False, tag=None):
         self.quite = TRUSTED_QUITE
@@ -121,16 +122,16 @@ class TrustedStr(object):
             self.name, self.attr, repr(self.value), repr(value), self.__class__.__name__)
         if invalid_error:
             self.finish_print('\n$' + line)
-            raise TrustedInvalidError(unicode(line))
+            raise InvalidException(unicode(line))
         if self.required == True:
             self.finish_print('\n!' + line)
-            raise TrustedRequiredError(unicode(line))
+            raise RequiredException(unicode(line))
         if self.required == False:
             if self.value is not None:
                 self.finish_print('\n-' + line)
-            raise TrustedEmptyError(unicode(line))
+            raise EmptyException(unicode(line))
         self.finish_print('\n+' + line)
-        raise TrustedDefaultError(unicode(line))
+        raise DefaultException(unicode(line))
         
     def prepare(self, value):
         if (value is None) or (not self.allow_empty and value == ''):
@@ -153,7 +154,7 @@ class TrustedStr(object):
         try:
             value = self.prepare(value)
             value = self.core(value)
-        except TrustedDefaultError:
+        except DefaultException:
             return unicode(self.required)
         if self.invalid:
             self.finish(value, invalid_error=True)
@@ -163,28 +164,28 @@ class TrustedStr(object):
         if catch:
             try:
                 return self.validate('name', 'attr', value)
-            except TrustedBaseError, error:
+            except TrustedException, error:
                 return error
         else:
             return self.validate('name', 'attr', value)
 
         
-class TrustedContent(TrustedStr):         
+class Content(Str):         
     def __init__(self, allow_empty=False, **kwargs):
         kwargs['allow_empty'] = allow_empty
-        super(TrustedContent, self).__init__(**kwargs)
+        super(Content, self).__init__(**kwargs)
 
 
-class TrustedChr(TrustedStr):
+class Chr(Str):
     def core(self, value):
         if len(value) < 1:
             self.finish(value)
         return value[:1]
 
 
-class TrustedList(TrustedStr):
+class List(Str):
     def __init__(self, values, return_defined=True, **kwargs):
-        super(TrustedList, self).__init__(**kwargs)
+        super(List, self).__init__(**kwargs)
         self.values = values
         self.source_values = self.values
         self.return_defined = return_defined
@@ -203,7 +204,7 @@ class TrustedList(TrustedStr):
         return value
         
 
-class TrustedUrl(TrustedContent):
+class Url(Content):
     SCHEMES = ['http', 'https', 'shttp', 
         'ftp', 'sftp', 'file', 'mailto',  
         'svn', 'svn+ssh', 
@@ -215,7 +216,7 @@ class TrustedUrl(TrustedContent):
     ANCHOR_SPACES = re.compile(r'\s')
     
     def __init__(self, local_only=False, allow_local=True, allow_anchor=False, **kwargs):
-        super(TrustedUrl, self).__init__(**kwargs)
+        super(Url, self).__init__(**kwargs)
         self.local_only = local_only
         self.allow_local = allow_local
         self.allow_anchor = allow_anchor
@@ -251,14 +252,14 @@ class TrustedUrl(TrustedContent):
         return value
 
     
-class TrustedNumber(TrustedContent):
+class Number(Content):
     _BASE = r'\d{1,7}'
     BASE = _BASE[:]
     FLAGS = 0
     REMOVE = re.compile(r'\s')
     
     def __init__(self, allow_sign=True, garbage_trimming=True, remove_spaces=False, **kwargs):
-        super(TrustedNumber, self).__init__(**kwargs)
+        super(Number, self).__init__(**kwargs)
         self.allow_sign = allow_sign
         self.garbage_trimming = garbage_trimming
         self.remove_spaces = remove_spaces
@@ -283,14 +284,14 @@ class TrustedNumber(TrustedContent):
         return unicode(match.group(1))
 
 
-class TrustedLength(TrustedNumber):
+class Length(Number):
     def __init__(self, **kwargs):
-        super(TrustedLength, self).__init__(**kwargs)
+        super(Length, self).__init__(**kwargs)
         regexp = '(' + self.BASE + '%?)'
         self.re_compile(regexp)
 
 
-class TrustedSize(TrustedNumber):
+class Size(Number):
     TRAILINGS = [
         'px', 'cm', 'mm', 'in', 'pt', 'pc',
         'em', 'ex', '%', '',
@@ -299,28 +300,28 @@ class TrustedSize(TrustedNumber):
     def __init__(self, case_sensitive=False, remove_spaces=True, **kwargs):
         kwargs['remove_spaces'] = remove_spaces
         kwargs['case_sensitive'] = case_sensitive
-        super(TrustedSize, self).__init__(**kwargs)
+        super(Size, self).__init__(**kwargs)
         regexp = '(' + self.BASE + '(' + '|'.join(self.TRAILINGS) + '))'
         self.re_compile(regexp)
 
 
-class TrustedListOrSize(TrustedList, TrustedSize):
+class ListOrSize(List, Size):
     def __init__(self, values, allow_sign=True, garbage_trimming=True, **kwargs):
-        TrustedSize.__init__(self, allow_sign=allow_sign, garbage_trimming=garbage_trimming, **kwargs)
-        TrustedList.__init__(self, values=values, **kwargs) # Use TrustedStr not TrustedContent
+        Size.__init__(self, allow_sign=allow_sign, garbage_trimming=garbage_trimming, **kwargs)
+        List.__init__(self, values=values, **kwargs) # Use Str not Content
     
     def core(self, value):
-        # We will use core and catch TrustedDefaultError for List or raise it for Size
+        # We will use core and catch DefaultException for List or raise it for Size
         old_quite = self.quite 
         try:
             self.quite = True
-            return TrustedList.core(self, value)
-        except TrustedBaseError:
+            return List.core(self, value)
+        except TrustedException:
             self.quite = old_quite
-            return TrustedSize.core(self, value)
+            return Size.core(self, value)
 
 
-class TrustedColor(TrustedListOrSize):
+class Color(ListOrSize):
     NAMES = ['activeborder', 'activecaption', 'appworkspace', 
         'background', 'buttonface', 'buttonhighlight', 'buttonshadow', 
         'buttontext', 'captiontext', 'graytext', 'highlight', 
@@ -369,10 +370,10 @@ class TrustedColor(TrustedListOrSize):
 #        'navy', 'blue', 'teal', 'aqua', ]
         
     
-    VALUE = '[+-]?' + TrustedNumber._BASE + '%?'
+    VALUE = '[+-]?' + Number._BASE + '%?'
     CONDITION = r'(((rgb|hsl)\(' + VALUE + ',' + VALUE + ',' + VALUE + r'\))|' + \
         r'((rgba|hsla)\(' + VALUE + ',' + VALUE + ',' + VALUE + ',((' + \
-        TrustedNumber._BASE + ')?.' + TrustedNumber._BASE + '|' + VALUE + r')\))|' + \
+        Number._BASE + ')?.' + Number._BASE + '|' + VALUE + r')\))|' + \
         r'(#[0-9a-fA-F]{6})|(#[0-9a-fA-F]{3}))'
         
     def __init__(self, case_sensitive=False, allow_sign=False, remove_spaces=True, **kwargs):
@@ -380,17 +381,17 @@ class TrustedColor(TrustedListOrSize):
         kwargs['allow_sign'] = allow_sign
         kwargs['remove_spaces'] = remove_spaces
         kwargs['values'] = self.NAMES
-        super(TrustedColor, self).__init__(**kwargs)
+        super(Color, self).__init__(**kwargs)
         self.re_compile(self.CONDITION)
         
-class TrustedSequence(TrustedContent):
+class Sequence(Content):
     SPACES = re.compile(r'\s+')
     
     def __init__(self, validator=None, delimiter_char=' ', joiner_char=None, appender_char='', **kwargs):
-        super(TrustedSequence, self).__init__(**kwargs)
+        super(Sequence, self).__init__(**kwargs)
         self.validator = validator
         if self.validator is None:
-            self.validator = TrustedContent()
+            self.validator = Content()
         self.delimiter_char = delimiter_char
         self.joiner_char = joiner_char
         if self.joiner_char is None:
@@ -403,9 +404,9 @@ class TrustedSequence(TrustedContent):
             try:
                 result.append(self.validator.validate(self.name, self.attr, part, 
                     parent=self, handler=self.handler, quite=self.quite))
-            except TrustedRequiredError:
-                raise TrustedSequenceError
-            except TrustedEmptyError:
+            except RequiredException:
+                raise SequenceException
+            except EmptyException:
                 pass
         return result
 
@@ -415,7 +416,7 @@ class TrustedSequence(TrustedContent):
         parts = value.split(self.delimiter_char)
         try:
             parts = self.sequence(value, parts)
-        except TrustedSequenceError:
+        except SequenceException:
             self.finish(value)
         value = self.joiner_char.join(parts)
         if parts:
@@ -423,13 +424,13 @@ class TrustedSequence(TrustedContent):
         return unicode(value)
 
 
-class TrustedStyle(TrustedSequence, TrustedRun):
+class Style(Sequence, Run):
     def __init__(self, trusted_list, delimiter_char=';', joiner_char='; ', appender_char=';', handler=None, equivalents={}, **kwargs):
         kwargs['delimiter_char'] = delimiter_char
         kwargs['joiner_char'] = joiner_char
         kwargs['appender_char'] = appender_char
-        TrustedSequence.__init__(self, **kwargs)
-        TrustedRun.__init__(self, trusted_list, handler, equivalents)
+        Sequence.__init__(self, **kwargs)
+        Run.__init__(self, trusted_list, handler, equivalents)
         
     def sequence(self, value, parts):
         attrs = []
@@ -439,23 +440,23 @@ class TrustedStyle(TrustedSequence, TrustedRun):
             part_name = part[:part.find(':')].strip()
             part_value = part[part.find(':')+1:].strip()
             attrs.append((part_name, part_value))
-        tag = TrustedTag(self.name, attrs)
+        tag = Tag(self.name, attrs)
         result = self.check(tag)
         if result is None:
             self.finish(value, invalid_error=True)
         if not result:
-            raise TrustedSequenceError
+            raise SequenceException
         return ['%s: %s' % (part_name, part_value) for part_name, part_value in tag.attrs]
 
 
-class TrustedIndent(TrustedSequence):
-    # TrustedEmptyError is the same to TrustedRequiredError.
-    # You may use TrustedDefaultError to skip value.
+class Indent(Sequence):
+    # EmptyException is the same to RequiredException.
+    # You may use DefaultException to skip value.
     def __init__(self, validator=None, **kwargs):
         if validator is None:
-            validator = TrustedSize()
+            validator = Size()
         kwargs['validator'] = validator
-        super(TrustedIndent, self).__init__(**kwargs)
+        super(Indent, self).__init__(**kwargs)
         
     def sequence(self, value, parts):
         if len(parts) not in [1, 2, 4]:
@@ -465,16 +466,16 @@ class TrustedIndent(TrustedSequence):
             try:
                 result.append(self.validator.validate(self.name, self.attr, part, 
                     parent=self, handler=self.handler, quite=self.quite))
-            except (TrustedRequiredError, TrustedEmptyError):
-                raise TrustedSequenceError
+            except (RequiredException, EmptyException):
+                raise SequenceException
         return result
 
 
-class TrustedComplex(TrustedIndent):
-    # TrustedEmptyError is the same to TrustedRequiredError.
-    # You may use TrustedDefaultError to skip value.
+class Complex(Indent):
+    # EmptyException is the same to RequiredException.
+    # You may use DefaultException to skip value.
     def __init__(self, trusted_sequence, **kwargs):
-        super(TrustedComplex, self).__init__(**kwargs)
+        super(Complex, self).__init__(**kwargs)
         self.trusted_sequence = trusted_sequence
         
     def sequence(self, value, parts):
@@ -484,18 +485,18 @@ class TrustedComplex(TrustedIndent):
         if part_index >= len(parts):
             return parts
         if list_index >= len(list):
-            raise TrustedSequenceError
+            raise SequenceException
         try:
             value = list[list_index].validate(self.name, self.attr, parts[part_index], 
                 parent=self, handler=self.handler, quite=True)
             result = self.complex(parts, part_index + 1, list, list_index + 1)
             result[part_index] = value
             return result
-        except (TrustedRequiredError, TrustedEmptyError, TrustedSequenceError):
+        except (RequiredException, EmptyException, SequenceException):
             return self.complex(parts, part_index, list, list_index + 1)
 
 
-class TrustedHtml(TrustedRun):
+class Html(Run):
     # All constants must be lowered. 
     special_chars = [
         ('&', '&amp;'), # Must be first element in list
@@ -718,7 +719,7 @@ class TrustedHtml(TrustedRun):
     def __init__(self, raw_html, trusted_dictionary, handler=None):
     # Generate: self.html, self.plain_text
         self.trusted_dictionary = trusted_dictionary
-        super(TrustedHtml, self).__init__(trusted_list=[], handler=handler)
+        super(Html, self).__init__(trusted_list=[], handler=handler)
         BeautifulSoup.QUOTE_TAGS = {}
         self.raw_html = unicode(raw_html)
         self.html = self.raw_html

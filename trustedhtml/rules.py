@@ -2,44 +2,44 @@
 
 from trustedhtml.classes import *
 
-align = TrustedList(values=[
+align = List(values=[
     'left', 'right', 'center', 'justify', 
 ])
 
-border_width = TrustedListOrSize(values=[
+border_width = ListOrSize(values=[
     'thin', 'medium', 'thick',
 ])
 
-border_style = TrustedList(values=[
+border_style = List(values=[
     'none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 
     'groove', 'ridge', 'inset', 'outset', 
 ])
 
-border = TrustedComplex(trusted_sequence=[
+border = Complex(trusted_sequence=[
     border_width,
     border_style,
-    TrustedColor(), 
+    Color(), 
 ])
 
-style = TrustedStyle(trusted_list=[ {
+style = Style(trusted_list=[ {
     'border': border,
     'border-width': border_width,
     'border-style': border_style,
-    'border-color': TrustedColor(),
+    'border-color': Color(),
     
-    'margin': TrustedIndent(),
-    'padding': TrustedIndent(),
+    'margin': Indent(),
+    'padding': Indent(),
 
-    'margin-top': TrustedSize(),
-    'padding-top': TrustedSize(),
+    'margin-top': Size(),
+    'padding-top': Size(),
 
-    'width': TrustedSize(),
-    'height': TrustedSize(),
+    'width': Size(),
+    'height': Size(),
 
-    'float': TrustedList(values=[
+    'float': List(values=[
         'left', 'right', 
     ]),
-    'display': TrustedList(values=[
+    'display': List(values=[
         'none'], invalid=True),
 }, ], equivalents = {
     'border': [
@@ -62,27 +62,27 @@ style = TrustedStyle(trusted_list=[ {
     ],
 })
 
-style_display = TrustedStyle(trusted_list=[ {
-    'display': TrustedList(values=[
+style_display = Style(trusted_list=[ {
+    'display': List(values=[
         'none'], invalid=True),
 }, ])
 
-style_td = TrustedStyle(trusted_list=[ {
+style_td = Style(trusted_list=[ {
     'border': border,
     'border-width': border_width,
     'border-style': border_style,
-    'border-color': TrustedColor(),
+    'border-color': Color(),
     
-    'margin': TrustedIndent(),
-    'padding': TrustedIndent(),
+    'margin': Indent(),
+    'padding': Indent(),
 
-    'margin-top': TrustedSize(),
-    'padding-top': TrustedSize(),
+    'margin-top': Size(),
+    'padding-top': Size(),
 
-    'width': TrustedSize(),
-    'height': TrustedSize(),
+    'width': Size(),
+    'height': Size(),
 
-    'white-space': TrustedList(values=[
+    'white-space': List(values=[
         'pre', 'nowrap', 'normal', 
     ]),
 }, ], equivalents = {
@@ -106,26 +106,26 @@ style_td = TrustedStyle(trusted_list=[ {
     ],
 })
 
-link_type = TrustedList(values=[
+link_type = List(values=[
     'alternate', 'stylesheet', 'start', 'next', 'prev', 
     'contents', 'index', 'glossary', 'copyright', 'chapter', 
     'section', 'subsection', 'appendix', 'help', 'bookmark',
 ] )
 
-content_type = TrustedList(values=[
+content_type = List(values=[
     'text/html', 'image/jpeg', 'image/png', 'image/gif', 'audio/mpeg', 'video/mpeg',    
     # Disabled: 'text/javascript', 'text/css', 
 ] ) # Full list: http://www.iana.org/assignments/media-types/
 
-charset = TrustedList(values=[
+charset = List(values=[
     'utf-8', 'windows-1251', 'koi8-r', 'koi8-r', 'cp866', 'iso-8859-1', 'utf-16',
     # 'utf-7', # Disable (because of XSS)   
 ] ) # Full list: http://www.iana.org/assignments/character-sets
 
 coreattrs = {
-    'id': TrustedStr(),
-    'title': TrustedStr(),
-    'class': TrustedStr(),
+    'id': Str(),
+    'title': Str(),
+    'class': Str(),
     'style': style,
 }
 
@@ -133,33 +133,33 @@ coreattrs = {
 # { <attribute-name>: <validation object> }
 html = {
     'a': [ {
-        'title': TrustedStr(required=''),
+        'title': Str(required=''),
         # Can enable: 'charset': charset,
         # Can enable: 'type': content_type,
-        'name': TrustedStr(),
-        'href': TrustedUrl(allow_anchor=True, required=True), 
-        # Can enable: 'rel': link_type,    or     TrustedStr(),
-        # Can enable: 'rev': link_type,    or     TrustedStr(),
-        # Can enable: 'accesskey': TrustedChr(),
-        # Can enable: 'shape':  TrustedList(values=['rect', 'circle', 'poly', 'default', ] ),
-        # Can enable: 'coords': TrustedSequence(validator=TrustedNumber(), delimiter_char=','),
-        # Can enable: 'tabindex': TrustedNumber(),
-        'target': TrustedList(values=['_blank', '_self', '_parent', '_top', ]), 
+        'name': Str(),
+        'href': Url(allow_anchor=True, required=True), 
+        # Can enable: 'rel': link_type,    or     Str(),
+        # Can enable: 'rev': link_type,    or     Str(),
+        # Can enable: 'accesskey': Chr(),
+        # Can enable: 'shape':  List(values=['rect', 'circle', 'poly', 'default', ] ),
+        # Can enable: 'coords': Sequence(validator=Number(), delimiter_char=','),
+        # Can enable: 'tabindex': Number(),
+        'target': List(values=['_blank', '_self', '_parent', '_top', ]), 
     }, { 
-        'name': TrustedStr(required=True),
+        'name': Str(required=True),
     } ],
     'address': [],
     'b': [],
     'blockquote': [{
-        'cite': TrustedUrl(allow_anchor=True, required=False), 
+        'cite': Url(allow_anchor=True, required=False), 
     }, ],
     'br': [ {
-        'clear':  TrustedList(values=[
+        'clear':  List(values=[
             'left', 'all', 'right', 'none', 
         ]),
     }, ],
     'caption': [ {
-        'align': TrustedList(values=[
+        'align': List(values=[
             'top', 'bottom', 'left', 'right', 
         ]),
     }, ],
@@ -171,105 +171,105 @@ html = {
         'align': align,
     }, ],
     'img': [ {
-        'title': TrustedStr(),
-        'src': TrustedUrl(required=True, local_only=True, tag='download_image'), 
-        'alt': TrustedStr(required=''),
-        # Can enable: 'longdesc': TrustedUrl(),
-        'width': TrustedLength(),
-        'height': TrustedLength(),
-        'align': TrustedList(values=[
+        'title': Str(),
+        'src': Url(required=True, local_only=True, tag='download_image'), 
+        'alt': Str(required=''),
+        # Can enable: 'longdesc': Url(),
+        'width': Length(),
+        'height': Length(),
+        'align': List(values=[
             'top', 'middle', 'bottom', 'left', 'right', 
         ]),
-        'hspace': TrustedNumber(),
-        'vspace': TrustedNumber(),
+        'hspace': Number(),
+        'vspace': Number(),
         'style': style,
-        # Can enable: 'name': TrustedStr(required=''),
+        # Can enable: 'name': Str(required=''),
     }, ],
     'li': [ {
-        'type': TrustedList(values=[
+        'type': List(values=[
             'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
         ]),
-        'value': TrustedNumber(),
+        'value': Number(),
     }, ],
     'ol': [ {
-        'type': TrustedList(values=[
+        'type': List(values=[
             '1', 'a', 'A', 'i', 'I', 
         ]),
-        'start': TrustedNumber(),
+        'start': Number(),
     }, ],
     'p': [], # Can enable {'align': align,}
     'pre': [],
     'span': [ {
-        'style': TrustedStyle(trusted_list=[ {
-            'text-decoration': TrustedList(values=[
+        'style': Style(trusted_list=[ {
+            'text-decoration': List(values=[
                 'underline', 'line-through', 
             ]),
         }, ]),
     }, ],
     'table': [ {
-        'title': TrustedStr(),
-        'summary': TrustedStr(),
-        'width': TrustedLength(),
-        'border': TrustedNumber(),
-        'frame': TrustedList(values=[
+        'title': Str(),
+        'summary': Str(),
+        'width': Length(),
+        'border': Number(),
+        'frame': List(values=[
             'void', 'above', 'below', 'hsides', 'lhs', 'rhs', 'vsides', 
             'box', 'border', 
         ]),
-        'rules': TrustedList(values=[
+        'rules': List(values=[
             'none', 'groups', 'rows', 'cols', 'all', 
         ]), 
-        'cellspacing': TrustedSize(),
-        'cellpadding': TrustedSize(),
+        'cellspacing': Size(),
+        'cellpadding': Size(),
         'align': align,
-        # Can enable: 'bgcolor': TrustedColor(),
+        # Can enable: 'bgcolor': Color(),
         'style': style,
     }, ],
     'tbody': [ {
-        'align': TrustedList(values=[
+        'align': List(values=[
             'left', 'center', 'right', 'justify', 'char', 
         ]),
-        'char': TrustedChr(),
-        'charoff': TrustedLength(),
-        'valign': TrustedList(values=[
+        'char': Chr(),
+        'charoff': Length(),
+        'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline', 
         ]),
     }, ],
     'td': [ {
-        # Can enable: 'headers': TrustedStr(),
-        'abbr': TrustedStr(),
-        'scope': TrustedList(values=[
+        # Can enable: 'headers': Str(),
+        'abbr': Str(),
+        'scope': List(values=[
             'row', 'col', 'rowgroup', 'colgroup', 
         ]),
-        # Can enable: 'axis': TrustedStr(),
-        'align': TrustedList(values=[
+        # Can enable: 'axis': Str(),
+        'align': List(values=[
             'left', 'center', 'right', 'justify', 'char',
         ]),
-        'char': TrustedChr(),
-        'charoff': TrustedLength(),
-        'valign': TrustedList(values=[
+        'char': Chr(),
+        'charoff': Length(),
+        'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline',
         ]),
-        'rowspan': TrustedNumber(),
-        'colspan': TrustedNumber(),
-        'width': TrustedLength(),
-        'height': TrustedLength(),
-        # Can enable: 'nowrap': TrustedList(values=['', 'nowrap', ]),
-        # Can enable: 'bgcolor': TrustedColor(),
+        'rowspan': Number(),
+        'colspan': Number(),
+        'width': Length(),
+        'height': Length(),
+        # Can enable: 'nowrap': List(values=['', 'nowrap', ]),
+        # Can enable: 'bgcolor': Color(),
         'style': style_td,
     }, ],
     'tr': [ {
-        'align': TrustedList(values=[
+        'align': List(values=[
             'left', 'center', 'right', 'justify', 'char', 
         ]),
-        'char': TrustedChr(),
-        'charoff': TrustedLength(),
-        'valign': TrustedList(values=[
+        'char': Chr(),
+        'charoff': Length(),
+        'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline',
         ]),
-        # Can enable: 'bgcolor': TrustedColor(),
+        # Can enable: 'bgcolor': Color(),
     }, ],
     'ul': [ {
-        'type': TrustedList(values=[
+        'type': List(values=[
             'disc', 'square', 'circle', 
         ]),
     }, ]
@@ -307,15 +307,15 @@ smile_template = '/media/js/tiny_mce/plugins/emotions/img/smiley-%s.gif'
 
 smile_rules = [
     {
-        'src': TrustedList(values=[smile_template % smile_name], required=True),
-        'title': TrustedList(values=[smile_alt], required=smile_alt),
-        'alt': TrustedList(values=[smile_alt], required=smile_alt),
+        'src': List(values=[smile_template % smile_name], required=True),
+        'title': List(values=[smile_alt], required=smile_alt),
+        'alt': List(values=[smile_alt], required=smile_alt),
     } for smile_name, smile_alt in smiles] + [
     {
-        'src': TrustedList(values=[smile_template % smile_name], 
+        'src': List(values=[smile_template % smile_name], 
             required=smile_template % smile_name),
-        'title': TrustedList(values=[smile_alt], required=True),
-        'alt': TrustedList(values=[smile_alt], required=smile_alt),
+        'title': List(values=[smile_alt], required=True),
+        'alt': List(values=[smile_alt], required=smile_alt),
     } for smile_name, smile_alt in smiles]
 
 comment = {
@@ -330,22 +330,22 @@ comment = {
     'i': [],
     'img': smile_rules,
     'li': [ {
-        'type': TrustedList(values=[
+        'type': List(values=[
             'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I',
         ]),
-        'value': TrustedNumber(),
+        'value': Number(),
     }, ],
     'ol': [ {
-        'type': TrustedList(values=[
+        'type': List(values=[
             '1', 'a', 'A', 'i', 'I',
         ]),
-        'start': TrustedNumber(),
+        'start': Number(),
     }, ],
     'p': [],
     'pre': [],
     'span': [ {
-        'style': TrustedStyle(trusted_list=[ {
-            'text-decoration': TrustedList(values=[
+        'style': Style(trusted_list=[ {
+            'text-decoration': List(values=[
                 'underline', 'line-through', 
             ]),
         }, ]),
@@ -355,7 +355,7 @@ comment = {
     'sup': [],
     'u': [],
     'ul': [ {
-        'type': TrustedList(values=[
+        'type': List(values=[
             'disc', 'square', 'circle',
         ]),
     }, ],
