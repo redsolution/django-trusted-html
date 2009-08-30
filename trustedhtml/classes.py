@@ -11,29 +11,46 @@ TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
 class TrustedException(ValueError):
-    """Base trustedhtml error"""
+    u"""Base trustedhtml exception."""
     pass
 
 class RequiredException(TrustedException):
-    """Example: src attribute for <img />"""
+    u"""
+Raised when value is absent and required flag is True. 
+
+Example: src attribute for <img />"""
     pass
  
 class InvalidException(TrustedException):
-    """Example: "none" value for "display" style property"""
+    u"""
+Raised when value pass check and invalid flag is True.
+    
+Example: "none" value for "display" style property (we want to remove such tag)"""
     pass
     
 class EmptyException(TrustedException):
-    """Example: width attribute for <div />"""
+    u"""
+Raised when value is empty and allow_empty is False.
+
+Example: width attribute for <div />"""
     pass
  
 class DefaultException(TrustedException):
-    """Example: alt attribute for <img />"""
+    u"""
+Raised when value is empty and default value is not None. 
+    
+Example: alt attribute for <img />"""
     pass
     
 class SequenceException(TrustedException):
+    u"""
+Raised when element to corresponded to sequence. 
+    
+Example: color is not specified for "border" style property"""
     pass
  
 class Tag(object):
+    u"""Used when we need tags like in beautifulsoup"""
     def __init__(self, name='', attrs=[]):
         self.name = name
         self.attrs = attrs
@@ -368,19 +385,18 @@ class Color(ListOrSize):
 #    NAMES = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 
 #        'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow', 
 #        'navy', 'blue', 'teal', 'aqua', ]
-        
-    
+
     VALUE = '[+-]?' + Number._BASE + '%?'
     CONDITION = r'(((rgb|hsl)\(' + VALUE + ',' + VALUE + ',' + VALUE + r'\))|' + \
         r'((rgba|hsla)\(' + VALUE + ',' + VALUE + ',' + VALUE + ',((' + \
         Number._BASE + ')?.' + Number._BASE + '|' + VALUE + r')\))|' + \
         r'(#[0-9a-fA-F]{6})|(#[0-9a-fA-F]{3}))'
         
-    def __init__(self, case_sensitive=False, allow_sign=False, remove_spaces=True, **kwargs):
+    def __init__(self, values=[], case_sensitive=False, allow_sign=False, remove_spaces=True, **kwargs):
         kwargs['case_sensitive'] = case_sensitive
         kwargs['allow_sign'] = allow_sign
         kwargs['remove_spaces'] = remove_spaces
-        kwargs['values'] = self.NAMES
+        kwargs['values'] = self.NAMES + values
         super(Color, self).__init__(**kwargs)
         self.re_compile(self.CONDITION)
         
