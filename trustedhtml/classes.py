@@ -87,7 +87,7 @@ class Run(object):
             return None
         return False
 
-class Str(object):
+class String(object):
     def __init__(self, required=False, strip=True, allow_empty=True, case_sensitive=False, 
             invalid=False, tag=None):
         self.quite = TRUSTED_QUITE
@@ -170,20 +170,20 @@ class Str(object):
             return self.validate('name', 'attr', value)
 
         
-class Content(Str):         
+class Content(String):         
     def __init__(self, allow_empty=False, **kwargs):
         kwargs['allow_empty'] = allow_empty
         super(Content, self).__init__(**kwargs)
 
 
-class Chr(Str):
+class Char(String):
     def core(self, value):
         if len(value) < 1:
             self.finish(value)
         return value[:1]
 
 
-class List(Str):
+class List(String):
     def __init__(self, values, return_defined=True, **kwargs):
         super(List, self).__init__(**kwargs)
         self.values = values
@@ -308,7 +308,7 @@ class Size(Number):
 class ListOrSize(List, Size):
     def __init__(self, values, allow_sign=True, garbage_trimming=True, **kwargs):
         Size.__init__(self, allow_sign=allow_sign, garbage_trimming=garbage_trimming, **kwargs)
-        List.__init__(self, values=values, **kwargs) # Use Str not Content
+        List.__init__(self, values=values, **kwargs) # Use String not Content
     
     def core(self, value):
         # We will use core and catch DefaultException for List or raise it for Size

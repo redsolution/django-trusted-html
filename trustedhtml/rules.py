@@ -2,6 +2,14 @@
 
 from trustedhtml.classes import *
 
+string = String()
+indent = Indent()
+number = Number()
+size = Size()
+length = Length()
+char = Char()
+color = Color()
+
 align = List(values=[
     'left', 'right', 'center', 'justify', 
 ])
@@ -15,26 +23,26 @@ border_style = List(values=[
     'groove', 'ridge', 'inset', 'outset', 
 ])
 
-border = Complex(trusted_sequence=[
+border_complex = Complex(trusted_sequence=[
     border_width,
     border_style,
-    Color(), 
+    color,
 ])
 
 style = Style(trusted_list=[ {
-    'border': border,
+    'border': border_complex,
     'border-width': border_width,
     'border-style': border_style,
-    'border-color': Color(),
+    'border-color': color,
     
-    'margin': Indent(),
-    'padding': Indent(),
+    'margin': indent,
+    'padding': indent,
 
-    'margin-top': Size(),
-    'padding-top': Size(),
+    'margin-top': size,
+    'padding-top': size,
 
-    'width': Size(),
-    'height': Size(),
+    'width': size,
+    'height': size,
 
     'float': List(values=[
         'left', 'right', 
@@ -68,19 +76,19 @@ style_display = Style(trusted_list=[ {
 }, ])
 
 style_td = Style(trusted_list=[ {
-    'border': border,
+    'border': border_complex,
     'border-width': border_width,
     'border-style': border_style,
-    'border-color': Color(),
+    'border-color': color,
     
-    'margin': Indent(),
-    'padding': Indent(),
+    'margin': indent,
+    'padding': indent,
 
-    'margin-top': Size(),
-    'padding-top': Size(),
+    'margin-top': size,
+    'padding-top': size,
 
-    'width': Size(),
-    'height': Size(),
+    'width': size,
+    'height': size,
 
     'white-space': List(values=[
         'pre', 'nowrap', 'normal', 
@@ -123,9 +131,9 @@ charset = List(values=[
 ] ) # Full list: http://www.iana.org/assignments/character-sets
 
 coreattrs = {
-    'id': Str(),
-    'title': Str(),
-    'class': Str(),
+    'id': string,
+    'title': string,
+    'class': string,
     'style': style,
 }
 
@@ -133,20 +141,20 @@ coreattrs = {
 # { <attribute-name>: <validation object> }
 html = {
     'a': [ {
-        'title': Str(required=''),
+        'title': String(required=''),
         # Can enable: 'charset': charset,
         # Can enable: 'type': content_type,
-        'name': Str(),
+        'name': string,
         'href': Url(allow_anchor=True, required=True), 
-        # Can enable: 'rel': link_type,    or     Str(),
-        # Can enable: 'rev': link_type,    or     Str(),
-        # Can enable: 'accesskey': Chr(),
+        # Can enable: 'rel': link_type,    or     string,
+        # Can enable: 'rev': link_type,    or     string,
+        # Can enable: 'accesskey': char,
         # Can enable: 'shape':  List(values=['rect', 'circle', 'poly', 'default', ] ),
-        # Can enable: 'coords': Sequence(validator=Number(), delimiter_char=','),
-        # Can enable: 'tabindex': Number(),
+        # Can enable: 'coords': Sequence(validator=number, delimiter_char=','),
+        # Can enable: 'tabindex': number,
         'target': List(values=['_blank', '_self', '_parent', '_top', ]), 
     }, { 
-        'name': Str(required=True),
+        'name': String(required=True),
     } ],
     'address': [],
     'b': [],
@@ -171,31 +179,31 @@ html = {
         'align': align,
     }, ],
     'img': [ {
-        'title': Str(),
+        'title': string,
         'src': Url(required=True, local_only=True, tag='download_image'), 
-        'alt': Str(required=''),
+        'alt': String(required=''),
         # Can enable: 'longdesc': Url(),
-        'width': Length(),
-        'height': Length(),
+        'width': length,
+        'height': length,
         'align': List(values=[
             'top', 'middle', 'bottom', 'left', 'right', 
         ]),
-        'hspace': Number(),
-        'vspace': Number(),
+        'hspace': number,
+        'vspace': number,
         'style': style,
-        # Can enable: 'name': Str(required=''),
+        # Can enable: 'name': String(required=''),
     }, ],
     'li': [ {
         'type': List(values=[
             'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
         ]),
-        'value': Number(),
+        'value': number,
     }, ],
     'ol': [ {
         'type': List(values=[
             '1', 'a', 'A', 'i', 'I', 
         ]),
-        'start': Number(),
+        'start': number,
     }, ],
     'p': [], # Can enable {'align': align,}
     'pre': [],
@@ -207,10 +215,10 @@ html = {
         }, ]),
     }, ],
     'table': [ {
-        'title': Str(),
-        'summary': Str(),
-        'width': Length(),
-        'border': Number(),
+        'title': string,
+        'summary': string,
+        'width': length,
+        'border': number,
         'frame': List(values=[
             'void', 'above', 'below', 'hsides', 'lhs', 'rhs', 'vsides', 
             'box', 'border', 
@@ -218,55 +226,55 @@ html = {
         'rules': List(values=[
             'none', 'groups', 'rows', 'cols', 'all', 
         ]), 
-        'cellspacing': Size(),
-        'cellpadding': Size(),
+        'cellspacing': size,
+        'cellpadding': size,
         'align': align,
-        # Can enable: 'bgcolor': Color(),
+        # Can enable: 'bgcolor': color,
         'style': style,
     }, ],
     'tbody': [ {
         'align': List(values=[
             'left', 'center', 'right', 'justify', 'char', 
         ]),
-        'char': Chr(),
-        'charoff': Length(),
+        'char': char,
+        'charoff': length,
         'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline', 
         ]),
     }, ],
     'td': [ {
-        # Can enable: 'headers': Str(),
-        'abbr': Str(),
+        # Can enable: 'headers': string,
+        'abbr': string,
         'scope': List(values=[
             'row', 'col', 'rowgroup', 'colgroup', 
         ]),
-        # Can enable: 'axis': Str(),
+        # Can enable: 'axis': string,
         'align': List(values=[
             'left', 'center', 'right', 'justify', 'char',
         ]),
-        'char': Chr(),
-        'charoff': Length(),
+        'char': char,
+        'charoff': length,
         'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline',
         ]),
-        'rowspan': Number(),
-        'colspan': Number(),
-        'width': Length(),
-        'height': Length(),
+        'rowspan': number,
+        'colspan': number,
+        'width': length,
+        'height': length,
         # Can enable: 'nowrap': List(values=['', 'nowrap', ]),
-        # Can enable: 'bgcolor': Color(),
+        # Can enable: 'bgcolor': color,
         'style': style_td,
     }, ],
     'tr': [ {
         'align': List(values=[
             'left', 'center', 'right', 'justify', 'char', 
         ]),
-        'char': Chr(),
-        'charoff': Length(),
+        'char': char,
+        'charoff': length,
         'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline',
         ]),
-        # Can enable: 'bgcolor': Color(),
+        # Can enable: 'bgcolor': color,
     }, ],
     'ul': [ {
         'type': List(values=[
@@ -333,13 +341,13 @@ comment = {
         'type': List(values=[
             'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I',
         ]),
-        'value': Number(),
+        'value': number,
     }, ],
     'ol': [ {
         'type': List(values=[
             '1', 'a', 'A', 'i', 'I',
         ]),
-        'start': Number(),
+        'start': number,
     }, ],
     'p': [],
     'pre': [],
