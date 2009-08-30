@@ -45,9 +45,10 @@ class TrustedHandler(object):
         return None
         
 class TrustedRun(object):
-    def __init__(self, trusted_list, handler=None):
+    def __init__(self, trusted_list, handler=None, equivalents={}):
         self.trusted_list = trusted_list
         self.handler = handler
+        self.equivalents = equivalents
     
     def check(self, tag):
         if not self.trusted_list:
@@ -59,16 +60,19 @@ class TrustedRun(object):
                 try:
                     correct = {}
                     dictionary = dict(tag.attrs)
-                    for attribute, validator in trusted.iteritems():
-                        if attribute in dictionary:
-                            value = dictionary[attribute] 
-                        else:
-                            value = None
-                        try:
-                            correct[attribute] = validator.validate(tag.name, attribute, value, 
-                                parent=self, handler=self.handler, quite=quite)
-                        except TrustedEmptyError:
-                            pass
+                    for main, validator in trusted.iteritems():
+                        attributes = [main]
+                        attributes += self.equivalents.get(main, [])
+                        for attribute in attributes:
+                            if attribute in dictionary:
+                                value = dictionary[attribute] 
+                            else:
+                                value = None
+                            try:
+                                correct[attribute] = validator.validate(tag.name, attribute, value, 
+                                    parent=self, handler=self.handler, quite=quite)
+                            except TrustedEmptyError:
+                                pass
                     order = [attr for attr, value in tag.attrs]
                     other = [attr for attr, value in correct.iteritems() if attr not in order]
                     order.extend(other)
@@ -420,12 +424,12 @@ class TrustedSequence(TrustedContent):
 
 
 class TrustedStyle(TrustedSequence, TrustedRun):
-    def __init__(self, trusted_list, delimiter_char=';', joiner_char='; ', appender_char=';', handler=None, **kwargs):
+    def __init__(self, trusted_list, delimiter_char=';', joiner_char='; ', appender_char=';', handler=None, equivalents={}, **kwargs):
         kwargs['delimiter_char'] = delimiter_char
         kwargs['joiner_char'] = joiner_char
         kwargs['appender_char'] = appender_char
         TrustedSequence.__init__(self, **kwargs)
-        TrustedRun.__init__(self, trusted_list, handler)
+        TrustedRun.__init__(self, trusted_list, handler, equivalents)
         
     def sequence(self, value, parts):
         attrs = []

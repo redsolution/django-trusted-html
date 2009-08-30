@@ -23,40 +23,15 @@ border = TrustedComplex(trusted_sequence=[
 
 style = TrustedStyle(trusted_list=[ {
     'border': border,
-    'border-top': border,
-    'border-bottom': border,
-    'border-left': border,
-    'border-right': border,
-    
     'border-width': border_width,
-    'border-top-width': border_width,
-    'border-bottom-width': border_width,
-    'border-left-width': border_width,
-    'border-right-width': border_width,
-    
     'border-style': border_style,
-    'border-top-style': border_style,
-    'border-bottom-style': border_style,
-    'border-left-style': border_style,
-    'border-right-style': border_style,
-    
     'border-color': TrustedColor(),
-    'border-top-color': TrustedColor(),
-    'border-bottom-color': TrustedColor(),
-    'border-left-color': TrustedColor(),
-    'border-right-color': TrustedColor(),
     
     'margin': TrustedIndent(),
     'padding': TrustedIndent(),
 
     'margin-top': TrustedSize(),
-    'margin-bottom': TrustedSize(),
-    'margin-left': TrustedSize(),
-    'margin-right': TrustedSize(),
     'padding-top': TrustedSize(),
-    'padding-bottom': TrustedSize(),
-    'padding-left': TrustedSize(),
-    'padding-right': TrustedSize(), 
 
     'width': TrustedSize(),
     'height': TrustedSize(),
@@ -66,7 +41,26 @@ style = TrustedStyle(trusted_list=[ {
     ]),
     'display': TrustedList(values=[
         'none'], invalid=True),
-}, ])
+}, ], equivalents = {
+    'border': [
+        'border-top', 'border-bottom', 'border-left', 'border-right'
+    ],
+    'border-width': [
+        'border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width',
+    ],
+    'border-style': [
+        'border-top-style', 'border-bottom-style', 'border-left-style', 'border-right-style',
+    ],
+    'border-color': [
+        'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color',
+    ],
+    'margin-top': [
+        'margin-bottom', 'margin-left', 'margin-right',
+    ],
+    'padding-top': [
+        'padding-bottom', 'padding-left', 'padding-right',
+    ],
+})
 
 style_display = TrustedStyle(trusted_list=[ {
     'display': TrustedList(values=[
@@ -75,40 +69,15 @@ style_display = TrustedStyle(trusted_list=[ {
 
 style_td = TrustedStyle(trusted_list=[ {
     'border': border,
-    'border-top': border,
-    'border-bottom': border,
-    'border-left': border,
-    'border-right': border,
-    
     'border-width': border_width,
-    'border-top-width': border_width,
-    'border-bottom-width': border_width,
-    'border-left-width': border_width,
-    'border-right-width': border_width,
-    
     'border-style': border_style,
-    'border-top-style': border_style,
-    'border-bottom-style': border_style,
-    'border-left-style': border_style,
-    'border-right-style': border_style,
-    
     'border-color': TrustedColor(),
-    'border-top-color': TrustedColor(),
-    'border-bottom-color': TrustedColor(),
-    'border-left-color': TrustedColor(),
-    'border-right-color': TrustedColor(),
     
     'margin': TrustedIndent(),
     'padding': TrustedIndent(),
 
     'margin-top': TrustedSize(),
-    'margin-bottom': TrustedSize(),
-    'margin-left': TrustedSize(),
-    'margin-right': TrustedSize(),
     'padding-top': TrustedSize(),
-    'padding-bottom': TrustedSize(),
-    'padding-left': TrustedSize(),
-    'padding-right': TrustedSize(), 
 
     'width': TrustedSize(),
     'height': TrustedSize(),
@@ -116,7 +85,26 @@ style_td = TrustedStyle(trusted_list=[ {
     'white-space': TrustedList(values=[
         'pre', 'nowrap', 'normal', 
     ]),
-}, ])
+}, ], equivalents = {
+    'border': [
+        'border-top', 'border-bottom', 'border-left', 'border-right'
+    ],
+    'border-width': [
+        'border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width',
+    ],
+    'border-style': [
+        'border-top-style', 'border-bottom-style', 'border-left-style', 'border-right-style',
+    ],
+    'border-color': [
+        'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color',
+    ],
+    'margin-top': [
+        'margin-bottom', 'margin-left', 'margin-right',
+    ],
+    'padding-top': [
+        'padding-bottom', 'padding-left', 'padding-right',
+    ],
+})
 
 link_type = TrustedList(values=[
     'alternate', 'stylesheet', 'start', 'next', 'prev', 
@@ -179,26 +167,9 @@ html = {
     'div': [ {
         'style': style_display,
     }, ],
-    'em': [],
     'h1': [ {
         'align': align,
     }, ],
-    'h2': [ {
-        'align': align,
-    }, ],
-    'h3': [ {
-        'align': align,
-    }, ],
-    'h4': [ {
-        'align': align,
-    }, ],
-    'h5': [ {
-        'align': align,
-    }, ],
-    'h6': [ {
-        'align': align,
-    }, ],
-    'i': [],
     'img': [ {
         'title': TrustedStr(),
         'src': TrustedUrl(required=True, local_only=True, tag='download_image'), 
@@ -235,9 +206,6 @@ html = {
             ]),
         }, ]),
     }, ],
-    'strong': [],
-    'sub': [],
-    'sup': [],
     'table': [ {
         'title': TrustedStr(),
         'summary': TrustedStr(),
@@ -300,13 +268,20 @@ html = {
         ]),
         # Can enable: 'bgcolor': TrustedColor(),
     }, ],
-    'u': [],
     'ul': [ {
         'type': TrustedList(values=[
             'disc', 'square', 'circle', 
         ]),
-    }, ],
-}    
+    }, ]
+}
+#, equivalents = {
+#    'h1': [
+#        'h2', 'h3', 'h4', 'h5', 'h6',
+#    ],
+#    'b': [
+#        'em', 'i', 'strong', 'sub', 'sup', 'u',
+#    ],
+#}
 
 
 smiles = [
