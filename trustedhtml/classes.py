@@ -180,8 +180,10 @@ class Rule(object):
             if self.invalid:
                 raise InvalidException
 
-            rule_done.send(sender=self.__class__, rule=self,
+            results = rule_done.send(sender=self.__class__, rule=self,
                 parent=parent, value=value)
+            for receiver, response in results:
+                value = response
 
         except TrustedException, exception:
             rule_exception.send(sender=self.__class__, rule=self,
@@ -216,7 +218,7 @@ class Content(String):
     Rule suppose that any not empty string value is correct.
     Validation will return source value. 
     """
-    
+
     def __init__(self, allow_empty=False, **kwargs):
         u"""
         Just replace default settings.
@@ -228,11 +230,9 @@ class Char(Content):
     Rule suppose that any not empty string value is correct.
     Validation will return only first chat from the source value. 
     """
-    
+
     def core(self, value, parent):
-        u"""
-        Returns first char of the ``value``.
-        """
+        u"""Do it."""
         return value[:1]
 
 class List(String):
@@ -240,7 +240,7 @@ class List(String):
     Rule suppose that value is correct if it is in ``values``.
     Validation will return corresponding item from ``values``.
     """    
-    
+
     def __init__(self, values, case_sensitive=False, return_defined=True, **kwargs):
         u"""
         ``values`` is list of allowed values. 
@@ -263,9 +263,7 @@ class List(String):
 
 
     def core(self, value, parent):
-        u"""
-        Check whether ``value`` is present in ``self.values``.
-        """
+        u"""Do it."""
         if not self.case_sensitive:
             value = value.lower()
         if value not in self.values:
@@ -280,7 +278,7 @@ class Url(Content):
     Rule suppose that value is correct if it is a URL with allowed ``SCHEMES``.
     Validation will return correct URL.
     """
-    
+
     SCHEMES = ['http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
         'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
     ]
@@ -288,14 +286,21 @@ class Url(Content):
     LOCAL_PREFIX = '/'
     ANCHOR = re.compile(r'^#\w+$')
     ANCHOR_SPACES = re.compile(r'\s')
-    
+
     def __init__(self, allow_foreign=False, allow_local=True, allow_anchor=False, **kwargs):
         u"""
         ``allow_foreign`` if True then URL to foreign sites will be allowed.
         Valid example: 'http://example.com/media/img.jpg'
         
+        If ``allow_foreign`` is True and ``value`` is without schema 
+        and ``value`` not started with ``LOCAL_PREFIX`` ('/') then
+        ``GLOBAL_PREFIX`` ('http://') will be added to the ``value``.
+        
         ``allow_local`` if True then local URL will be allowed.
-        Valid examples: '/media/img.jpg' , '../img.jpg' 
+        Valid examples: '/media/img.jpg' , '../img.jpg'
+        
+        If ``allow_local`` is False and ``value`` is without schema then
+        ``Site.objects.get_current()`` will be added to the ``value``.
         
         ``allow_anchor`` if True then anchor will be allowed.
         Valid example: '#start-anchor'
@@ -306,8 +311,10 @@ class Url(Content):
         self.allow_anchor = allow_anchor
         if ':' not in self.GLOBAL_PREFIX:
             self.GLOBAL_PREFIX = self.GLOBAL_PREFIX + ':'
-        
-    def core(self, value):
+
+
+    def core(self, value, parent):
+        u"""Do it."""
         value = iri_to_uri(value)
         if ':' not in value:
             if self.allow_anchor:
@@ -323,17 +330,12 @@ class Url(Content):
                 if not self.allow_foreign:
                     return self.LOCAL_PREFIX + value
             value = self.GLOBAL_PREFIX + value
-        if not self.allow_foreign:
-            #value = self.handle(value, 'allow_foreign')
-            if value is not None:
-                return value
-            raise IncorrectException(value, parent)
         scheme = value[:value.find(':')].lower()
         if scheme not in self.SCHEMES:
             raise IncorrectException(value, parent)
         return value
 
-    
+
 class Number(Content):
     _BASE = r'\d{1,7}'
     BASE = _BASE[:]
