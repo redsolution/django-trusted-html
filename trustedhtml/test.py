@@ -180,7 +180,7 @@ tiny_omg = u"""
 #TrustedUrl().v('/gfdg')
 #TrustedUrl(allow_local=True).v('/gfdg')
 #TrustedUrl(allow_local=True).v('gfdg')
-#TrustedUrl(local_only=True).v('http://gfdg')
+#TrustedUrl(allow_foriegn=True).v('http://gfdg')
 #TrustedNumber().v('')
 #TrustedNumber(allow_sign=False).v('+34fd')
 #TrustedNumber(allow_sign=False).v('34fd')

@@ -78,7 +78,7 @@ html = {
     }, ],
     'img': [ {
         'title': string,
-        'src': Url(required=True, local_only=True, tag='download_image'), 
+        'src': Url(required=True, allow_foriegn=False, tag='download_image'), 
         'alt': String(default=''),
         # Can enable: 'longdesc': Url(),
         'width': length,

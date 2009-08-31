@@ -19,27 +19,41 @@ class TrustedException(ValueError):
     """
     pass
 
-class RequiredException(TrustedException):
+class EmptyException(TrustedException):
     u"""
-    Raised when value is empty and required flag is True. 
+    Raised when value is empty and ``allow_empty`` flag is False.
+    
+    This exception means that attribute must be removed. 
     """
     pass
  
 class IncorrectException(TrustedException):
     u"""
     Raised when value is incorrect. 
+    
+    This exception means that attribute must be removed. 
+    """
+    pass
+ 
+class RequiredException(TrustedException):
+    u"""
+    Raised when value is empty and ``required`` flag is True.
+    
+    This exception means that hole tag must be removed.
     """
     pass
  
 class InvalidException(TrustedException):
     u"""
     Raised when value pass check and invalid flag is True.
+    
+    This exception means that hole tag must be removed.
     """
     pass
     
 class SequenceException(TrustedException):
     u"""
-    Raised when element to corresponded to sequence. 
+    Raised when element not corresponded to sequence. 
     
     Example: color is not specified for "border" style property
     """
@@ -99,37 +113,40 @@ class Run(object):
 class Rule(object):
     u"""
     Base rule class.
+    All rules inherit it and overwrite ``core`` or ``__init__`` functions.
     """
-    
-    def __init__(self, required=False, default=None, invalid=False,
-        strip=True, case_sensitive=False, data=None):
+
+    def __init__(self, required=False, default=None, allow_empty=True,
+        invalid=False, strip=True, data=None, **kwargs):
         u"""
         Sets behaviour for the rule:
-        
-        ``required`` if True value is required.
+
+        ``required`` if True than value is required.
         Example: attribute "src" for tag "img".
-        
-        ``default`` if is not None and validation fail, will return this one.
+
+        ``default`` if is not None and validation fail than will return this one.
         Example: attribute "alt" for tag "img". 
-        
-        ``invalid`` if True result of validation will be inverted.
+
+        ``allow_empty`` if True than value can be empty.
+        Example: attribute "width" for tag "img".
+
+        ``invalid`` if True than result of validation will be inverted.
         Example: "none" value for "display" style property
         (we want to remove such tag).
 
-        ``strip`` if True remove leading and trailing whitespace.
-        
-        ``case_sensitive`` if True validation will be case sensitive.
-        
+        ``strip`` if True than remove leading and trailing whitespace.
+
         ``data`` any extended data, usually used by signals.
         """
         self.required = required
         if default is not None:
             default = unicode(default)
         self.default = default
+        self.allow_empty = allow_empty
         self.invalid = invalid
         self.strip = strip
-        self.case_sensitive = case_sensitive
         self.data = data
+
 
     def validate(self, value, parent=None):
         u"""
@@ -143,25 +160,35 @@ class Rule(object):
         """
         try:
             try:
-                if (value is None) or (self.required and not value):
-                    raise RequiredException(value, parent)
+                if not self.allow_empty and not value:
+                    raise EmptyException
+                if value is None:
+                    value = ''
                 value = unicode(value)
                 if self.strip:
                     value = value.strip()
                 value = self.core(value, parent)
+                if not self.allow_empty and not value:
+                    raise EmptyException
             except TrustedException, exception:
                 if self.default is None:
-                    raise exception
+                    if self.required:
+                        raise RequiredException
+                    else:
+                        raise exception
                 value = self.default
             if self.invalid:
-                raise InvalidException(value, parent)
+                raise InvalidException
+
+            rule_done.send(sender=self.__class__, rule=self,
+                parent=parent, value=value)
+
         except TrustedException, exception:
             rule_exception.send(sender=self.__class__, rule=self,
                 parent=parent, value=value, exception=exception)
             raise exception
-        rule_done.send(sender=self.__class__, rule=self,
-            parent=parent, value=value)
         return value
+
 
     def core(self, value, parent):
         u"""
@@ -177,31 +204,68 @@ class Rule(object):
         return value
 
 class String(Rule):
+    u"""
+    Rule suppose that any string value is correct.
+    Validation will return source value. 
+    """
+
     pass
 
 class Content(String):         
+    u"""
+    Rule suppose that any not empty string value is correct.
+    Validation will return source value. 
+    """
+    
     def __init__(self, allow_empty=False, **kwargs):
-        kwargs['allow_empty'] = allow_empty
-        super(Content, self).__init__(**kwargs)
+        u"""
+        Just replace default settings.
+        """
+        super(Content, self).__init__(allow_empty=allow_empty, **kwargs)
 
-
-class Char(Rule):
-    def core(self, value, parent):
-        if len(value) < 1:
-            raise IncorrectException(value, parent)
-        return value[:1]
-
-
-class List(String):
-    def __init__(self, values, return_defined=True, **kwargs):
-        super(List, self).__init__(**kwargs)
-        self.values = values
-        self.source_values = self.values
-        self.return_defined = return_defined
-        if not self.case_sensitive:
-            self.values = [unicode(value).lower() for value in self.values]
+class Char(Content):
+    u"""
+    Rule suppose that any not empty string value is correct.
+    Validation will return only first chat from the source value. 
+    """
     
     def core(self, value, parent):
+        u"""
+        Returns first char of the ``value``.
+        """
+        return value[:1]
+
+class List(String):
+    u"""
+    Rule suppose that value is correct if it is in ``values``.
+    Validation will return corresponding item from ``values``.
+    """    
+    
+    def __init__(self, values, case_sensitive=False, return_defined=True, **kwargs):
+        u"""
+        ``values`` is list of allowed values. 
+        
+        ``case_sensitive`` if True than validation will be case sensitive.
+        
+        ``return_defined`` if True than return value as it was defined in ``values``.
+        """
+        super(List, self).__init__(**kwargs)
+        self.source_values = values
+        self.case_sensitive = case_sensitive
+        self.return_defined = return_defined
+
+        self.values = []
+        for value in self.values:
+            value = unicode(value)
+            if not self.case_sensitive:
+                value = value.lower()
+            self.values.append(value)
+
+
+    def core(self, value, parent):
+        u"""
+        Check whether ``value`` is present in ``self.values``.
+        """
         if not self.case_sensitive:
             value = value.lower()
         if value not in self.values:
@@ -212,23 +276,34 @@ class List(String):
         
 
 class Url(Content):
-    SCHEMES = ['http', 'https', 'shttp', 
-        'ftp', 'sftp', 'file', 'mailto',  
-        'svn', 'svn+ssh', 
-        'telnet', 'mms', 'ed2k', 
+    u"""
+    Rule suppose that value is correct if it is a URL with allowed ``SCHEMES``.
+    Validation will return correct URL.
+    """
+    
+    SCHEMES = ['http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
+        'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
     ]
     GLOBAL_PREFIX = 'http://'
     LOCAL_PREFIX = '/'
     ANCHOR = re.compile(r'^#\w+$')
     ANCHOR_SPACES = re.compile(r'\s')
     
-    def __init__(self, local_only=False, allow_local=True, allow_anchor=False, **kwargs):
+    def __init__(self, allow_foreign=False, allow_local=True, allow_anchor=False, **kwargs):
+        u"""
+        ``allow_foreign`` if True then URL to foreign sites will be allowed.
+        Valid example: 'http://example.com/media/img.jpg'
+        
+        ``allow_local`` if True then local URL will be allowed.
+        Valid examples: '/media/img.jpg' , '../img.jpg' 
+        
+        ``allow_anchor`` if True then anchor will be allowed.
+        Valid example: '#start-anchor'
+        """
         super(Url, self).__init__(**kwargs)
-        self.local_only = local_only
+        self.allow_foreign = allow_foreign
         self.allow_local = allow_local
         self.allow_anchor = allow_anchor
-        if self.local_only == True:
-            self.allow_local = True
         if ':' not in self.GLOBAL_PREFIX:
             self.GLOBAL_PREFIX = self.GLOBAL_PREFIX + ':'
         
@@ -245,11 +320,11 @@ class Url(Content):
                 else:
                     value = unicode(Site.objects.get_current()) + value
             else:
-                if self.local_only:
+                if not self.allow_foreign:
                     return self.LOCAL_PREFIX + value
             value = self.GLOBAL_PREFIX + value
-        if self.local_only:
-            #value = self.handle(value, 'local_only')
+        if not self.allow_foreign:
+            #value = self.handle(value, 'allow_foreign')
             if value is not None:
                 return value
             raise IncorrectException(value, parent)
