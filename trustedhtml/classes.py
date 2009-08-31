@@ -8,12 +8,43 @@ from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
 from signals import *
-from exceptions import *
 
 TRUSTED_PREPARINGS = 2
 TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
+class TrustedException(ValueError):
+    u"""
+    Base trustedhtml exception.
+    """
+    pass
+
+class RequiredException(TrustedException):
+    u"""
+    Raised when value is empty and required flag is True. 
+    """
+    pass
+ 
+class IncorrectException(TrustedException):
+    u"""
+    Raised when value is incorrect. 
+    """
+    pass
+ 
+class InvalidException(TrustedException):
+    u"""
+    Raised when value pass check and invalid flag is True.
+    """
+    pass
+    
+class SequenceException(TrustedException):
+    u"""
+    Raised when element to corresponded to sequence. 
+    
+    Example: color is not specified for "border" style property
+    """
+    pass
+ 
 class Tag(object):
     u"""Used when we need tags like in beautifulsoup"""
     def __init__(self, name='', attrs=[]):
@@ -64,101 +95,100 @@ class Run(object):
         except InvalidException:
             return None
         return False
-    
+
 class Rule(object):
     u"""
     Base rule class.
-    
-    Options:
-        strip
-            Remove leading and trailing whitespace.
-        required
-            If True value is required. Example attribute "src" for tag "img".
-        allow_empty
-            If True value can be empty. Example attribute "alt" for tag "img".
-        case_sensitive
-            If True validation will be case sensitive.
-        invalid
-            If True result of validation will be inverted.
     """
-    def __init__(self, strip=True, required=False, allow_empty=True, case_sensitive=False, 
-            invalid=False):
+    
+    def __init__(self, required=False, default=None, invalid=False,
+        strip=True, case_sensitive=False, data=None):
+        u"""
+        Sets behaviour for the rule:
+        
+        ``required`` if True value is required.
+        Example: attribute "src" for tag "img".
+        
+        ``default`` if is not None and validation fail, will return this one.
+        Example: attribute "alt" for tag "img". 
+        
+        ``invalid`` if True result of validation will be inverted.
+        Example: "none" value for "display" style property
+        (we want to remove such tag).
+
+        ``strip`` if True remove leading and trailing whitespace.
+        
+        ``case_sensitive`` if True validation will be case sensitive.
+        
+        ``data`` any extended data, usually used by signals.
+        """
         self.required = required
-        self.strip = strip
-        self.allow_empty = allow_empty
-        self.case_sensitive = case_sensitive
+        if default is not None:
+            default = unicode(default)
+        self.default = default
         self.invalid = invalid
-        self.tag = tag 
-        
-        self.name = None
-        self.attr = None
-        self.value = None
-        self.parent = None
-        self.data = None
-        
-        
-    def finish_print(self, text):
-        if not self.quite:
-            print text
-        
-    def finish(self, value, invalid_error=False):
-        # Debug report:
-        line = '<%s %s = %s : %s ~ %s>' % (
-            self.name, self.attr, repr(self.value), repr(value), self.__class__.__name__)
-        if invalid_error:
-            self.finish_print('\n$' + line)
-            raise InvalidException(unicode(line))
-        if self.required == True:
-            self.finish_print('\n!' + line)
-            raise RequiredException(unicode(line))
-        if self.required == False:
-            if self.value is not None:
-                self.finish_print('\n-' + line)
-            raise EmptyException(unicode(line))
-        self.finish_print('\n+' + line)
-        raise DefaultException(unicode(line))
-        
-    def prepare(self, value):
-        if (value is None) or (not self.allow_empty and value == ''):
-            self.finish(value)
-        value = unicode(value)
-        if self.strip:
-            value = value.strip()
-        return value
-
-    def core(self, value):
-        return value
-
-    def validate(self, name, attr, value, parent=None, data=None, quite=TRUSTED_QUITE):
-        self.name = name
-        self.attr = attr
-        self.value = value
-        self.parent = parent
+        self.strip = strip
+        self.case_sensitive = case_sensitive
         self.data = data
-        self.quite = quite
+
+    def validate(self, value, parent=None):
+        u"""
+        Main interface function. Call it to validate specified ``value``.
+        
+        Returns correct value or raise exception.
+        
+        ``parent`` is the rule that called this validation.
+        
+        This function will call ``core()`` that can be overwritten by subclasses.
+        """
         try:
-            value = self.prepare(value)
-            value = self.core(value)
-        except DefaultException:
-            return unicode(self.required)
-        if self.invalid:
-            self.finish(value, invalid_error=True)
+            try:
+                if (value is None) or (self.required and not value):
+                    raise RequiredException(value, parent)
+                value = unicode(value)
+                if self.strip:
+                    value = value.strip()
+                value = self.core(value, parent)
+            except TrustedException, exception:
+                if self.default is None:
+                    raise exception
+                value = self.default
+            if self.invalid:
+                raise InvalidException(value, parent)
+        except TrustedException, exception:
+            rule_exception.send(sender=self.__class__, rule=self,
+                parent=parent, value=value, exception=exception)
+            raise exception
+        rule_done.send(sender=self.__class__, rule=self,
+            parent=parent, value=value)
+        return value
+
+    def core(self, value, parent):
+        u"""
+        This function is called while validation.
+        Subclasses can overwrite this one to define another validation mechanism.
+        
+        ``value`` is prepared value (striped if specified) for validation.
+        
+        ``parent`` is the rule that called this validation.
+        
+        Return correct value or raise TrustedException (or subclasses).
+        """
         return value
 
 class String(Rule):
     pass
 
-        
 class Content(String):         
     def __init__(self, allow_empty=False, **kwargs):
         kwargs['allow_empty'] = allow_empty
         super(Content, self).__init__(**kwargs)
 
 
-class Char(String):
-    def core(self, value):
+class Char(Rule):
+    def core(self, value, parent):
         if len(value) < 1:
-            self.finish(value)
+            raise IncorrectException(value, parent)
         return value[:1]
 
 
@@ -171,15 +201,13 @@ class List(String):
         if not self.case_sensitive:
             self.values = [unicode(value).lower() for value in self.values]
     
-    def core(self, value):
-        if self.case_sensitive:
-            if value not in self.values:
-                self.finish(value)
-        else:
-            if value.lower() not in self.values:
-                self.finish(value)
-            if self.return_defined:
-                return self.source_values[self.values.index(value.lower())]
+    def core(self, value, parent):
+        if not self.case_sensitive:
+            value = value.lower()
+        if value not in self.values:
+            raise IncorrectException(value, parent)
+        if not self.case_sensitive and self.return_defined:
+            value = self.source_values[self.values.index(value)]
         return value
         
 
@@ -224,10 +252,10 @@ class Url(Content):
             #value = self.handle(value, 'local_only')
             if value is not None:
                 return value
-            self.finish(value)
+            raise IncorrectException(value, parent)
         scheme = value[:value.find(':')].lower()
         if scheme not in self.SCHEMES:
-            self.finish(value)
+            raise IncorrectException(value, parent)
         return value
 
     
@@ -259,7 +287,7 @@ class Number(Content):
             value = self.REMOVE.sub('', value)
         match = self.REGEXP.match(value)
         if match is None:
-            self.finish(value)
+            raise IncorrectException(value, parent)
         return unicode(match.group(1))
 
 
@@ -395,7 +423,7 @@ class Sequence(Content):
         try:
             parts = self.sequence(value, parts)
         except SequenceException:
-            self.finish(value)
+            raise IncorrectException(value, parent)
         value = self.joiner_char.join(parts)
         if parts:
             value += self.appender_char
@@ -421,7 +449,7 @@ class Style(Sequence, Run):
         tag = Tag(self.name, attrs)
         result = self.check(tag)
         if result is None:
-            self.finish(value, invalid_error=True)
+            raise InvalidException(value, parent)
         if not result:
             raise SequenceException
         return ['%s: %s' % (part_name, part_value) for part_name, part_value in tag.attrs]
@@ -661,7 +689,6 @@ class Html(Run):
                 index += 1
             if index >= len(soup.contents):
                 break
-            finish = index
             start = Tag(soup, self.default_start_tag)
             while index < len(soup.contents) and self.need_wrap(soup.contents[index], True):
                 content = soup.contents[index].extract()

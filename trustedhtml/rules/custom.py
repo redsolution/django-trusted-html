@@ -67,14 +67,14 @@ smile_template = '/media/js/tiny_mce/plugins/emotions/img/smiley-%s.gif'
 smile_rules = [
     {
         'src': List(values=[smile_template % smile_name], required=True),
-        'title': List(values=[smile_alt], required=smile_alt),
-        'alt': List(values=[smile_alt], required=smile_alt),
+        'title': List(values=[smile_alt], default=smile_alt),
+        'alt': List(values=[smile_alt], default=smile_alt),
     } for smile_name, smile_alt in smiles] + [
     {
         'src': List(values=[smile_template % smile_name], 
-            required=smile_template % smile_name),
+            default=smile_template % smile_name),
         'title': List(values=[smile_alt], required=True),
-        'alt': List(values=[smile_alt], required=smile_alt),
+        'alt': List(values=[smile_alt], default=smile_alt),
     } for smile_name, smile_alt in smiles]
 
 comment = {

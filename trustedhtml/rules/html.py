@@ -39,7 +39,7 @@ coreattrs = {
 # { <attribute-name>: <validation object> }
 html = {
     'a': [ {
-        'title': String(required=''),
+        'title': String(default=''),
         # Can enable: 'charset': charset,
         # Can enable: 'type': content_type,
         'name': string,
@@ -57,7 +57,7 @@ html = {
     'address': [],
     'b': [],
     'blockquote': [{
-        'cite': Url(allow_anchor=True, required=False), 
+        'cite': Url(allow_anchor=True), 
     }, ],
     'br': [ {
         'clear':  List(values=[
@@ -79,7 +79,7 @@ html = {
     'img': [ {
         'title': string,
         'src': Url(required=True, local_only=True, tag='download_image'), 
-        'alt': String(required=''),
+        'alt': String(default=''),
         # Can enable: 'longdesc': Url(),
         'width': length,
         'height': length,
@@ -89,7 +89,7 @@ html = {
         'hspace': number,
         'vspace': number,
         'style': style,
-        # Can enable: 'name': String(required=''),
+        # Can enable: 'name': String(default=''),
     }, ],
     'li': [ {
         'type': List(values=[

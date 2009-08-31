@@ -18,6 +18,6 @@ rule_exception
 
 from django.dispatch import Signal
 
-rule_done = Signal(providing_args=["rule", "value", "state", ])
+rule_done = Signal(providing_args=['rule', 'parent', 'value', 'state', ])
 
-rule_exception = Signal(providing_args=["rule", "value", "exception", ])
+rule_exception = Signal(providing_args=['rule', 'parent', 'value', 'state', 'exception', ])
