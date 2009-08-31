@@ -5,48 +5,58 @@ import copy
 from beautifulsoup import BeautifulSoup, NavigableString, Tag
 from django.contrib.sites.models import Site
 from django.utils.encoding import iri_to_uri
+from django.dispatch import Signal
+
+from signals import *
 
 TRUSTED_PREPARINGS = 2
 TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
 class TrustedException(ValueError):
-    u"""Base trustedhtml exception."""
+    u"""
+    Base trustedhtml exception.
+    """
     pass
 
 class RequiredException(TrustedException):
     u"""
-Raised when value is absent and required flag is True. 
+    Raised when value is absent and required flag is True. 
 
-Example: src attribute for <img />"""
+    Example: src attribute for <img />
+    """
     pass
  
 class InvalidException(TrustedException):
     u"""
-Raised when value pass check and invalid flag is True.
+    Raised when value pass check and invalid flag is True.
     
-Example: "none" value for "display" style property (we want to remove such tag)"""
+    Example: "none" value for "display" style property (we want to remove such tag)
+    """
     pass
     
 class EmptyException(TrustedException):
     u"""
-Raised when value is empty and allow_empty is False.
+    Raised when value is empty and allow_empty is False.
 
-Example: width attribute for <div />"""
+    Example: width attribute for <div />
+    """
     pass
  
 class DefaultException(TrustedException):
     u"""
-Raised when value is empty and default value is not None. 
+    Raised when value is empty and default value is not None. 
     
-Example: alt attribute for <img />"""
+    Example: alt attribute for <img />
+    """
     pass
     
 class SequenceException(TrustedException):
     u"""
-Raised when element to corresponded to sequence. 
+    Raised when element to corresponded to sequence. 
     
-Example: color is not specified for "border" style property"""
+    Example: color is not specified for "border" style property
+    """
     pass
  
 class Tag(object):
@@ -55,17 +65,10 @@ class Tag(object):
         self.name = name
         self.attrs = attrs
     
-class Handler(object):
-    def __init__(self, profile):
-        self.profile = profile
-        
-    def listener(self, rule, value, state):
-        return None
-        
 class Run(object):
-    def __init__(self, trusted_list, handler=None, equivalents={}):
+    def __init__(self, trusted_list, data=None, equivalents={}):
         self.trusted_list = trusted_list
-        self.handler = handler
+        self.data = data
         self.equivalents = equivalents
     
     def check(self, tag):
@@ -88,7 +91,7 @@ class Run(object):
                                 value = None
                             try:
                                 correct[attribute] = validator.validate(tag.name, attribute, value, 
-                                    parent=self, handler=self.handler, quite=quite)
+                                    parent=self, data=self.data, quite=quite)
                             except EmptyException:
                                 pass
                     order = [attr for attr, value in tag.attrs]
@@ -119,15 +122,9 @@ class String(object):
         self.attr = None
         self.value = None
         self.parent = None
-        self.handler = None
+        self.data = None
         self.quite = None
         
-        
-    def handle(self, value, state):
-        if self.handler is not None:
-            return self.handler.listener(rule=self, value=value, state=state)
-        else:
-            return None
         
     def finish_print(self, text):
         if not self.quite:
@@ -161,12 +158,12 @@ class String(object):
     def core(self, value):
         return value
 
-    def validate(self, name, attr, value, parent=None, handler=None, quite=TRUSTED_QUITE):
+    def validate(self, name, attr, value, parent=None, data=None, quite=TRUSTED_QUITE):
         self.name = name
         self.attr = attr
         self.value = value
         self.parent = parent
-        self.handler = handler
+        self.data = data
         self.quite = quite
         try:
             value = self.prepare(value)
@@ -259,7 +256,7 @@ class Url(Content):
                     return self.LOCAL_PREFIX + value
             value = self.GLOBAL_PREFIX + value
         if self.local_only:
-            value = self.handle(value, 'local_only')
+            #value = self.handle(value, 'local_only')
             if value is not None:
                 return value
             self.finish(value)
@@ -419,7 +416,7 @@ class Sequence(Content):
         for part in parts:
             try:
                 result.append(self.validator.validate(self.name, self.attr, part, 
-                    parent=self, handler=self.handler, quite=self.quite))
+                    parent=self, data=self.data, quite=self.quite))
             except RequiredException:
                 raise SequenceException
             except EmptyException:
@@ -441,12 +438,12 @@ class Sequence(Content):
 
 
 class Style(Sequence, Run):
-    def __init__(self, trusted_list, delimiter_char=';', joiner_char='; ', appender_char=';', handler=None, equivalents={}, **kwargs):
+    def __init__(self, trusted_list, delimiter_char=';', joiner_char='; ', appender_char=';', data=None, equivalents={}, **kwargs):
         kwargs['delimiter_char'] = delimiter_char
         kwargs['joiner_char'] = joiner_char
         kwargs['appender_char'] = appender_char
         Sequence.__init__(self, **kwargs)
-        Run.__init__(self, trusted_list, handler, equivalents)
+        Run.__init__(self, trusted_list, equivalents)
         
     def sequence(self, value, parts):
         attrs = []
@@ -481,7 +478,7 @@ class Indent(Sequence):
         for part in parts:
             try:
                 result.append(self.validator.validate(self.name, self.attr, part, 
-                    parent=self, handler=self.handler, quite=self.quite))
+                    parent=self, data=self.data, quite=self.quite))
             except (RequiredException, EmptyException):
                 raise SequenceException
         return result
@@ -504,7 +501,7 @@ class Complex(Indent):
             raise SequenceException
         try:
             value = list[list_index].validate(self.name, self.attr, parts[part_index], 
-                parent=self, handler=self.handler, quite=True)
+                parent=self, data=self.data, quite=True)
             result = self.complex(parts, part_index + 1, list, list_index + 1)
             result[part_index] = value
             return result
@@ -732,10 +729,10 @@ class Html(Run):
         self.plain_text = self.get_plain_text(self.soup)
         return unicode(self.soup)
         
-    def __init__(self, raw_html, trusted_dictionary, handler=None):
+    def __init__(self, raw_html, trusted_dictionary, data=None):
     # Generate: self.html, self.plain_text
         self.trusted_dictionary = trusted_dictionary
-        super(Html, self).__init__(trusted_list=[], handler=handler)
+        super(Html, self).__init__(trusted_list=[], data=data)
         BeautifulSoup.QUOTE_TAGS = {}
         self.raw_html = unicode(raw_html)
         self.html = self.raw_html
