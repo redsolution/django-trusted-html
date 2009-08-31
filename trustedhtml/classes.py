@@ -8,57 +8,12 @@ from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
 from signals import *
+from exceptions import *
 
 TRUSTED_PREPARINGS = 2
 TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
-class TrustedException(ValueError):
-    u"""
-    Base trustedhtml exception.
-    """
-    pass
-
-class RequiredException(TrustedException):
-    u"""
-    Raised when value is absent and required flag is True. 
-
-    Example: src attribute for <img />
-    """
-    pass
- 
-class InvalidException(TrustedException):
-    u"""
-    Raised when value pass check and invalid flag is True.
-    
-    Example: "none" value for "display" style property (we want to remove such tag)
-    """
-    pass
-    
-class EmptyException(TrustedException):
-    u"""
-    Raised when value is empty and allow_empty is False.
-
-    Example: width attribute for <div />
-    """
-    pass
- 
-class DefaultException(TrustedException):
-    u"""
-    Raised when value is empty and default value is not None. 
-    
-    Example: alt attribute for <img />
-    """
-    pass
-    
-class SequenceException(TrustedException):
-    u"""
-    Raised when element to corresponded to sequence. 
-    
-    Example: color is not specified for "border" style property
-    """
-    pass
- 
 class Tag(object):
     u"""Used when we need tags like in beautifulsoup"""
     def __init__(self, name='', attrs=[]):
@@ -66,6 +21,9 @@ class Tag(object):
         self.attrs = attrs
     
 class Run(object):
+    u"""
+    
+    """
     def __init__(self, trusted_list, data=None, equivalents={}):
         self.trusted_list = trusted_list
         self.data = data
@@ -106,11 +64,25 @@ class Run(object):
         except InvalidException:
             return None
         return False
-
-class String(object):
-    def __init__(self, required=False, strip=True, allow_empty=True, case_sensitive=False, 
-            invalid=False, tag=None):
-        self.quite = TRUSTED_QUITE
+    
+class Rule(object):
+    u"""
+    Base rule class.
+    
+    Options:
+        strip
+            Remove leading and trailing whitespace.
+        required
+            If True value is required. Example attribute "src" for tag "img".
+        allow_empty
+            If True value can be empty. Example attribute "alt" for tag "img".
+        case_sensitive
+            If True validation will be case sensitive.
+        invalid
+            If True result of validation will be inverted.
+    """
+    def __init__(self, strip=True, required=False, allow_empty=True, case_sensitive=False, 
+            invalid=False):
         self.required = required
         self.strip = strip
         self.allow_empty = allow_empty
@@ -123,7 +95,6 @@ class String(object):
         self.value = None
         self.parent = None
         self.data = None
-        self.quite = None
         
         
     def finish_print(self, text):
@@ -174,14 +145,8 @@ class String(object):
             self.finish(value, invalid_error=True)
         return value
 
-    def v(self, value, catch=True):
-        if catch:
-            try:
-                return self.validate('name', 'attr', value)
-            except TrustedException, error:
-                return error
-        else:
-            return self.validate('name', 'attr', value)
+class String(Rule):
+    pass
 
         
 class Content(String):         

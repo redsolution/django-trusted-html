@@ -160,6 +160,15 @@ tiny_omg = u"""
 <h6>&clubs; 01.08.2008 &lt;img src="javascript:alert(1);"&gt; 16:27:31</h6>
 """
 
+#    def v(self, value, catch=True):
+#        if catch:
+#            try:
+#                return self.validate('name', 'attr', value)
+#            except TrustedException, error:
+#                return error
+#        else:
+#            return self.validate('name', 'attr', value)
+
 #TrustedStr().v('')
 #TrustedStr(allow_empty=False).v('')
 #TrustedList(values=['leFt', 'right', ]).v('  lEft')
