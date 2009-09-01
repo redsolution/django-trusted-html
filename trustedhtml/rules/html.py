@@ -2,6 +2,28 @@
 
 from trustedhtml.classes import *
 
+# TODO: 'dt': Tag(get_content=True),
+
+lexic_dict = {}
+lexic_dict['h'] = r'[0-9a-f]' % lexic_dict
+lexic_dict['nonascii'] = r'[\200-\4177777]' % lexic_dict
+lexic_dict['unicode'] = r'\\%(h)s{1,6}[ \t\r\n\f]?' % lexic_dict
+lexic_dict['escape'] = r'%(unicode)s|\\[ -~\200-\4177777]' % lexic_dict
+lexic_dict['nmstart'] = r'[a-z]|%(nonascii)s|%(escape)s' % lexic_dict
+lexic_dict['nmchar'] = r'[a-z0-9-]|%(nonascii)s|%(escape)s' % lexic_dict
+lexic_dict['string1'] = r'\"([\t !#$%%&(-~]|\\%(nl)s|\'|%(nonascii)s|%(escape)s)*\"' % lexic_dict
+lexic_dict['string2'] = r'\'([\t !#$%%&(-~]|\\%(nl)s|\"|%(nonascii)s|%(escape)s)*\'' % lexic_dict
+
+lexic_dict['ident'] = r'%(nmstart)s%(nmchar)s*' % lexic_dict
+lexic_dict['name'] = r'%(nmchar)s+' % lexic_dict
+lexic_dict['num'] = r'[0-9]+|[0-9]*\.[0-9]+' % lexic_dict
+lexic_dict['string'] = r'%(string1)s|%(string2)s' % lexic_dict
+lexic_dict['url'] = r'([!#$%%&*-~]|%(nonascii)s|%(escape)s)*' % lexic_dict
+lexic_dict['w'] = r'[ \t\r\n\f]*' % lexic_dict
+lexic_dict['nl'] = r'\n|\r\n|\r|\f' % lexic_dict
+lexic_dict['range'] = r'\?{1,6}|%(h)s(\?{0,5}|%(h)s(\?{0,4}|%(h)s(\?{0,3}|%(h)s(\?{0,2}|%(h)s(\??|%(h)s)))))' % lexic_dict
+
+
 string = String()
 indent = Indent()
 number = RegExp(regexp=r'([-+]?\d{1,7})$')
@@ -56,13 +78,9 @@ color = Or(rules=[
         'yellow', 'yellowgreen', 
     ]),
     RegExp(regexp=
-        '((rgb|hsl)\(%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\))|'
+        '(((rgb|hsl)\(%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\))|'
         '((rgba|hsla)\(%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s,%(w)s%(num)s%%(w)s\))|'
-        '(#%(h)s{6})|(#%(h)s{3}))' % {
-            'h': '[0-9a-f]',
-            'w': '[ \t\n]*',
-            'num': '{d}+|{d}*\.{d}+',
-        }
+        '(#%(h)s{6})|(#%(h)s{3})))$' % lexic_dict
     ),
 ])
 
