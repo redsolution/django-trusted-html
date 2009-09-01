@@ -2,8 +2,6 @@
 
 from trustedhtml.classes import *
 
-# TODO: 'dt': Tag(get_content=True),
-
 lexic_dict = {}
 lexic_dict['h'] = r'[0-9a-f]' % lexic_dict
 lexic_dict['nonascii'] = r'[\200-\4177777]' % lexic_dict
@@ -84,8 +82,6 @@ color = Or(rules=[
     ),
 ])
 
-# TODO: remove_it vs get_content
-
 link_type = List(values=[
     'alternate', 'stylesheet', 'start', 'next', 'prev', 
     'contents', 'index', 'glossary', 'copyright', 'chapter', 
@@ -102,17 +98,15 @@ charset = List(values=[
     # 'utf-7', # Disable (because of XSS)   
 ] ) # Full list: http://www.iana.org/assignments/character-sets
 
-coreattrs = {
-    'id': string,
-    'title': string,
-    'class': string,
-    'style': style,
-}
+#coreattrs = {
+#    'id': string,
+#    'title': string,
+#    'class': string,
+#    'style': style,
+#}
 
-# For each tag-name you must specify list of attribute combinations:
-# { <attribute-name>: <validation object> }
-html = {
-    'a': [ {
+a = Or(rules=[
+    Tag(attributes={
         'title': String(default=''),
         # Can enable: 'charset': charset,
         # Can enable: 'type': content_type,
@@ -125,32 +119,44 @@ html = {
         # Can enable: 'coords': Sequence(validator=number, delimiter_char=','),
         # Can enable: 'tabindex': number,
         'target': List(values=['_blank', '_self', '_parent', '_top', ]), 
-    }, { 
+    }),
+    Tag(attributes={
         'name': String(required=True),
-    } ],
-    'address': [],
-    'b': [],
-    'blockquote': [{
-        'cite': Url(allow_anchor=True), 
-    }, ],
-    'br': [ {
-        'clear':  List(values=[
-            'left', 'all', 'right', 'none', 
-        ]),
-    }, ],
-    'caption': [ {
-        'align': List(values=[
-            'top', 'bottom', 'left', 'right', 
-        ]),
-    }, ],
-    'cite': [],
-    'div': [ {
+    }),
+])
+
+address = Tag()
+b = Tag()
+
+blockquote = Tag(attributes={
+    'cite': Url(allow_anchor=True), 
+})
+
+br = Tag(attributes={
+    'clear':  List(values=[
+        'left', 'all', 'right', 'none', 
+    ]),
+})
+
+caption = Tag(attributes={
+    'align': List(values=[
+        'top', 'bottom', 'left', 'right', 
+    ]),
+})
+
+cite = Tag()
+
+div = Tag(attributes={
         'style': style_display,
-    }, ],
-    'h1': [ {
+})
+
+# dt = Tag(get_content=True)
+
+h1 = Tag(attributes={
         'align': text_align,
-    }, ],
-    'img': [ {
+})
+
+img = Tag(attributes={
         'title': string,
         'src': Url(required=True, allow_foriegn=False, tag='download_image'), 
         'alt': String(default=''),
@@ -164,29 +170,37 @@ html = {
         'vspace': number,
         'style': style,
         # Can enable: 'name': String(default=''),
-    }, ],
-    'li': [ {
+})
+
+li = Tag(attributes={
         'type': List(values=[
             'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
         ]),
         'value': number,
-    }, ],
-    'ol': [ {
+})
+
+ol = Tag(attributes={
         'type': List(values=[
             '1', 'a', 'A', 'i', 'I', 
         ]),
         'start': number,
-    }, ],
-    'p': [], # Can enable {'align': text_align,}
-    'pre': [],
-    'span': [ {
+})
+
+p = Tag(attributes={
+    # Can enable: 'align': text_align,
+})
+
+pre = Tag()
+
+span = Tag(attributes={
         'style': Style(trusted_list=[ {
             'text-decoration': List(values=[
                 'underline', 'line-through', 
             ]),
         }, ]),
-    }, ],
-    'table': [ {
+})
+
+table = Tag(attributes={
         'title': string,
         'summary': string,
         'width': length,
@@ -203,8 +217,9 @@ html = {
         'align': text_align,
         # Can enable: 'bgcolor': color,
         'style': style,
-    }, ],
-    'tbody': [ {
+})
+
+tbody = Tag(attributes={
         'align': List(values=[
             'left', 'center', 'right', 'justify', 'char', 
         ]),
@@ -213,8 +228,9 @@ html = {
         'valign': List(values=[
             'top', 'middle', 'bottom', 'baseline', 
         ]),
-    }, ],
-    'td': [ {
+})
+
+td = Tag(attributes={
         # Can enable: 'headers': string,
         'abbr': string,
         'scope': List(values=[
@@ -236,8 +252,9 @@ html = {
         # Can enable: 'nowrap': List(values=['', 'nowrap', ]),
         # Can enable: 'bgcolor': color,
         'style': style_td,
-    }, ],
-    'tr': [ {
+})
+
+tr = Tag(attributes={
         'align': List(values=[
             'left', 'center', 'right', 'justify', 'char', 
         ]),
@@ -247,18 +264,44 @@ html = {
             'top', 'middle', 'bottom', 'baseline',
         ]),
         # Can enable: 'bgcolor': color,
-    }, ],
-    'ul': [ {
+})
+
+ul = Tag(attributes={
         'type': List(values=[
             'disc', 'square', 'circle', 
         ]),
-    }, ]
+})
+
+
+# For each tag-name you must specify list of attribute combinations:
+# { <attribute-name>: <validation object> }
+html = Html(tags={
+    'a': a,
+    'address': address,
+    'b': b,
+    'blockquote': blockquote,
+    'br': br,
+    'caption': caption,
+    'cite': cite,
+    'div': div,
+    'h1': h1,
+    'img': img,
+    'li': li,
+    'ol': ol,
+    'p': p,
+    'pre': pre,
+    'span': span,
+    'table': table,
+    'tbody': tbody,
+    'td': td,
+    'tr': tr,
+    'ul': ul,
 }
-#, equivalents = {
-#    'h1': [
-#        'h2', 'h3', 'h4', 'h5', 'h6',
-#    ],
-#    'b': [
-#        'em', 'i', 'strong', 'sub', 'sup', 'u',
-#    ],
-#}
+, equivalents = {
+    'h1': [
+        'h2', 'h3', 'h4', 'h5', 'h6',
+    ],
+    'b': [
+        'em', 'i', 'strong', 'sub', 'sup', 'u',
+    ],
+})
