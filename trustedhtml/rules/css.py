@@ -2,24 +2,29 @@
 
 from trustedhtml.classes import *
 
-# TODO: remove_it vs get_content
-
 # TODO: add it to Style
-core_css_values = [
-    'inherit',
-]
+#core_css_values = [
+#    'inherit',
+#]
 
-# TODO: css_url = Url(css=True, values=['none'])
-css_url = String()
+# TODO: CssUrl
+css_url = Or(rules=[
+    List(values=[
+        'none'
+    ]),
+    Url(),
+])
 
 background_attachment = List(values=[
     'scroll', 'fixed',
 ])
 
-#background_color = Color(values=[
-#    'transparent',
-#])
-background_color = color
+background_color = Or(rules=[
+    List(values=[
+        'transparent', 
+    ]),
+    color, 
+])
 
 background_image = css_url
 
@@ -54,10 +59,13 @@ background = Complex(trusted_sequence=[
     background_position,
 ])
 
-#border_color = Color(values=[
-#    'transparent',
-#])
-border_color = color
+border_color = Or(rules=[
+    List(values=[
+        'transparent', 
+    ]),
+    color, 
+])
+
 
 border_style = List(values=[
     'none', 'hidden', 'dotted', 'dashed', 'solid', 'double', 
@@ -101,8 +109,14 @@ clear = List(values=[
     'left', 'right', 'both', 'none', 
 ])
 
-# TODO: rect(top, right, bottom, left) | auto
-clip = String()
+clip = Or(rules=[
+    List(values=[
+        'auto', 
+    ]),
+    RegExp(regexp=
+        '(rect\(%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\))$' % lexic_dict
+    ),
+])
 
 cursor = List(values=[
     'auto', 'crosshair', 'default', 'e-resize', 'help', 'move', 'n-resize', 
@@ -130,7 +144,9 @@ float = List(values=[
     'left', 'right', 
 ])
 
-# TODO: font_family = String(without_spaces=True)
+# TODO: font_family = Sequence(
+#    RegExp(regexp=lexic_dict['string'])
+#)
 font_family = String()
 
 font_size = Or(rules=[
@@ -198,13 +214,12 @@ list_style = Complex(trusted_sequence=[
     list_style_image,
 ])
 
-#margin = Indent(failback=
-#    List(values=[
-#        'auto'
-#    ])
-#)
-
-margin = Indent()
+margin = Or(rules=[
+    Indent(),
+    List(values=[
+        'auto'
+    ]),
+])
 
 margin_top = Or(rules=[
     size, 
@@ -220,10 +235,12 @@ max_height = Or(rules=[
     ]),
 ])
 
-#outline_color = Color(values=[
-#    'invert',
-#])
-outline_color = color
+outline_color = Or(rules=[
+    color,
+    List(values=[
+        'invert',
+    ]),
+])
 
 outline_style = List(values=[
     'none', 'dotted', 'dashed', 'solid', 'double', 
@@ -258,8 +275,12 @@ position = List(values=[
     'absolute', 'fixed', 'relative', 'static',
 ])
 
-# none | string string string string
-quotes = String()
+quotes = Or(rules=[
+    List(values=[
+        'none',
+    ]),
+    RegExp(regexp=r'([%(w)s%(string)s[ \t\r\n\f]+%(string)s%(w)s]+)$'),
+])
 
 table_layout = List(values=[
     'auto', 'fixed',
@@ -295,10 +316,12 @@ white_space = List(values=[
     'normal', 'nowrap', 'pre', 'pre-line', 'pre-wrap',
 ])
 
-#z-index = List(values=[
-#    'auto'
-#], failback=Number())
-z_index = number
+z_index = Or(rules=[
+    List(values=[
+        'auto',
+    ]),
+    number,
+])
 
 style = Style(trusted_list=[ {
     'background': background,

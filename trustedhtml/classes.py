@@ -383,7 +383,16 @@ class RegExp(String):
 
 
 class Or(Rule):
+    u"""
+    Rule suppose that value is correct if there is correct rule in ``rules`` list.
+    Validation will return first correct value returned by specified ``rules``.
+    If validation for all ``rules`` will fail than raise last exception.
+    """
+    
     def __init__(self, rules, **kwargs):
+        u"""
+        ``rules`` is list of rules to validate specified ``value``.
+        """
         self.rules = rules
     
     def core(self, value, path):
