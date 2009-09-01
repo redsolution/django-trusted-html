@@ -94,7 +94,7 @@ class Run(object):
                                 value = None
                             try:
                                 correct[attribute] = validator.validate(tag.name, attribute, value, 
-                                    parent=self, data=self.data, quite=quite)
+                                    path=self, data=self.data, quite=quite)
                             except EmptyException:
                                 pass
                     order = [attr for attr, value in tag.attrs]
@@ -148,13 +148,14 @@ class Rule(object):
         self.data = data
 
 
-    def validate(self, value, parent=None):
+    def validate(self, value, path=[]):
         u"""
         Main interface function. Call it to validate specified ``value``.
         
         Returns correct value or raise exception.
         
-        ``parent`` is the rule that called this validation.
+        ``path`` is the list from rules that called this validation.
+        First element of this list will be first rule.
         
         This function will call ``core()`` that can be overwritten by subclasses.
         """
@@ -167,7 +168,7 @@ class Rule(object):
                 value = unicode(value)
                 if self.strip:
                     value = value.strip()
-                value = self.core(value, parent)
+                value = self.core(value, path)
                 value = unicode(value)
                 if not self.allow_empty and not value:
                     raise EmptyException
@@ -182,25 +183,26 @@ class Rule(object):
                 raise InvalidException
 
             results = rule_done.send(sender=self.__class__, rule=self,
-                parent=parent, value=value)
+                path=path, value=value)
             for receiver, response in results:
                 value = response
 
         except TrustedException, exception:
             rule_exception.send(sender=self.__class__, rule=self,
-                parent=parent, value=value, exception=exception)
+                path=path, value=value, exception=exception)
             raise exception
         return value
 
 
-    def core(self, value, parent):
+    def core(self, value, path):
         u"""
         This function is called while validation.
         Subclasses can overwrite this one to define another validation mechanism.
         
         ``value`` is prepared value (striped if specified) for validation.
         
-        ``parent`` is the rule that called this validation.
+        ``path`` is the list from rules that called this validation.
+        First element of this list will be first rule.
         
         Return correct value or raise TrustedException (or subclasses).
         """
@@ -214,7 +216,7 @@ class String(Rule):
 
     pass
 
-class Content(String):         
+class Content(Rule):         
     u"""
     Rule suppose that any not empty string value is correct.
     Validation will return source value. 
@@ -232,11 +234,11 @@ class Char(Content):
     Validation will return only first chat from the source value. 
     """
 
-    def core(self, value, parent):
+    def core(self, value, path):
         u"""Do it."""
         return value[:1]
 
-class List(String):
+class List(Rule):
     u"""
     Rule suppose that value is correct if it is in ``values``.
     Validation will return corresponding item from ``values``.
@@ -263,12 +265,12 @@ class List(String):
             self.values.append(value)
 
 
-    def core(self, value, parent):
+    def core(self, value, path):
         u"""Do it."""
         if not self.case_sensitive:
             value = value.lower()
         if value not in self.values:
-            raise IncorrectException(value, parent)
+            raise IncorrectException
         if not self.case_sensitive and self.return_defined:
             value = self.source_values[self.values.index(value)]
         return value
@@ -314,7 +316,7 @@ class Url(Content):
             self.GLOBAL_PREFIX = self.GLOBAL_PREFIX + ':'
 
 
-    def core(self, value, parent):
+    def core(self, value, path):
         u"""Do it."""
         value = iri_to_uri(value)
         if ':' not in value:
@@ -333,7 +335,7 @@ class Url(Content):
             value = self.GLOBAL_PREFIX + value
         scheme = value[:value.find(':')].lower()
         if scheme not in self.SCHEMES:
-            raise IncorrectException(value, parent)
+            raise IncorrectException
         return value
 
 class RegExp(String):
@@ -366,18 +368,9 @@ class RegExp(String):
         self.flags = flags
         if not self.case_sensitive:
             self.flags = self.flags | re.IGNORECASE
-        self.compiled = self.compile()
+        self.compiled = re.compile(unicode(self.regexp), self.flags)
         
-    def compile(self):
-        u"""
-        This function is called while initialization to compile regexp.
-        Subclasses can overwrite this one to define another mechanism.
-        
-        Return compiled regexp.
-        """
-        return re.compile(unicode(self.regexp), self.flags)
-        
-    def core(self, value, parent):
+    def core(self, value, path):
         """Do it."""
         match = self.compiled.match(value)
         if match is None:
@@ -389,175 +382,22 @@ class RegExp(String):
         return value
 
 
-class Number(RegExp):
-    u"""
-    Rule suppose that value is correct if it is number.
-    Validation will return number.
-    """
-
-    NUMBER_ANY = r'\d*'
-    NUMBER_EXACT = r'\d{%d}'
-    NUMBER_BETWEEN = r'\d{%d,%d}'
-    SIGN = r'[+-]?'
-
-    def __init__(self, allow_sign=True, min_digits=1, max_digits=7, **kwargs):
-        u"""
-        ``allow_sign`` allow sign before number.
-        
-        ``min_digits`` limit minimum number of digits.
-
-        ``max_digits`` limit maximum number of digits.
-        """
-        self.allow_sign = allow_sign
-        self.min_digits = min_digits
-        self.max_digits = max_digits
-        super(Number, self).__init__(regexp=regexp, **kwargs)
-        
-    def compile(self):
-        u"""
-        Generate ``regexp`` for number value. 
-        Return compiled regexp.
-        """
-        regexp = self.number_regexp(self.allow_sign, self.min_digits, self.max_digits)
-        self.regexp = '(%s)$' % regexp
-        return super(Number, self).complite()
-
-    def number_regexp(self, allow_sign, min_digits, max_digits):
-        u"""
-        Return regexp for number value depending on specified options.
-        """
-        regexp = ''
-        if allow_sign:
-            regexp += SIGN
-        if max_digits:
-            if min_digits:
-                regexp += NUMBER_BETWEEN % (min_digits, max_digits)
-            else:
-                regexp += NUMBER_BETWEEN % (0, max_digits)
-        else:
-            if min_digits:
-                regexp += ( NUMBER_EXACT % min_digits ) + NUMBER_ANY
-            else:
-                regexp += NUMBER_ANY
-        return regexp
-
-
-class Length(Number):
-    u"""
-    """
+class Or(Rule):
+    def __init__(self, rules, **kwargs):
+        self.rules = rules
     
-    def compile(self):
-        u"""
-        Generate ``regexp`` for number value. 
-        Return compiled regexp.
-        """
-        regexp = '(%s)|(%s)' % (
-            self.number_regexp(self.allow_sign, self.min_digits, self.max_digits),
-            self.number_regexp(False, 1, 7) + '%')
-        self.regexp = '(%s)$' % regexp
-        return super(Number, self).complite()
+    def core(self, value, path):
+        """Do it."""
+        path = path[:] + [self]
+        result = IncorrectException
+        for rule in rules:
+            try:
+                return rule.validate(value, path)
+            except TrustedException, exception:
+                result = exception
+        raise result
 
 
-class Size(Number):
-    u"""
-    """
-    
-    TRAILINGS = [
-        'px', 'cm', 'mm', 'in', 'pt', 'pc',
-        'em', 'ex', '%', '',
-    ]
-    
-    def compile(self):
-        u"""
-        Generate ``regexp`` for number value. 
-        Return compiled regexp.
-        """
-        regexp = '%s(%s)' % (
-            self.number_regexp(self.allow_sign, self.min_digits, self.max_digits),
-            '|'.join(self.TRAILINGS)
-        )
-        self.regexp = '(%s)$' % regexp
-        return super(Number, self).complite()
-
-
-class ListOrSize(List, Size):
-    def __init__(self, values, allow_sign=True, garbage_trimming=True, **kwargs):
-        Size.__init__(self, allow_sign=allow_sign, garbage_trimming=garbage_trimming, **kwargs)
-        List.__init__(self, values=values, **kwargs) # Use String not Content
-    
-    def core(self, value):
-        # We will use core and catch DefaultException for List or raise it for Size
-        old_quite = self.quite 
-        try:
-            self.quite = True
-            return List.core(self, value)
-        except TrustedException:
-            self.quite = old_quite
-            return Size.core(self, value)
-
-
-class Color(ListOrSize):
-    NAMES = ['activeborder', 'activecaption', 'appworkspace', 
-        'background', 'buttonface', 'buttonhighlight', 'buttonshadow', 
-        'buttontext', 'captiontext', 'graytext', 'highlight', 
-        'highlighttext', 'inactiveborder', 'inactivecaption', 
-        'inactivecaptiontext', 'infobackground', 'infotext', 'menu', 
-        'menutext', 'scrollbar', 'threeddarkshadow', 'threedface', 
-        'threedhighlight', 'threedlightshadow', 'threedshadow', 
-        'window', 'windowframe', 'windowtext', 'currentcolor', 
-    ] + [
-        'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',  
-        'beige', 'bisque', 'black', 'blanchedalmond', 'blue',
-        'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
-        'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson',
-        'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray',
-        'darkgreen', 'darkgrey', 'darkkhaki', 'darkmagenta',
-        'darkolivegreen', 'darkorange', 'darkorchid', 'darkred',
-        'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray',
-        'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
-        'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
-        'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro',
-        'ghostwhite', 'gold', 'goldenrod', 'gray', 'green',
-        'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred',
-        'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush',
-        'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral',
-        'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen',
-        'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen',
-        'lightskyblue', 'lightslategray', 'lightslategrey',
-        'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen',
-        'magenta', 'maroon', 'mediumaquamarine', 'mediumblue',
-        'mediumorchid', 'mediumpurple', 'mediumseagreen',
-        'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
-        'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose',
-        'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive',
-        'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
-        'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip',
-        'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple',
-        'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon',
-        'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver',
-        'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow',
-        'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 
-        'turquoise', 'violet', 'wheat', 'white', 'whitesmoke',
-        'yellow', 'yellowgreen', 
-    ]
-#    NAMES = ['black', 'silver', 'gray', 'white', 'maroon', 'red', 
-#        'purple', 'fuchsia', 'green', 'lime', 'olive', 'yellow', 
-#        'navy', 'blue', 'teal', 'aqua', ]
-
-    VALUE = '[+-]?' + Number._BASE + '%?'
-    CONDITION = r'(((rgb|hsl)\(' + VALUE + ',' + VALUE + ',' + VALUE + r'\))|' + \
-        r'((rgba|hsla)\(' + VALUE + ',' + VALUE + ',' + VALUE + ',((' + \
-        Number._BASE + ')?.' + Number._BASE + '|' + VALUE + r')\))|' + \
-        r'(#[0-9a-fA-F]{6})|(#[0-9a-fA-F]{3}))'
-        
-    def __init__(self, values=[], case_sensitive=False, allow_sign=False, remove_spaces=True, **kwargs):
-        kwargs['case_sensitive'] = case_sensitive
-        kwargs['allow_sign'] = allow_sign
-        kwargs['remove_spaces'] = remove_spaces
-        kwargs['values'] = self.NAMES + values
-        super(Color, self).__init__(**kwargs)
-        self.re_compile(self.CONDITION)
-        
 class Sequence(Content):
     SPACES = re.compile(r'\s+')
     
@@ -577,7 +417,7 @@ class Sequence(Content):
         for part in parts:
             try:
                 result.append(self.validator.validate(self.name, self.attr, part, 
-                    parent=self, data=self.data, quite=self.quite))
+                    path=self, data=self.data, quite=self.quite))
             except RequiredException:
                 raise SequenceException
             except EmptyException:
@@ -591,7 +431,7 @@ class Sequence(Content):
         try:
             parts = self.sequence(value, parts)
         except SequenceException:
-            raise IncorrectException(value, parent)
+            raise IncorrectException(value, path)
         value = self.joiner_char.join(parts)
         if parts:
             value += self.appender_char
@@ -617,7 +457,7 @@ class Style(Sequence, Run):
         tag = Tag(self.name, attrs)
         result = self.check(tag)
         if result is None:
-            raise InvalidException(value, parent)
+            raise InvalidException(value, path)
         if not result:
             raise SequenceException
         return ['%s: %s' % (part_name, part_value) for part_name, part_value in tag.attrs]
@@ -639,7 +479,7 @@ class Indent(Sequence):
         for part in parts:
             try:
                 result.append(self.validator.validate(self.name, self.attr, part, 
-                    parent=self, data=self.data, quite=self.quite))
+                    path=self, data=self.data, quite=self.quite))
             except (RequiredException, EmptyException):
                 raise SequenceException
         return result
@@ -662,7 +502,7 @@ class Complex(Indent):
             raise SequenceException
         try:
             value = list[list_index].validate(self.name, self.attr, parts[part_index], 
-                parent=self, data=self.data, quite=True)
+                path=self, data=self.data, quite=True)
             result = self.complex(parts, part_index + 1, list, list_index + 1)
             result[part_index] = value
             return result
