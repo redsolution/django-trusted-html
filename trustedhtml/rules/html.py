@@ -4,9 +4,11 @@ from trustedhtml.classes import *
 
 string = String()
 indent = Indent()
-number = Number()
+number = RegExp(regexp=r'([-+]?\d{1,7})')
+percent = RegExp(regexp=r'(\d{1,7}%)')
+
 size = Size()
-length = Length()
+length = Or(number, percent)
 char = Char()
 color = Color()
 

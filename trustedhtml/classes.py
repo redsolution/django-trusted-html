@@ -168,6 +168,7 @@ class Rule(object):
                 if self.strip:
                     value = value.strip()
                 value = self.core(value, parent)
+                value = unicode(value)
                 if not self.allow_empty and not value:
                     raise EmptyException
             except TrustedException, exception:
@@ -335,58 +336,148 @@ class Url(Content):
             raise IncorrectException(value, parent)
         return value
 
+class RegExp(String):
+    u"""
+    Rule suppose that value is correct if it match specified ``regexp``.
+    Validation will return first matched group.
+    
+    If You want to return not empty value than
+    specify at least one group in ``regexp``.
+    If You don`t want cut end of ``value`` than
+    specify '$' char at the end of ``regexp``.
+    Example:
+        regexp: '[+-]?(\d*)'
+        value: '+12asd'
+        result of validation: '12'
+        description: will pass validation and return only first group
+        (only digits, without sign) and skip all following chars.
+    """
 
-class Number(Content):
-    _BASE = r'\d{1,7}'
-    BASE = _BASE[:]
-    FLAGS = 0
-    REMOVE = re.compile(r'\s')
-    
-    def __init__(self, allow_sign=True, garbage_trimming=True, remove_spaces=False, **kwargs):
-        super(Number, self).__init__(**kwargs)
-        self.allow_sign = allow_sign
-        self.garbage_trimming = garbage_trimming
-        self.remove_spaces = remove_spaces
-        if self.allow_sign:
-            self.BASE = '[+-]?' + self.BASE
-        if not self.case_sensitive:
-            self.FLAGS = re.I
-        regexp = '(' + self.BASE + ')'
-        self.re_compile(regexp)
+    def __init__(self, regexp, case_sensitive=False, flags=0, **kwargs):
+        u"""
+        ``regexp`` specified regular expression to validate ``value``.
         
-    def re_compile(self, regexp):
-        if not self.garbage_trimming:
-            regexp = regexp + '$'
-        self.REGEXP = re.compile(unicode(regexp), self.FLAGS)
-    
-    def core(self, value):
-        if self.remove_spaces:
-            value = self.REMOVE.sub('', value)
-        match = self.REGEXP.match(value)
+        ``case_sensitive`` if True than validation will be case sensitive.
+        
+        ``flags`` specified flags for regular expression.
+        """
+        super(RegExp, self).__init__(**kwargs)
+        self.regexp = regexp
+        self.flags = flags
+        if not self.case_sensitive:
+            self.flags = self.flags | re.IGNORECASE
+        self.compiled = self.compile()
+        
+    def compile(self):
+        u"""
+        This function is called while initialization to compile regexp.
+        Subclasses can overwrite this one to define another mechanism.
+        
+        Return compiled regexp.
+        """
+        return re.compile(unicode(self.regexp), self.flags)
+        
+    def core(self, value, parent):
+        """Do it."""
+        match = self.compiled.match(value)
         if match is None:
-            raise IncorrectException(value, parent)
-        return unicode(match.group(1))
+            raise IncorrectException
+        try:
+            value = match.group(1)
+        except IndexError:
+            value = ''
+        return value
+
+
+class Number(RegExp):
+    u"""
+    Rule suppose that value is correct if it is number.
+    Validation will return number.
+    """
+
+    NUMBER_ANY = r'\d*'
+    NUMBER_EXACT = r'\d{%d}'
+    NUMBER_BETWEEN = r'\d{%d,%d}'
+    SIGN = r'[+-]?'
+
+    def __init__(self, allow_sign=True, min_digits=1, max_digits=7, **kwargs):
+        u"""
+        ``allow_sign`` allow sign before number.
+        
+        ``min_digits`` limit minimum number of digits.
+
+        ``max_digits`` limit maximum number of digits.
+        """
+        self.allow_sign = allow_sign
+        self.min_digits = min_digits
+        self.max_digits = max_digits
+        super(Number, self).__init__(regexp=regexp, **kwargs)
+        
+    def compile(self):
+        u"""
+        Generate ``regexp`` for number value. 
+        Return compiled regexp.
+        """
+        regexp = self.number_regexp(self.allow_sign, self.min_digits, self.max_digits)
+        self.regexp = '(%s)$' % regexp
+        return super(Number, self).complite()
+
+    def number_regexp(self, allow_sign, min_digits, max_digits):
+        u"""
+        Return regexp for number value depending on specified options.
+        """
+        regexp = ''
+        if allow_sign:
+            regexp += SIGN
+        if max_digits:
+            if min_digits:
+                regexp += NUMBER_BETWEEN % (min_digits, max_digits)
+            else:
+                regexp += NUMBER_BETWEEN % (0, max_digits)
+        else:
+            if min_digits:
+                regexp += ( NUMBER_EXACT % min_digits ) + NUMBER_ANY
+            else:
+                regexp += NUMBER_ANY
+        return regexp
 
 
 class Length(Number):
-    def __init__(self, **kwargs):
-        super(Length, self).__init__(**kwargs)
-        regexp = '(' + self.BASE + '%?)'
-        self.re_compile(regexp)
+    u"""
+    """
+    
+    def compile(self):
+        u"""
+        Generate ``regexp`` for number value. 
+        Return compiled regexp.
+        """
+        regexp = '(%s)|(%s)' % (
+            self.number_regexp(self.allow_sign, self.min_digits, self.max_digits),
+            self.number_regexp(False, 1, 7) + '%')
+        self.regexp = '(%s)$' % regexp
+        return super(Number, self).complite()
 
 
 class Size(Number):
+    u"""
+    """
+    
     TRAILINGS = [
         'px', 'cm', 'mm', 'in', 'pt', 'pc',
         'em', 'ex', '%', '',
     ]
-
-    def __init__(self, case_sensitive=False, remove_spaces=True, **kwargs):
-        kwargs['remove_spaces'] = remove_spaces
-        kwargs['case_sensitive'] = case_sensitive
-        super(Size, self).__init__(**kwargs)
-        regexp = '(' + self.BASE + '(' + '|'.join(self.TRAILINGS) + '))'
-        self.re_compile(regexp)
+    
+    def compile(self):
+        u"""
+        Generate ``regexp`` for number value. 
+        Return compiled regexp.
+        """
+        regexp = '%s(%s)' % (
+            self.number_regexp(self.allow_sign, self.min_digits, self.max_digits),
+            '|'.join(self.TRAILINGS)
+        )
+        self.regexp = '(%s)$' % regexp
+        return super(Number, self).complite()
 
 
 class ListOrSize(List, Size):
