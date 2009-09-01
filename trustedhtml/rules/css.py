@@ -23,12 +23,18 @@ background_color = color
 
 background_image = css_url
 
-background_position_x = ListOrSize(values=[
-    'left', 'center', 'right', 
+background_position_x = Or(rules=[
+    size, 
+    List(values=[
+        'left', 'center', 'right', 
+    ]),
 ])
 
-background_position_y = ListOrSize(values=[
-    'top', 'center', 'bottom', 
+background_position_y = Or(rules=[
+    size, 
+    List(values=[
+        'top', 'center', 'bottom',
+    ]),
 ])
 
 background_position = Complex(trusted_sequence=[
@@ -58,8 +64,11 @@ border_style = List(values=[
     'groove', 'ridge', 'inset', 'outset', 
 ])
 
-border_width = ListOrSize(values=[
-    'thin', 'medium', 'thick',
+border_width = Or(rules=[
+    size, 
+    List(values=[
+        'thin', 'medium', 'thick', 
+    ]),
 ])
 
 border_complex = Complex(trusted_sequence=[
@@ -77,8 +86,11 @@ border_spacing = Complex(trusted_sequence=[
     size,
 ])
 
-bottom = ListOrSize(values=[
-    'auto',
+bottom = Or(rules=[
+    size, 
+    List(values=[
+        'auto',
+    ]),
 ])
 
 caption_side = List(values=[
@@ -121,9 +133,12 @@ float = List(values=[
 # TODO: font_family = String(without_spaces=True)
 font_family = String()
 
-font_size = ListOrSize(values=[
-    'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large',
-    'smaller', 'larger',
+font_size = Or(rules=[
+    size, 
+    List(values=[
+        'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 
+        'xx-large', 'smaller', 'larger',
+    ]),
 ])
 
 font_style = List(values=[
@@ -139,8 +154,11 @@ font_weight = List(values=[
     '100', '200', '300', '400', '500', '600', '700', '800', '900',
 ])
 
-line_height = ListOrSize(values=[
-    'normal'
+line_height = Or(rules=[
+    size, 
+    List(values=[
+        'normal'
+    ]),
 ])
 
 font = Complex(trusted_sequence=[
@@ -155,8 +173,11 @@ font = Complex(trusted_sequence=[
     ])
 ])
 
-letter_spacing = ListOrSize(values=[
-    'normal'
+letter_spacing = Or(rules=[
+    size, 
+    List(values=[
+        'normal'
+    ]),
 ])
 
 list_style_image = css_url
@@ -185,12 +206,18 @@ list_style = Complex(trusted_sequence=[
 
 margin = Indent()
 
-margin_top = ListOrSize(values=[
-    'auto'
+margin_top = Or(rules=[
+    size, 
+    List(values=[
+        'auto'
+    ]),
 ])
 
-max_height = ListOrSize(values=[
-    'none'
+max_height = Or(rules=[
+    size, 
+    List(values=[
+        'none'
+    ]),
 ])
 
 #outline_color = Color(values=[
@@ -252,8 +279,12 @@ text_transform = List(values=[
     'none', 'capitalize', 'uppercase', 'lowercase', 
 ])
 
-vertical_align = ListOrSize(values=[
-    'baseline', 'sub', 'super', 'top', 'text-top', 'middle', 'bottom', 'text-bottom',
+vertical_align = Or(rules=[
+    size, 
+    List(values=[
+        'baseline', 'sub', 'super', 'top', 'text-top', 'middle', 'bottom', 
+        'text-bottom',
+    ]),
 ])
 
 visibility = List(values=[
