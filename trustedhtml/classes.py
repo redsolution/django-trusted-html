@@ -65,50 +65,39 @@ class Tag(object):
         self.name = name
         self.attrs = attrs
     
-class Run(object):
+class Validator(object):
     u"""
     
     """
-    def __init__(self, attributes, data=None, equivalents={}):
-        self.attributes = attributes
-        self.data = data
-        self.equivalents = equivalents
     
-    def check(self, tag):
+    def __init__(self, attributes, equivalents={}, **kwargs):
+        self.attributes = attributes
+        self.equivalents = equivalents
+
+    def check(self, values, path):
+        """
+        ``values`` list of (property, value) pairs, as 2-tuples
+        """
         if not self.attributes:
-            tag.attrs = [] 
-            return True
-        try:
-            for index, trusted in enumerate(self.attributes):
-                quite = index < len(self.attributes) - 1
+            return []
+        correct = {}
+        values = dict(values)
+        for name, rule in self.attributes.iteritems():
+            names = [name] + self.equivalents.get(name, [])
+            for attribute in names:
+                values.get(attribute, None)
                 try:
-                    correct = {}
-                    dictionary = dict(tag.attrs)
-                    for main, validator in trusted.iteritems():
-                        attributes = [main]
-                        attributes += self.equivalents.get(main, [])
-                        for attribute in attributes:
-                            if attribute in dictionary:
-                                value = dictionary[attribute] 
-                            else:
-                                value = None
-                            try:
-                                correct[attribute] = validator.validate(tag.name, attribute, value, 
-                                    path=self, data=self.data, quite=quite)
-                            except EmptyException:
-                                pass
-                    order = [attr for attr, value in tag.attrs]
-                    other = [attr for attr, value in correct.iteritems() if attr not in order]
-                    order.extend(other)
-                    sequence = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
-                    sequence.sort()
-                    tag.attrs = [(item, value) for index, item, value in sequence]
-                    return True
-                except RequiredException:
-                    continue
-        except InvalidException:
-            return None
-        return False
+                    correct[attribute] = rule.validate(value, path)
+                except (EmptyException, IncorrectException):
+                    pass
+        # Order values is source ordering. New values will be appended.
+        order = [attr for attr, value in values]
+        append = [attr for attr, value in correct.iteritems() if attr not in order]
+        order.extend(append)
+        values = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
+        values.sort()
+        return [(item, value) for index, item, value in values]
+
 
 class Rule(object):
     u"""
@@ -387,6 +376,7 @@ class Or(Rule):
     Rule suppose that value is correct if there is correct rule in ``rules`` list.
     Validation will return first correct value returned by specified ``rules``.
     If validation for all ``rules`` will fail than raise last exception.
+    If rule raise InvalidException it will be immediately raised.
     """
     
     def __init__(self, rules, **kwargs):
@@ -398,13 +388,15 @@ class Or(Rule):
     def core(self, value, path):
         """Do it."""
         path = path[:] + [self]
-        result = IncorrectException
+        last = IncorrectException
         for rule in rules:
             try:
                 return rule.validate(value, path)
+            except InvalidException:
+                raise InvalidException
             except TrustedException, exception:
-                result = exception
-        raise result
+                last = exception
+        raise last
 
 
 class Sequence(Rule):
@@ -447,13 +439,13 @@ class Sequence(Rule):
         return value
 
 
-class Style(Sequence, Run):
+class Style(Sequence, Validator):
     def __init__(self, attributes, delimiter_char=';', joiner_char='; ', appender_char=';', data=None, equivalents={}, **kwargs):
         kwargs['delimiter_char'] = delimiter_char
         kwargs['joiner_char'] = joiner_char
         kwargs['appender_char'] = appender_char
         Sequence.__init__(self, **kwargs)
-        Run.__init__(self, attributes, equivalents)
+        Validator.__init__(self, attributes, equivalents)
         
     def sequence(self, values, path):
         attrs = []
@@ -463,13 +455,15 @@ class Style(Sequence, Run):
             property_name = value[:value.find(':')].strip()
             property_value = value[value.find(':')+1:].strip()
             attrs.append((property_name, partproperty_value))
-        tag = Tag(self.name, attrs)
-        result = self.check(tag)
-        if result is None:
+        tag = Tag(self.name, )
+        try:
+            attrs = self.check(attrs)
+        except InvalidException:
             raise InvalidException
-        if not result:
+        except TrustedException:
             raise SequenceException
-        return ['%s: %s' % (part_name, part_value) for part_name, part_value in tag.attrs]
+        return ['%s: %s' % (property_name, property_value) 
+            for property_name, property_value in attrs]
 
 
 class Indent(Sequence):
@@ -519,7 +513,7 @@ class Complex(Indent):
             return self.complex(parts, part_index, list, list_index + 1)
 
 
-class Html(Run):
+class Html(Validator):
     # All constants must be lowered. 
     special_chars = [
         ('&', '&amp;'), # Must be first element in list

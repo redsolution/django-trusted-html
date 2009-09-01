@@ -1,9 +1,9 @@
-style_display = Style(rules={
+style_display = Style(attributes={
     'display': List(values=[
         'none'], invalid=True),
 })
 
-style_td = Style(rules={
+style_td = Style(attributes={
     'border': border_complex,
     'border-width': border_width,
     'border-style': border_style,
@@ -103,7 +103,7 @@ comment = {
     'p': [],
     'pre': [],
     'span': [ {
-        'style': Style(rules={
+        'style': Style(attributes={
             'text-decoration': List(values=[
                 'underline', 'line-through', 
             ]),
