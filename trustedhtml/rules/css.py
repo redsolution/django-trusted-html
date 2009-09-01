@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from trustedhtml.classes import *
+from trustedhtml.rules.common import *
 
 # TODO: add it to Style
 #core_css_values = [
@@ -322,69 +323,3 @@ z_index = Or(rules=[
     ]),
     number,
 ])
-
-style = Style(trusted_list=[ {
-    'background': background,
-    'background-color': background_color,
-    'background-image': background_image,
-    'background-repeat': background_repeat,
-    'background-attachment': background_attachment,
-    'background-position': background_position,
-    
-    'border': border_complex,
-    'border-width': border_width,
-    'border-style': border_style,
-    'border-color': color,
-    'border-collapse': border_collapse,
-    
-    'bottom': bottom,
-    'clear': clear,
-    'color': color,
-    
-    # content is big security hole
-    #'content':
-    #'counter-increment': 
-    #'counter-reset': 
-    
-    'margin': margin,
-    'margin-top': margin_top,
-
-    'padding': padding,
-    'padding-top': padding_top,
-
-    'width': size,
-    'height': size,
-
-    'float': float,
-}, ], equivalents = {
-    'border': [
-        'border-top', 'border-bottom', 'border-left', 'border-right'
-    ],
-    'border-width': [
-        'border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width',
-    ],
-    'border-style': [
-        'border-top-style', 'border-bottom-style', 'border-left-style', 'border-right-style',
-    ],
-    'border-color': [
-        'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color',
-    ],
-    'bottom': [
-        'height', 'left', 'right', 'top', 'width',
-    ],
-    'letter-spacing': [
-        'word-spacing',
-    ],
-    'page-break-after': [
-        'page-break-before',
-    ],
-    'margin-top': [
-        'margin-bottom', 'margin-left', 'margin-right',
-    ],
-    'max-height': [
-        'max-width',
-    ],
-    'padding-top': [
-        'padding-bottom', 'padding-left', 'padding-right',
-    ],
-})
