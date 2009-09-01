@@ -4,7 +4,7 @@ from trustedhtml.classes import *
 from trustedhtml.rules.common import *
 from trustedhtml.rules import css
 
-style = Style(trusted_list=[ {
+style = Style(attributes={
     'background': css.background,
     'background-color': css.background_color,
     'background-image': css.background_image,
@@ -37,7 +37,7 @@ style = Style(trusted_list=[ {
     'height': size,
 
     'float': css.float,
-}, ], equivalents = {
+}, equivalents = {
     'border': [
         'border-top', 'border-bottom', 'border-left', 'border-right'
     ],

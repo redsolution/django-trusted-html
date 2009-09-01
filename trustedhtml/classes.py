@@ -69,18 +69,18 @@ class Run(object):
     u"""
     
     """
-    def __init__(self, trusted_list, data=None, equivalents={}):
-        self.trusted_list = trusted_list
+    def __init__(self, attributes, data=None, equivalents={}):
+        self.attributes = attributes
         self.data = data
         self.equivalents = equivalents
     
     def check(self, tag):
-        if not self.trusted_list:
+        if not self.attributes:
             tag.attrs = [] 
             return True
         try:
-            for index, trusted in enumerate(self.trusted_list):
-                quite = index < len(self.trusted_list) - 1
+            for index, trusted in enumerate(self.attributes):
+                quite = index < len(self.attributes) - 1
                 try:
                     correct = {}
                     dictionary = dict(tag.attrs)
@@ -216,7 +216,7 @@ class String(Rule):
 
     pass
 
-class Content(Rule):         
+class Content(Rule):
     u"""
     Rule suppose that any not empty string value is correct.
     Validation will return source value. 
@@ -338,7 +338,7 @@ class Url(Content):
             raise IncorrectException
         return value
 
-class RegExp(String):
+class RegExp(Rule):
     u"""
     Rule suppose that value is correct if it match specified ``regexp``.
     Validation will return first matched group.
@@ -355,20 +355,20 @@ class RegExp(String):
         (only digits, without sign) and skip all following chars.
     """
 
-    def __init__(self, regexp, case_sensitive=False, flags=0, **kwargs):
+    def __init__(self, regexp, case_sensitive=False, regexp_flags=0, **kwargs):
         u"""
         ``regexp`` specified regular expression to validate ``value``.
         
         ``case_sensitive`` if True than validation will be case sensitive.
         
-        ``flags`` specified flags for regular expression.
+        ``regexp_flags`` specified flags for regular expression.
         """
         super(RegExp, self).__init__(**kwargs)
         self.regexp = regexp
-        self.flags = flags
+        self.regexp_flags = regexp_flags
         if not self.case_sensitive:
-            self.flags = self.flags | re.IGNORECASE
-        self.compiled = re.compile(unicode(self.regexp), self.flags)
+            self.regexp_flags = self.regexp_flags | re.IGNORECASE
+        self.compiled = re.compile(unicode(self.regexp), self.regexp_flags)
         
     def core(self, value, path):
         """Do it."""
@@ -407,66 +407,66 @@ class Or(Rule):
         raise result
 
 
-class Sequence(Content):
-    SPACES = re.compile(r'\s+')
-    
-    def __init__(self, validator=None, delimiter_char=' ', joiner_char=None, appender_char='', **kwargs):
+class Sequence(Rule):
+    def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False, 
+        regexp_flags=0, join_value=' ', append_value=None, **kwargs):
+        
         super(Sequence, self).__init__(**kwargs)
-        self.validator = validator
-        if self.validator is None:
-            self.validator = Content()
-        self.delimiter_char = delimiter_char
-        self.joiner_char = joiner_char
-        if self.joiner_char is None:
-            self.joiner_char = self.delimiter_char
-        self.appender_char = appender_char
+        self.delimiter = delimiter
+        self.regexp_flags = regexp_flags
+        if not self.case_sensitive:
+            self.regexp_flags = self.regexp_flags | re.IGNORECASE
+        self.compiled = re.compile(unicode(self.delimiter), self.regexp_flags)
+        
+        self.rule = rule
+        self.join_value = join_value
+        self.append_value = append_value
 
-    def sequence(self, value, parts):
+    def sequence(self, values, path):
         result = []
-        for part in parts:
+        for value in values:
             try:
-                result.append(self.validator.validate(self.name, self.attr, part, 
-                    path=self, data=self.data, quite=self.quite))
+                result.append(self.rule.validate(value, path))
             except RequiredException:
                 raise SequenceException
             except EmptyException:
                 pass
         return result
 
-    def core(self, value):
-        if self.SPACES:
-            value = self.SPACES.sub(' ', value).strip()
-        parts = value.split(self.delimiter_char)
+    def core(self, value, path):
+        u"""Do it."""
+        path = path[:] + [self]
+        values = self.compiled.split(value)
         try:
-            parts = self.sequence(value, parts)
+            values = self.sequence(values, path)
         except SequenceException:
-            raise IncorrectException(value, path)
-        value = self.joiner_char.join(parts)
-        if parts:
-            value += self.appender_char
-        return unicode(value)
+            raise IncorrectException
+        value = self.join_value.join(values)
+        if values and append_value:
+            value += self.append_value
+        return value
 
 
 class Style(Sequence, Run):
-    def __init__(self, trusted_list, delimiter_char=';', joiner_char='; ', appender_char=';', data=None, equivalents={}, **kwargs):
+    def __init__(self, attributes, delimiter_char=';', joiner_char='; ', appender_char=';', data=None, equivalents={}, **kwargs):
         kwargs['delimiter_char'] = delimiter_char
         kwargs['joiner_char'] = joiner_char
         kwargs['appender_char'] = appender_char
         Sequence.__init__(self, **kwargs)
-        Run.__init__(self, trusted_list, equivalents)
+        Run.__init__(self, attributes, equivalents)
         
-    def sequence(self, value, parts):
+    def sequence(self, values, path):
         attrs = []
-        for part in parts:
-            if ':' not in part:
+        for value in values:
+            if ':' not in value:
                 continue
-            part_name = part[:part.find(':')].strip()
-            part_value = part[part.find(':')+1:].strip()
-            attrs.append((part_name, part_value))
+            property_name = value[:value.find(':')].strip()
+            property_value = value[value.find(':')+1:].strip()
+            attrs.append((property_name, partproperty_value))
         tag = Tag(self.name, attrs)
         result = self.check(tag)
         if result is None:
-            raise InvalidException(value, path)
+            raise InvalidException
         if not result:
             raise SequenceException
         return ['%s: %s' % (part_name, part_value) for part_name, part_value in tag.attrs]
@@ -591,7 +591,7 @@ class Html(Run):
         if tag.name not in self.trusted_dictionary:
             print '\n!not', repr(tag.name)  
             return False
-        self.trusted_list = self.trusted_dictionary[tag.name]
+        self.rules = self.trusted_dictionary[tag.name]
         return self.check(tag)
         
     def tag_replace(self, tag):
@@ -741,7 +741,7 @@ class Html(Run):
     def __init__(self, raw_html, trusted_dictionary, data=None):
     # Generate: self.html, self.plain_text
         self.trusted_dictionary = trusted_dictionary
-        super(Html, self).__init__(trusted_list=[], data=data)
+        super(Html, self).__init__(rules=[], data=data)
         BeautifulSoup.QUOTE_TAGS = {}
         self.raw_html = unicode(raw_html)
         self.html = self.raw_html

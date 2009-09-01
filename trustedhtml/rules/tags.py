@@ -46,43 +46,43 @@ caption = Tag(attributes={
 cite = Tag()
 
 div = Tag(attributes={
-        'style': attributes.style_display,
+    'style': attributes.style_display,
 })
 
 # dt = Tag(get_content=True)
 
 h1 = Tag(attributes={
-        'align': text_align,
+    'align': text_align,
 })
 
 img = Tag(attributes={
-        'title': string,
-        'src': Url(required=True, allow_foriegn=False, tag='download_image'), 
-        'alt': String(default=''),
-        # Can enable: 'longdesc': Url(),
-        'width': length,
-        'height': length,
-        'align': List(values=[
-            'top', 'middle', 'bottom', 'left', 'right', 
-        ]),
-        'hspace': number,
-        'vspace': number,
-        'style': attributes.style,
-        # Can enable: 'name': String(default=''),
+    'title': string,
+    'src': Url(required=True, allow_foriegn=False, tag='download_image'), 
+    'alt': String(default=''),
+    # Can enable: 'longdesc': Url(),
+    'width': length,
+    'height': length,
+    'align': List(values=[
+        'top', 'middle', 'bottom', 'left', 'right', 
+    ]),
+    'hspace': number,
+    'vspace': number,
+    'style': attributes.style,
+    # Can enable: 'name': String(default=''),
 })
 
 li = Tag(attributes={
-        'type': List(values=[
-            'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
-        ]),
-        'value': number,
+    'type': List(values=[
+        'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
+    ]),
+    'value': number,
 })
 
 ol = Tag(attributes={
-        'type': List(values=[
-            '1', 'a', 'A', 'i', 'I', 
-        ]),
-        'start': number,
+    'type': List(values=[
+        '1', 'a', 'A', 'i', 'I', 
+    ]),
+    'start': number,
 })
 
 p = Tag(attributes={
@@ -92,83 +92,83 @@ p = Tag(attributes={
 pre = Tag()
 
 span = Tag(attributes={
-        'style': Style(trusted_list=[ {
-            'text-decoration': List(values=[
-                'underline', 'line-through', 
-            ]),
-        }, ]),
+    'style': Style(attributes={
+        'text-decoration': List(values=[
+            'underline', 'line-through', 
+        ]),
+    }),
 })
 
 table = Tag(attributes={
-        'title': string,
-        'summary': string,
-        'width': length,
-        'border': number,
-        'frame': List(values=[
-            'void', 'above', 'below', 'hsides', 'lhs', 'rhs', 'vsides', 
-            'box', 'border', 
-        ]),
-        'rules': List(values=[
-            'none', 'groups', 'rows', 'cols', 'all', 
-        ]), 
-        'cellspacing': size,
-        'cellpadding': size,
-        'align': text_align,
-        # Can enable: 'bgcolor': color,
-        'style': attributes.style,
+    'title': string,
+    'summary': string,
+    'width': length,
+    'border': number,
+    'frame': List(values=[
+        'void', 'above', 'below', 'hsides', 'lhs', 'rhs', 'vsides', 
+        'box', 'border', 
+    ]),
+    'rules': List(values=[
+        'none', 'groups', 'rows', 'cols', 'all', 
+    ]), 
+    'cellspacing': size,
+    'cellpadding': size,
+    'align': text_align,
+    # Can enable: 'bgcolor': color,
+    'style': attributes.style,
 })
 
 tbody = Tag(attributes={
-        'align': List(values=[
-            'left', 'center', 'right', 'justify', 'char', 
-        ]),
-        'char': char,
-        'charoff': length,
-        'valign': List(values=[
-            'top', 'middle', 'bottom', 'baseline', 
-        ]),
+    'align': List(values=[
+        'left', 'center', 'right', 'justify', 'char', 
+    ]),
+    'char': char,
+    'charoff': length,
+    'valign': List(values=[
+        'top', 'middle', 'bottom', 'baseline', 
+    ]),
 })
 
 td = Tag(attributes={
-        # Can enable: 'headers': string,
-        'abbr': string,
-        'scope': List(values=[
-            'row', 'col', 'rowgroup', 'colgroup', 
-        ]),
-        # Can enable: 'axis': string,
-        'align': List(values=[
-            'left', 'center', 'right', 'justify', 'char',
-        ]),
-        'char': char,
-        'charoff': length,
-        'valign': List(values=[
-            'top', 'middle', 'bottom', 'baseline',
-        ]),
-        'rowspan': number,
-        'colspan': number,
-        'width': length,
-        'height': length,
-        # Can enable: 'nowrap': List(values=['', 'nowrap', ]),
-        # Can enable: 'bgcolor': color,
-        'style': attributes.style_td,
+    # Can enable: 'headers': string,
+    'abbr': string,
+    'scope': List(values=[
+        'row', 'col', 'rowgroup', 'colgroup', 
+    ]),
+    # Can enable: 'axis': string,
+    'align': List(values=[
+        'left', 'center', 'right', 'justify', 'char',
+    ]),
+    'char': char,
+    'charoff': length,
+    'valign': List(values=[
+        'top', 'middle', 'bottom', 'baseline',
+    ]),
+    'rowspan': number,
+    'colspan': number,
+    'width': length,
+    'height': length,
+    # Can enable: 'nowrap': List(values=['', 'nowrap', ]),
+    # Can enable: 'bgcolor': color,
+    'style': attributes.style_td,
 })
 
 tr = Tag(attributes={
-        'align': List(values=[
-            'left', 'center', 'right', 'justify', 'char', 
-        ]),
-        'char': char,
-        'charoff': length,
-        'valign': List(values=[
-            'top', 'middle', 'bottom', 'baseline',
-        ]),
-        # Can enable: 'bgcolor': color,
+    'align': List(values=[
+        'left', 'center', 'right', 'justify', 'char', 
+    ]),
+    'char': char,
+    'charoff': length,
+    'valign': List(values=[
+        'top', 'middle', 'bottom', 'baseline',
+    ]),
+    # Can enable: 'bgcolor': color,
 })
 
 ul = Tag(attributes={
-        'type': List(values=[
-            'disc', 'square', 'circle', 
-        ]),
+    'type': List(values=[
+        'disc', 'square', 'circle', 
+    ]),
 })
 
 

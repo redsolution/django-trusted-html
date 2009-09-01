@@ -1,9 +1,9 @@
-style_display = Style(trusted_list=[ {
+style_display = Style(rules={
     'display': List(values=[
         'none'], invalid=True),
-}, ])
+})
 
-style_td = Style(trusted_list=[ {
+style_td = Style(rules={
     'border': border_complex,
     'border-width': border_width,
     'border-style': border_style,
@@ -21,7 +21,7 @@ style_td = Style(trusted_list=[ {
     'white-space': List(values=[
         'pre', 'nowrap', 'normal', 
     ]),
-}, ], equivalents = {
+}, equivalents = {
     'border': [
         'border-top', 'border-bottom', 'border-left', 'border-right'
     ],
@@ -103,11 +103,11 @@ comment = {
     'p': [],
     'pre': [],
     'span': [ {
-        'style': Style(trusted_list=[ {
+        'style': Style(rules={
             'text-decoration': List(values=[
                 'underline', 'line-through', 
             ]),
-        }, ]),
+        }),
     }, ],
     'strong': [],
     'sub': [],

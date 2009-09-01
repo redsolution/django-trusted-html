@@ -194,7 +194,7 @@ tiny_omg = u"""
 #TrustedColor().v('#aaafff')
 #TrustedColor().v('#aazfff')
 #TrustedSequence(validator=TrustedNumber(), delimiter_char=',').v('a,23,,43,')
-#TrustedStyle(trusted_list=[ {'text-decoration': TrustedList(values=['underline','line-through']),}, ]).v('text-decoration: line-through; foo: line-through; text-decoration: bar; text-decoration: underline')
+#TrustedStyle(attributes=[ {'text-decoration': TrustedList(values=['underline','line-through']),}, ]).v('text-decoration: line-through; foo: line-through; text-decoration: bar; text-decoration: underline')
 #TrustedRules.border.v('')
 #TrustedRules.border.v('2pxs')
 #TrustedRules.border.v('soLid')
