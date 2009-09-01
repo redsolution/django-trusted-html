@@ -5,7 +5,7 @@ from trustedhtml.rules.common import *
 from trustedhtml.rules import attributes
 
 a = Or(rules=[
-    Tag(attributes={
+    Tag(rules={
         'title': String(default=''),
         # Can enable: 'charset': attributes.charset,
         # Can enable: 'type': attributes.content_type,
@@ -19,7 +19,7 @@ a = Or(rules=[
         # Can enable: 'tabindex': number,
         'target': List(values=['_blank', '_self', '_parent', '_top', ]), 
     }),
-    Tag(attributes={
+    Tag(rules={
         'name': String(required=True),
     }),
 ])
@@ -27,17 +27,17 @@ a = Or(rules=[
 address = Tag()
 b = Tag()
 
-blockquote = Tag(attributes={
+blockquote = Tag(rules={
     'cite': Url(allow_anchor=True), 
 })
 
-br = Tag(attributes={
+br = Tag(rules={
     'clear':  List(values=[
         'left', 'all', 'right', 'none', 
     ]),
 })
 
-caption = Tag(attributes={
+caption = Tag(rules={
     'align': List(values=[
         'top', 'bottom', 'left', 'right', 
     ]),
@@ -45,17 +45,17 @@ caption = Tag(attributes={
 
 cite = Tag()
 
-div = Tag(attributes={
+div = Tag(rules={
     'style': attributes.style_display,
 })
 
 # dt = Tag(get_content=True)
 
-h1 = Tag(attributes={
+h1 = Tag(rules={
     'align': text_align,
 })
 
-img = Tag(attributes={
+img = Tag(rules={
     'title': string,
     'src': Url(required=True, allow_foriegn=False, tag='download_image'), 
     'alt': String(default=''),
@@ -71,35 +71,35 @@ img = Tag(attributes={
     # Can enable: 'name': String(default=''),
 })
 
-li = Tag(attributes={
+li = Tag(rules={
     'type': List(values=[
         'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
     ]),
     'value': number,
 })
 
-ol = Tag(attributes={
+ol = Tag(rules={
     'type': List(values=[
         '1', 'a', 'A', 'i', 'I', 
     ]),
     'start': number,
 })
 
-p = Tag(attributes={
+p = Tag(rules={
     # Can enable: 'align': text_align,
 })
 
 pre = Tag()
 
-span = Tag(attributes={
-    'style': Style(attributes={
+span = Tag(rules={
+    'style': Style(rules={
         'text-decoration': List(values=[
             'underline', 'line-through', 
         ]),
     }),
 })
 
-table = Tag(attributes={
+table = Tag(rules={
     'title': string,
     'summary': string,
     'width': length,
@@ -118,7 +118,7 @@ table = Tag(attributes={
     'style': attributes.style,
 })
 
-tbody = Tag(attributes={
+tbody = Tag(rules={
     'align': List(values=[
         'left', 'center', 'right', 'justify', 'char', 
     ]),
@@ -129,7 +129,7 @@ tbody = Tag(attributes={
     ]),
 })
 
-td = Tag(attributes={
+td = Tag(rules={
     # Can enable: 'headers': string,
     'abbr': string,
     'scope': List(values=[
@@ -153,7 +153,7 @@ td = Tag(attributes={
     'style': attributes.style_td,
 })
 
-tr = Tag(attributes={
+tr = Tag(rules={
     'align': List(values=[
         'left', 'center', 'right', 'justify', 'char', 
     ]),
@@ -165,7 +165,7 @@ tr = Tag(attributes={
     # Can enable: 'bgcolor': color,
 })
 
-ul = Tag(attributes={
+ul = Tag(rules={
     'type': List(values=[
         'disc', 'square', 'circle', 
     ]),

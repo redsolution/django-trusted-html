@@ -39,7 +39,7 @@ class RequiredException(TrustedException):
     u"""
     Raised when value is empty and ``required`` flag is True.
     
-    This exception means that hole tag must be removed.
+    This exception means that hole item must be removed.
     """
     pass
  
@@ -47,7 +47,7 @@ class InvalidException(TrustedException):
     u"""
     Raised when value pass check and invalid flag is True.
     
-    This exception means that hole tag must be removed.
+    This exception means that hole TAG must be removed.
     """
     pass
     
@@ -58,45 +58,6 @@ class SequenceException(TrustedException):
     Example: color is not specified for "border" style property
     """
     pass
- 
-class Tag(object):
-    u"""Used when we need tags like in beautifulsoup"""
-    def __init__(self, name='', attrs=[]):
-        self.name = name
-        self.attrs = attrs
-    
-class Validator(object):
-    u"""
-    
-    """
-    
-    def __init__(self, attributes, equivalents={}, **kwargs):
-        self.attributes = attributes
-        self.equivalents = equivalents
-
-    def check(self, values, path):
-        """
-        ``values`` list of (property, value) pairs, as 2-tuples
-        """
-        if not self.attributes:
-            return []
-        correct = {}
-        values = dict(values)
-        for name, rule in self.attributes.iteritems():
-            names = [name] + self.equivalents.get(name, [])
-            for attribute in names:
-                values.get(attribute, None)
-                try:
-                    correct[attribute] = rule.validate(value, path)
-                except (EmptyException, IncorrectException):
-                    pass
-        # Order values is source ordering. New values will be appended.
-        order = [attr for attr, value in values]
-        append = [attr for attr, value in correct.iteritems() if attr not in order]
-        order.extend(append)
-        values = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
-        values.sort()
-        return [(item, value) for index, item, value in values]
 
 
 class Rule(object):
@@ -120,6 +81,7 @@ class Rule(object):
         Example: attribute "width" for tag "img".
 
         ``invalid`` if True than result of validation will be inverted.
+        Also this mean that hole TAG must be removed if such rule succeed.
         Example: "none" value for "display" style property
         (we want to remove such tag).
 
@@ -187,15 +149,105 @@ class Rule(object):
         u"""
         This function is called while validation.
         Subclasses can overwrite this one to define another validation mechanism.
-        
+
         ``value`` is prepared value (striped if specified) for validation.
+
+        ``path`` is the list from rules that called this validation.
+        First element of this list will be first rule.
+
+        Return correct value or raise TrustedException (or subclasses).
+        """
+        return value
+
+
+class Validator(object):
+    u"""
+    Provide mechanism to validate list of values (tag attributes or style properties)
+    by corresponding rules.
+    """
+
+    def __init__(self, rules, equivalents={}, **kwargs):
+        u"""
+        ``rules`` is dictionary in witch key is name of property
+        (or tag attribute) and value is corresponding rule.
+        
+        ``equivalents`` is dictionary in witch key is name of property
+        specified in ``rules`` and value is list of properties` names
+        (or tag attribute) that must be validated by the same rule.  
+        """
+        self.rules = rules
+        self.equivalents = equivalents
+
+    def check(self, values, path):
+        """
+        Check list of ``values`` (tag attributes or style properties)
+        corresponding to specified rules.
+
+        ``values`` list of (property, value) pairs, as 2-tuples.
         
         ``path`` is the list from rules that called this validation.
         First element of this list will be first rule.
         
-        Return correct value or raise TrustedException (or subclasses).
+        Return list of correct values depending on rules.
+        Or raise exceptions:
+
+        ``RequiredException`` means that list of values not corresponding
+        to rules and instance that contains it must be removed.
+
+        ``InvalidException`` means that list of values not corresponding
+        to rules and TAG that contains it must be removed.
         """
-        return value
+        if not self.rules:
+            return []
+        correct = {}
+        values = dict(values)
+        for base_name, rule in self.rules.iteritems():
+            names = [base_name] + self.equivalents.get(base_name, [])
+            for name in names:
+                try:
+                    try:
+                        value = values[name]
+                    except IndexError:
+                        raise EmptyException
+                    correct[name] = rule.validate(value, path)
+                except (EmptyException, IncorrectException):
+                    pass
+        # Order values is source ordering. New values will be appended.
+        order = [attr for attr, value in values]
+        append = [attr for attr, value in correct.iteritems() if attr not in order]
+        order.extend(append)
+        values = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
+        values.sort()
+        return [(item, value) for index, item, value in values]
+
+
+class Or(Rule):
+    u"""
+    Rule suppose that value is correct if there is correct rule in ``rules`` list.
+    Validation will return first correct value returned by specified ``rules``.
+    If validation for all ``rules`` will fail than raise last exception.
+    If rule raise InvalidException it will be immediately raised.
+    """
+    
+    def __init__(self, rules, **kwargs):
+        u"""
+        ``rules`` is list of rules to validate specified ``value``.
+        """
+        self.rules = rules
+    
+    def core(self, value, path):
+        """Do it."""
+        path = path[:] + [self]
+        last = IncorrectException
+        for rule in rules:
+            try:
+                return rule.validate(value, path)
+            except InvalidException:
+                raise InvalidException
+            except TrustedException, exception:
+                last = exception
+        raise last
+
 
 class String(Rule):
     u"""
@@ -226,6 +278,7 @@ class Char(Content):
     def core(self, value, path):
         u"""Do it."""
         return value[:1]
+
 
 class List(Rule):
     u"""
@@ -263,7 +316,7 @@ class List(Rule):
         if not self.case_sensitive and self.return_defined:
             value = self.source_values[self.values.index(value)]
         return value
-        
+
 
 class Url(Content):
     u"""
@@ -303,7 +356,6 @@ class Url(Content):
         self.allow_anchor = allow_anchor
         if ':' not in self.GLOBAL_PREFIX:
             self.GLOBAL_PREFIX = self.GLOBAL_PREFIX + ':'
-
 
     def core(self, value, path):
         u"""Do it."""
@@ -371,34 +423,6 @@ class RegExp(Rule):
         return value
 
 
-class Or(Rule):
-    u"""
-    Rule suppose that value is correct if there is correct rule in ``rules`` list.
-    Validation will return first correct value returned by specified ``rules``.
-    If validation for all ``rules`` will fail than raise last exception.
-    If rule raise InvalidException it will be immediately raised.
-    """
-    
-    def __init__(self, rules, **kwargs):
-        u"""
-        ``rules`` is list of rules to validate specified ``value``.
-        """
-        self.rules = rules
-    
-    def core(self, value, path):
-        """Do it."""
-        path = path[:] + [self]
-        last = IncorrectException
-        for rule in rules:
-            try:
-                return rule.validate(value, path)
-            except InvalidException:
-                raise InvalidException
-            except TrustedException, exception:
-                last = exception
-        raise last
-
-
 class Sequence(Rule):
     def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False, 
         regexp_flags=0, join_value=' ', append_value=None, **kwargs):
@@ -440,30 +464,28 @@ class Sequence(Rule):
 
 
 class Style(Sequence, Validator):
-    def __init__(self, attributes, delimiter_char=';', joiner_char='; ', appender_char=';', data=None, equivalents={}, **kwargs):
-        kwargs['delimiter_char'] = delimiter_char
-        kwargs['joiner_char'] = joiner_char
-        kwargs['appender_char'] = appender_char
-        Sequence.__init__(self, **kwargs)
-        Validator.__init__(self, attributes, equivalents)
+    def __init__(self, rules, equivalents={}, delimiter_regexp='\s*;\s*', join_value='; ', append_value=';', **kwargs):
+        super(Style, self).__init__(delimiter_regexp=delimiter_regexp, 
+            join_value=join_value, append_value=append_value, **kwargs)
+        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         
     def sequence(self, values, path):
-        attrs = []
+        properties = []
         for value in values:
             if ':' not in value:
                 continue
             property_name = value[:value.find(':')].strip()
             property_value = value[value.find(':')+1:].strip()
-            attrs.append((property_name, partproperty_value))
+            properties.append((property_name, partproperty_value))
         tag = Tag(self.name, )
         try:
-            attrs = self.check(attrs)
+            properties = self.check(properties)
         except InvalidException:
             raise InvalidException
         except TrustedException:
             raise SequenceException
-        return ['%s: %s' % (property_name, property_value) 
-            for property_name, property_value in attrs]
+        return ['%s: %s' % (property_name, property_value)
+            for property_name, property_value in properties]
 
 
 class Indent(Sequence):

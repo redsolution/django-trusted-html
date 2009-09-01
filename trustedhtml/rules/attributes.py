@@ -4,7 +4,7 @@ from trustedhtml.classes import *
 from trustedhtml.rules.common import *
 from trustedhtml.rules import css
 
-style = Style(attributes={
+style = Style(rules={
     'background': css.background,
     'background-color': css.background_color,
     'background-image': css.background_image,
