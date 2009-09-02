@@ -14,13 +14,13 @@ TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
 class TrustedException(ValueError):
-    u"""
+    """
     Base trustedhtml exception.
     """
     pass
 
 class EmptyException(TrustedException):
-    u"""
+    """
     Raised when value is empty and ``allow_empty`` flag is False.
     
     This exception means that attribute must be removed. 
@@ -28,7 +28,7 @@ class EmptyException(TrustedException):
     pass
  
 class IncorrectException(TrustedException):
-    u"""
+    """
     Raised when value is incorrect. 
     
     This exception means that attribute must be removed. 
@@ -36,7 +36,7 @@ class IncorrectException(TrustedException):
     pass
  
 class RequiredException(TrustedException):
-    u"""
+    """
     Raised when value is empty and ``required`` flag is True.
     
     This exception means that hole item must be removed.
@@ -44,7 +44,7 @@ class RequiredException(TrustedException):
     pass
  
 class InvalidException(TrustedException):
-    u"""
+    """
     Raised when value pass check and invalid flag is True.
     
     This exception means that hole TAG must be removed.
@@ -52,7 +52,7 @@ class InvalidException(TrustedException):
     pass
     
 class SequenceException(TrustedException):
-    u"""
+    """
     Raised when element not corresponded to sequence. 
     
     Example: color is not specified for "border" style property
@@ -61,14 +61,14 @@ class SequenceException(TrustedException):
 
 
 class Rule(object):
-    u"""
+    """
     Base rule class.
     All rules inherit it and overwrite ``core`` or ``__init__`` functions.
     """
 
     def __init__(self, required=False, default=None, allow_empty=True,
-        invalid=False, strip=True, data=None, **kwargs):
-        u"""
+        invalid=False, data=None, **kwargs):
+        """
         Sets behaviour for the rule:
 
         ``required`` if True than value is required.
@@ -85,8 +85,6 @@ class Rule(object):
         Example: "none" value for "display" style property
         (we want to remove such tag).
 
-        ``strip`` if True than remove leading and trailing whitespace.
-
         ``data`` any extended data, usually used by signals.
         """
         self.required = required
@@ -95,17 +93,16 @@ class Rule(object):
         self.default = default
         self.allow_empty = allow_empty
         self.invalid = invalid
-        self.strip = strip
         self.data = data
 
 
     def validate(self, value, path=[]):
-        u"""
+        """
         Main interface function. Call it to validate specified ``value``.
         
         Returns correct value or raise exception.
         
-        ``path`` is the list from rules that called this validation.
+        ``path`` is the list of rules that called this validation.
         First element of this list will be first rule.
         
         This function will call ``core()`` that can be overwritten by subclasses.
@@ -114,13 +111,7 @@ class Rule(object):
             try:
                 if not self.allow_empty and not value:
                     raise EmptyException
-                if value is None:
-                    value = ''
-                value = unicode(value)
-                if self.strip:
-                    value = value.strip()
                 value = self.core(value, path)
-                value = unicode(value)
                 if not self.allow_empty and not value:
                     raise EmptyException
             except TrustedException, exception:
@@ -146,13 +137,13 @@ class Rule(object):
 
 
     def core(self, value, path):
-        u"""
+        """
         This function is called while validation.
         Subclasses can overwrite this one to define another validation mechanism.
 
-        ``value`` is prepared value (striped if specified) for validation.
+        ``value`` is value for validation.
 
-        ``path`` is the list from rules that called this validation.
+        ``path`` is the list of rules that called this validation.
         First element of this list will be first rule.
 
         Return correct value or raise TrustedException (or subclasses).
@@ -161,13 +152,13 @@ class Rule(object):
 
 
 class Validator(object):
-    u"""
+    """
     Provide mechanism to validate list of values (tag attributes or style properties)
     by corresponding rules.
     """
 
     def __init__(self, rules, equivalents={}, **kwargs):
-        u"""
+        """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
         
@@ -185,7 +176,7 @@ class Validator(object):
 
         ``values`` list of (property, value) pairs, as 2-tuples.
         
-        ``path`` is the list from rules that called this validation.
+        ``path`` is the list of rules that called this validation.
         First element of this list will be first rule.
         
         Return list of correct values depending on rules.
@@ -222,7 +213,7 @@ class Validator(object):
 
 
 class Or(Rule):
-    u"""
+    """
     Rule suppose that value is correct if there is correct rule in ``rules`` list.
     Validation will return first correct value returned by specified ``rules``.
     If validation for all ``rules`` will fail than raise last exception.
@@ -230,13 +221,14 @@ class Or(Rule):
     """
     
     def __init__(self, rules, **kwargs):
-        u"""
+        """
         ``rules`` is list of rules to validate specified ``value``.
         """
         self.rules = rules
     
     def core(self, value, path):
         """Do it."""
+        value = super(Or, self).core(value, path)
         path = path[:] + [self]
         last = IncorrectException
         for rule in rules:
@@ -250,44 +242,60 @@ class Or(Rule):
 
 
 class String(Rule):
-    u"""
-    Rule suppose that any string value is correct.
-    Validation will return source value. 
     """
+    Rule suppose that any string value is correct.
+    Validation will return striped string value if specified. 
+    """
+    
+    def __init__(self, strip=True, kwargs):
+        """
+        ``strip`` if True than remove leading and trailing whitespace.
+        """
+        self.strip = strip
+        super(Content, self).__init__(**kwargs)
+    
+    def core(self, value, path):
+        """Do it."""
+        value = super(String, self).core(value, path)
+        if value is None:
+            value = ''
+        value = unicode(value)
+        if self.strip:
+            value = value.strip()
+        return value
 
-    pass
-
-class Content(Rule):
-    u"""
+class Content(String):
+    """
     Rule suppose that any not empty string value is correct.
     Validation will return source value. 
     """
 
     def __init__(self, allow_empty=False, **kwargs):
-        u"""
+        """
         Just replace default settings.
         """
         super(Content, self).__init__(allow_empty=allow_empty, **kwargs)
 
 class Char(Content):
-    u"""
+    """
     Rule suppose that any not empty string value is correct.
     Validation will return only first chat from the source value. 
     """
 
     def core(self, value, path):
-        u"""Do it."""
+        """Do it."""
+        value = super(Char, self).core(value, path)
         return value[:1]
 
 
-class List(Rule):
-    u"""
+class List(String):
+    """
     Rule suppose that value is correct if it is in ``values``.
     Validation will return corresponding item from ``values``.
     """    
 
     def __init__(self, values, case_sensitive=False, return_defined=True, **kwargs):
-        u"""
+        """
         ``values`` is list of allowed values. 
         
         ``case_sensitive`` if True than validation will be case sensitive.
@@ -308,7 +316,8 @@ class List(Rule):
 
 
     def core(self, value, path):
-        u"""Do it."""
+        """Do it."""
+        value = super(List, self).core(value, path)
         if not self.case_sensitive:
             value = value.lower()
         if value not in self.values:
@@ -319,7 +328,7 @@ class List(Rule):
 
 
 class Url(Content):
-    u"""
+    """
     Rule suppose that value is correct if it is a URL with allowed ``SCHEMES``.
     Validation will return correct URL.
     """
@@ -333,7 +342,7 @@ class Url(Content):
     ANCHOR_SPACES = re.compile(r'\s')
 
     def __init__(self, allow_foreign=False, allow_local=True, allow_anchor=False, **kwargs):
-        u"""
+        """
         ``allow_foreign`` if True then URL to foreign sites will be allowed.
         Valid example: 'http://example.com/media/img.jpg'
         
@@ -358,7 +367,8 @@ class Url(Content):
             self.GLOBAL_PREFIX = self.GLOBAL_PREFIX + ':'
 
     def core(self, value, path):
-        u"""Do it."""
+        """Do it."""
+        value = super(Url, self).core(value, path)
         value = iri_to_uri(value)
         if ':' not in value:
             if self.allow_anchor:
@@ -379,8 +389,8 @@ class Url(Content):
             raise IncorrectException
         return value
 
-class RegExp(Rule):
-    u"""
+class RegExp(String):
+    """
     Rule suppose that value is correct if it match specified ``regexp``.
     Validation will return first matched group.
     
@@ -397,8 +407,8 @@ class RegExp(Rule):
     """
 
     def __init__(self, regexp, case_sensitive=False, regexp_flags=0, **kwargs):
-        u"""
-        ``regexp`` specified regular expression to validate ``value``.
+        """
+        ``regexp`` specified string with regular expression to validate ``value``.
         
         ``case_sensitive`` if True than validation will be case sensitive.
         
@@ -413,6 +423,7 @@ class RegExp(Rule):
         
     def core(self, value, path):
         """Do it."""
+        value = super(RegExp, self).core(value, path)
         match = self.compiled.match(value)
         if match is None:
             raise IncorrectException
@@ -423,10 +434,30 @@ class RegExp(Rule):
         return value
 
 
-class Sequence(Rule):
+class Sequence(String):
+    """
+    Rule suppose that value is correct if each path of value,
+    divided by ``delimiter_regexp`` match specified ``rule``.
+    Validation will return first matched group.
+    """
+    
     def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False, 
-        regexp_flags=0, join_value=' ', append_value=None, **kwargs):
+        regexp_flags=0, join_string=' ', append_string=None, **kwargs):
+        """
+        ``rule`` is the rule that will be called to validate each path of value.
         
+        ``delimiter_regexp`` specified string with regular expression
+        to split specified value.
+        
+        ``case_sensitive`` if True than validation will be case sensitive.
+        
+        ``regexp_flags`` specified flags for regular expression.
+        
+        ``join_string`` is string that will be used to join back
+        validated parts of value.
+        
+        ``append_string`` is string that will be added to the end of joined value.
+        """
         super(Sequence, self).__init__(**kwargs)
         self.delimiter = delimiter
         self.regexp_flags = regexp_flags
@@ -435,10 +466,21 @@ class Sequence(Rule):
         self.compiled = re.compile(unicode(self.delimiter), self.regexp_flags)
         
         self.rule = rule
-        self.join_value = join_value
-        self.append_value = append_value
+        self.join_string = join_string
+        self.append_string = append_string
 
-    def sequence(self, values, path):
+    def check(self, values, path):
+        """
+        This function is called from ``core`` function.
+        Subclasses can overwrite this one to define another validation mechanism.
+
+        ``values`` is list of parts of specified ``value``.
+
+        ``path`` is the list of rules that called this validation + self object.
+        So you can pass this value for subvalidations.
+        
+        Return correct list of parts of value or raise TrustedException (or subclasses).
+        """
         result = []
         for value in values:
             try:
@@ -450,26 +492,27 @@ class Sequence(Rule):
         return result
 
     def core(self, value, path):
-        u"""Do it."""
+        """Do it."""
+        value = super(Sequence, self).core(value, path)
         path = path[:] + [self]
         values = self.compiled.split(value)
         try:
-            values = self.sequence(values, path)
+            values = self.check(values, path)
         except SequenceException:
             raise IncorrectException
-        value = self.join_value.join(values)
-        if values and append_value:
-            value += self.append_value
+        value = self.join_string.join(values)
+        if append_string:
+            value += self.append_string
         return value
 
 
 class Style(Sequence, Validator):
-    def __init__(self, rules, equivalents={}, delimiter_regexp='\s*;\s*', join_value='; ', append_value=';', **kwargs):
+    def __init__(self, rules, equivalents={}, delimiter_regexp='\s*;\s*', join_string='; ', append_string=';', **kwargs):
         super(Style, self).__init__(delimiter_regexp=delimiter_regexp, 
-            join_value=join_value, append_value=append_value, **kwargs)
+            join_string=join_string, append_string=append_string, **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         
-    def sequence(self, values, path):
+    def check(self, values, path):
         properties = []
         for value in values:
             if ':' not in value:
