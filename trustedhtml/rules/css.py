@@ -42,7 +42,7 @@ background_position_y = Or(rules=[
     ]),
 ])
 
-background_position = Complex(trusted_sequence=[
+background_position = Complex(rules=[
     background_position_x,
     background_position_y,
 ])
@@ -51,7 +51,7 @@ background_repeat = List(values=[
     'repeat', 'repeat-x', 'repeat-y', 'no-repeat', 
 ])
 
-background = Complex(trusted_sequence=[
+background = Complex(rules=[
     background_color,
     background_image,
     background_repeat,
@@ -79,7 +79,7 @@ border_width = Or(rules=[
     ]),
 ])
 
-border_complex = Complex(trusted_sequence=[
+border_complex = Complex(rules=[
     border_width,
     border_style,
     border_color,
@@ -89,7 +89,7 @@ border_collapse = List(values=[
     'collapse', 'separate',
 ])
 
-border_spacing = Complex(trusted_sequence=[
+border_spacing = Complex(rules=[
     size,
     size,
 ])
@@ -177,7 +177,7 @@ line_height = Or(rules=[
     ]),
 ])
 
-font = Complex(trusted_sequence=[
+font = Complex(rules=[
     font_style,
     font_variant,
     font_weight,
@@ -208,7 +208,7 @@ list_style_type = List(values=[
     'lower-latin', 'lower-roman', 'upper-alpha', 'upper-latin', 'upper-roman'
 ])
 
-list_style = Complex(trusted_sequence=[
+list_style = Complex(rules=[
     list_style_type,
     list_style_position,
     list_style_image,
@@ -249,7 +249,7 @@ outline_style = List(values=[
 
 outline_width = border_width
 
-outline_complex = Complex(trusted_sequence=[
+outline_complex = Complex(rules=[
     outline_color,
     outline_style,
     outline_width,

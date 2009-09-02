@@ -51,15 +51,6 @@ class InvalidException(TrustedException):
     """
     pass
     
-class SequenceException(TrustedException):
-    """
-    Raised when element not corresponded to sequence. 
-    
-    Example: color is not specified for "border" style property
-    """
-    pass
-
-
 class Rule(object):
     """
     Base rule class.
@@ -436,9 +427,9 @@ class RegExp(String):
 
 class Sequence(String):
     """
-    Rule suppose that value is correct if each path of value,
-    divided by ``delimiter_regexp`` match specified ``rule``.
-    Validation will return first matched group.
+    Rule suppose that value is correct if each part of value,
+    divided by ``delimiter_regexp`` matches specified ``rule``.
+    Validation will return joined parts of value.
     """
     
     def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False,
@@ -481,7 +472,7 @@ class Sequence(String):
         self.prepend_string = prepend_string
         self.append_string = append_string
 
-    def check(self, values, path):
+    def sequence(self, values, path):
         """
         This function is called from ``core`` function.
         Subclasses can overwrite this one to define another validation mechanism.
@@ -509,7 +500,7 @@ class Sequence(String):
         if (len(values) < self.min_split) or (self.max_split and len(values) > self.max_split):
             raise IncorrectException
         path = path[:] + [self]
-        values = self.check(values, path)
+        values = self.sequence(values, path)
         value = self.join_string.join(values)
         value = self.prepend_string + value + self.append_string
         return value
@@ -517,17 +508,27 @@ class Sequence(String):
 
 class Style(Sequence, Validator):
     """
-    Rule suppose that value is correct if each path of value,
-    divided by ``delimiter_regexp`` match specified ``rule``.
-    Validation will return first matched group.
+    Rule suppose that value is correct if each part of ``value``,
+    is pair (property_name, property_value) and each property_name
+    has valid property_value corresponding to ``rules`` dictionary.
+    Validation will return joined only valid pairs.
     """
     
-    def __init__(self, rules, equivalents={}, delimiter_regexp='\s*;\s*', join_string='; ', append_string=';', **kwargs):
-        super(Style, self).__init__(delimiter_regexp=delimiter_regexp, 
-            join_string=join_string, append_string=append_string, **kwargs)
+    def __init__(self, rules, equivalents={}, **kwargs):
+        """
+        ``rules`` is dictionary in witch key is name of property
+        (or tag attribute) and value is corresponding rule.
+        
+        ``equivalents`` is dictionary in witch key is name of property
+        specified in ``rules`` and value is list of properties` names
+        (or tag attribute) that must be validated by the same rule.  
+        """
+        super(Style, self).__init__(delimiter_regexp='\s*;\s*',
+            join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         
-    def check(self, values, path):
+    def sequence(self, values, path):
+        """Do it."""
         properties = []
         for value in values:
             if ':' not in value:
@@ -535,40 +536,57 @@ class Style(Sequence, Validator):
             property_name = value[:value.find(':')].strip()
             property_value = value[value.find(':')+1:].strip()
             properties.append((property_name, partproperty_value))
-        tag = Tag(self.name, )
-        try:
-            properties = self.check(properties)
-        except InvalidException:
-            raise InvalidException
-        except TrustedException:
-            raise SequenceException
+        properties = self.check(properties)
         return ['%s: %s' % (property_name, property_value)
             for property_name, property_value in properties]
 
 
-class Complex(Indent):
-    # EmptyException is the same to RequiredException.
-    # You may use DefaultException to skip value.
-    def __init__(self, trusted_sequence, **kwargs):
-        super(Complex, self).__init__(**kwargs)
-        self.trusted_sequence = trusted_sequence
-        
-    def sequence(self, value, parts):
-        return self.complex(parts, 0, self.trusted_sequence, 0)    
+class Complex(Sequence):
+    """
+    Rule suppose that value is correct if each part of value,
+    divided by ``delimiter_regexp`` matches one of specified
+    ``rules`` list in corresponding order.
+    Validation will return joined parts of value.
+    """
 
-    def complex(self, parts, part_index, list, list_index):
-        if part_index >= len(parts):
+    def __init__(self, rules, **kwargs):
+        """
+        ``rules`` is list of rules for validation.
+        """
+        super(Complex, self).__init__(rule=None, **kwargs)
+        self.rules = rules
+        
+    def sequence(self, values, path):
+        """Do it."""
+        return self.complex(values, path, 0, 0)    
+
+    def complex(self, values, path, value_index, rule_index):
+        """
+        This function is called by ``sequence`` function.
+         
+        ``values`` is list of parts of specified ``value``.
+
+        ``path`` is the list of rules that called this validation + self object.
+        
+        ``value_index`` is index in ``values`` list to be processed.
+
+        ``rule_index`` is index in ``rules`` list to be processed.
+        
+        Return correct list of parts of value or raise IncorrectException or InvalidException.
+        """
+        if value_index >= len(values):
             return parts
-        if list_index >= len(list):
-            raise SequenceException
+        if rule_index >= len(rules):
+            raise IncorrectException
         try:
-            value = list[list_index].validate(self.name, self.attr, parts[part_index], 
-                path=self, data=self.data, quite=True)
-            result = self.complex(parts, part_index + 1, list, list_index + 1)
-            result[part_index] = value
+            value = rules[rule_index].validate(values[value_index], path)
+            result = self.complex(values, path, value_index + 1, rule_index + 1)
+            result[value_index] = value
             return result
-        except (RequiredException, EmptyException, SequenceException):
-            return self.complex(parts, part_index, list, list_index + 1)
+        except InvalidException, exception:
+            raise exception
+        except TrustedException:
+            return self.complex(values, path, value_index, rule_index + 1)
 
 
 class Html(Validator):
