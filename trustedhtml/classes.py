@@ -142,96 +142,6 @@ class Rule(object):
         return value
 
 
-class Validator(object):
-    """
-    Provide mechanism to validate list of values (tag attributes or style properties)
-    by corresponding rules.
-    """
-
-    def __init__(self, rules, equivalents={}, **kwargs):
-        """
-        ``rules`` is dictionary in witch key is name of property
-        (or tag attribute) and value is corresponding rule.
-        
-        ``equivalents`` is dictionary in witch key is name of property
-        specified in ``rules`` and value is list of properties` names
-        (or tag attribute) that must be validated by the same rule.  
-        """
-        self.rules = rules
-        self.equivalents = equivalents
-
-    def check(self, values, path):
-        """
-        Check list of ``values`` (tag attributes or style properties)
-        corresponding to specified rules.
-
-        ``values`` list of (property, value) pairs, as 2-tuples.
-        
-        ``path`` is the list of rules that called this validation.
-        First element of this list will be first rule.
-        
-        Return list of correct values depending on rules.
-        Or raise exceptions:
-
-        ``RequiredException`` means that list of values not corresponding
-        to rules and instance that contains it must be removed.
-
-        ``InvalidException`` means that list of values not corresponding
-        to rules and TAG that contains it must be removed.
-        """
-        if not self.rules:
-            return []
-        correct = {}
-        values = dict(values)
-        for base_name, rule in self.rules.iteritems():
-            names = [base_name] + self.equivalents.get(base_name, [])
-            for name in names:
-                try:
-                    try:
-                        value = values[name]
-                    except IndexError:
-                        raise EmptyException
-                    correct[name] = rule.validate(value, path)
-                except (EmptyException, IncorrectException):
-                    pass
-        # Order values is source ordering. New values will be appended.
-        order = [attr for attr, value in values]
-        append = [attr for attr, value in correct.iteritems() if attr not in order]
-        order.extend(append)
-        values = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
-        values.sort()
-        return [(item, value) for index, item, value in values]
-
-
-class Or(Rule):
-    """
-    Rule suppose that value is correct if there is correct rule in ``rules`` list.
-    Validation will return first correct value returned by specified ``rules``.
-    If validation for all ``rules`` will fail than raise last exception.
-    If rule raise InvalidException it will be immediately raised.
-    """
-    
-    def __init__(self, rules, **kwargs):
-        """
-        ``rules`` is list of rules to validate specified ``value``.
-        """
-        self.rules = rules
-    
-    def core(self, value, path):
-        """Do it."""
-        value = super(Or, self).core(value, path)
-        path = path[:] + [self]
-        last = IncorrectException
-        for rule in rules:
-            try:
-                return rule.validate(value, path)
-            except InvalidException:
-                raise InvalidException
-            except TrustedException, exception:
-                last = exception
-        raise last
-
-
 class String(Rule):
     """
     Rule suppose that any string value is correct.
@@ -267,6 +177,7 @@ class Content(String):
         """
         super(Content, self).__init__(allow_empty=allow_empty, **kwargs)
 
+
 class Char(Content):
     """
     Rule suppose that any not empty string value is correct.
@@ -277,45 +188,6 @@ class Char(Content):
         """Do it."""
         value = super(Char, self).core(value, path)
         return value[:1]
-
-
-class List(String):
-    """
-    Rule suppose that value is correct if it is in ``values``.
-    Validation will return corresponding item from ``values``.
-    """    
-
-    def __init__(self, values, case_sensitive=False, return_defined=True, **kwargs):
-        """
-        ``values`` is list of allowed values. 
-        
-        ``case_sensitive`` if True than validation will be case sensitive.
-        
-        ``return_defined`` if True than return value as it was defined in ``values``.
-        """
-        super(List, self).__init__(**kwargs)
-        self.source_values = values
-        self.case_sensitive = case_sensitive
-        self.return_defined = return_defined
-
-        self.values = []
-        for value in self.values:
-            value = unicode(value)
-            if not self.case_sensitive:
-                value = value.lower()
-            self.values.append(value)
-
-
-    def core(self, value, path):
-        """Do it."""
-        value = super(List, self).core(value, path)
-        if not self.case_sensitive:
-            value = value.lower()
-        if value not in self.values:
-            raise IncorrectException
-        if not self.case_sensitive and self.return_defined:
-            value = self.source_values[self.values.index(value)]
-        return value
 
 
 class Url(Content):
@@ -380,6 +252,46 @@ class Url(Content):
             raise IncorrectException
         return value
 
+
+class List(String):
+    """
+    Rule suppose that value is correct if it is in ``values``.
+    Validation will return corresponding item from ``values``.
+    """    
+
+    def __init__(self, values, case_sensitive=False, return_defined=True, **kwargs):
+        """
+        ``values`` is list of allowed values. 
+        
+        ``case_sensitive`` if True than validation will be case sensitive.
+        
+        ``return_defined`` if True than return value as it was defined in ``values``.
+        """
+        super(List, self).__init__(**kwargs)
+        self.source_values = values
+        self.case_sensitive = case_sensitive
+        self.return_defined = return_defined
+
+        self.values = []
+        for value in self.values:
+            value = unicode(value)
+            if not self.case_sensitive:
+                value = value.lower()
+            self.values.append(value)
+
+
+    def core(self, value, path):
+        """Do it."""
+        value = super(List, self).core(value, path)
+        if not self.case_sensitive:
+            value = value.lower()
+        if value not in self.values:
+            raise IncorrectException
+        if not self.case_sensitive and self.return_defined:
+            value = self.source_values[self.values.index(value)]
+        return value
+
+
 class RegExp(String):
     """
     Rule suppose that value is correct if it match specified ``regexp``.
@@ -423,6 +335,35 @@ class RegExp(String):
         except IndexError:
             value = ''
         return value
+
+
+class Or(Rule):
+    """
+    Rule suppose that value is correct if there is correct rule in ``rules`` list.
+    Validation will return first correct value returned by specified ``rules``.
+    If validation for all ``rules`` will fail than raise last exception.
+    If rule raise InvalidException it will be immediately raised.
+    """
+    
+    def __init__(self, rules, **kwargs):
+        """
+        ``rules`` is list of rules to validate specified ``value``.
+        """
+        self.rules = rules
+    
+    def core(self, value, path):
+        """Do it."""
+        value = super(Or, self).core(value, path)
+        path = path[:] + [self]
+        last = IncorrectException
+        for rule in rules:
+            try:
+                return rule.validate(value, path)
+            except InvalidException:
+                raise InvalidException
+            except TrustedException, exception:
+                last = exception
+        raise last
 
 
 class Sequence(String):
@@ -506,41 +447,6 @@ class Sequence(String):
         return value
 
 
-class Style(Sequence, Validator):
-    """
-    Rule suppose that value is correct if each part of ``value``,
-    is pair (property_name, property_value) and each property_name
-    has valid property_value corresponding to ``rules`` dictionary.
-    Validation will return joined only valid pairs.
-    """
-    
-    def __init__(self, rules, equivalents={}, **kwargs):
-        """
-        ``rules`` is dictionary in witch key is name of property
-        (or tag attribute) and value is corresponding rule.
-        
-        ``equivalents`` is dictionary in witch key is name of property
-        specified in ``rules`` and value is list of properties` names
-        (or tag attribute) that must be validated by the same rule.  
-        """
-        super(Style, self).__init__(delimiter_regexp='\s*;\s*',
-            join_string='; ', append_string=';', **kwargs)
-        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
-        
-    def sequence(self, values, path):
-        """Do it."""
-        properties = []
-        for value in values:
-            if ':' not in value:
-                continue
-            property_name = value[:value.find(':')].strip()
-            property_value = value[value.find(':')+1:].strip()
-            properties.append((property_name, partproperty_value))
-        properties = self.check(properties)
-        return ['%s: %s' % (property_name, property_value)
-            for property_name, property_value in properties]
-
-
 class Complex(Sequence):
     """
     Rule suppose that value is correct if each part of value,
@@ -587,6 +493,127 @@ class Complex(Sequence):
             raise exception
         except TrustedException:
             return self.complex(values, path, value_index, rule_index + 1)
+
+
+class Validator(object):
+    """
+    Provide mechanism to validate list of values (tag attributes or style properties)
+    by corresponding rules.
+    """
+
+    def __init__(self, rules, equivalents={}, **kwargs):
+        """
+        ``rules`` is dictionary in witch key is name of property
+        (or tag attribute) and value is corresponding rule.
+        
+        ``equivalents`` is dictionary in witch key is name of property
+        specified in ``rules`` and value is list of properties` names
+        (or tag attribute) that must be validated by the same rule.  
+        """
+        self.rules = rules
+        self.equivalents = equivalents
+
+    def check(self, values, path):
+        """
+        Check list of ``values`` (tag attributes or style properties)
+        corresponding to specified rules.
+
+        ``values`` list of (property, value) pairs, as 2-tuples.
+        
+        ``path`` is the list of rules that called this validation.
+        First element of this list will be first rule.
+        
+        Return list of correct values depending on rules.
+        Or raise exceptions:
+
+        ``RequiredException`` means that list of values not corresponding
+        to rules and instance that contains it must be removed.
+
+        ``InvalidException`` means that list of values not corresponding
+        to rules and TAG that contains it must be removed.
+        """
+        if not self.rules:
+            return []
+        correct = {}
+        values = dict(values)
+        for base_name, rule in self.rules.iteritems():
+            names = [base_name] + self.equivalents.get(base_name, [])
+            for name in names:
+                try:
+                    try:
+                        value = values[name]
+                    except IndexError:
+                        raise EmptyException
+                    correct[name] = rule.validate(value, path)
+                except (EmptyException, IncorrectException):
+                    pass
+        # Order values is source ordering. New values will be appended.
+        order = [attr for attr, value in values]
+        append = [attr for attr, value in correct.iteritems() if attr not in order]
+        order.extend(append)
+        values = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
+        values.sort()
+        return [(item, value) for index, item, value in values]
+
+
+class Style(Sequence, Validator):
+    """
+    Rule suppose that value is correct if each part of ``value``,
+    is pair (property_name, property_value) and each property_name
+    has valid property_value corresponding to ``rules`` dictionary.
+    Validation will return joined only valid pairs.
+    """
+    
+    def __init__(self, rules, equivalents={}, **kwargs):
+        """
+        ``rules`` is dictionary in witch key is name of property
+        (or tag attribute) and value is corresponding rule.
+        
+        ``equivalents`` is dictionary in witch key is name of property
+        specified in ``rules`` and value is list of properties` names
+        (or tag attribute) that must be validated by the same rule.  
+        """
+        Sequence.__init__(self, rule=None, delimiter_regexp='\s*;\s*',
+            join_string='; ', append_string=';', **kwargs)
+        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        
+    def sequence(self, values, path):
+        """Do it."""
+        properties = []
+        for value in values:
+            if ':' not in value:
+                continue
+            property_name = value[:value.find(':')].strip()
+            property_value = value[value.find(':')+1:].strip()
+            properties.append((property_name, partproperty_value))
+        properties = self.check(properties)
+        return ['%s: %s' % (property_name, property_value)
+            for property_name, property_value in properties]
+
+
+class Tag(Rule, Validator):
+    """
+    Rule suppose that value is correct if ``value`` is LIST OF PAIRS
+    (attribute_name, attribute_value) and each attribute_name
+    has valid attribute_value corresponding to ``rules`` dictionary.
+    Validation will return list of valid pairs (attribute_name, attribute_value).
+    """
+    
+    def __init__(self, rules, equivalents={}, **kwargs):
+        """
+        ``rules`` is dictionary in witch key is name of property
+        (or tag attribute) and value is corresponding rule.
+        
+        ``equivalents`` is dictionary in witch key is name of property
+        specified in ``rules`` and value is list of properties` names
+        (or tag attribute) that must be validated by the same rule.  
+        """
+        Rule.__init__(self, **kwargs)
+        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        
+    def validate(self, value, path):
+        """Do it."""
+        return self.check(value, path)
 
 
 class Html(Validator):
