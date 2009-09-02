@@ -4,8 +4,8 @@ from trustedhtml.classes import *
 from trustedhtml.rules.common import *
 from trustedhtml.rules import attributes
 
-a = Or(rules=[
-    Tag(rules={
+a = Or(allow_empty=True, rules=[
+    Attributes(rules={
         'title': String(default=''),
         # Can enable: 'charset': attributes.charset,
         # Can enable: 'type': attributes.content_type,
@@ -19,43 +19,49 @@ a = Or(rules=[
         # Can enable: 'tabindex': number,
         'target': List(values=['_blank', '_self', '_parent', '_top', ]), 
     }),
-    Tag(rules={
+    Attributes(rules={
         'name': String(required=True),
     }),
 ])
 
-address = Tag()
-b = Tag()
+address = Attributes(root_tag=True, )
+b = Attributes()
 
-blockquote = Tag(rules={
+blockquote = Attributes(root_tag=True, rules={
     'cite': Url(allow_anchor=True), 
 })
 
-br = Tag(rules={
+br = Attributes(rules={
     'clear':  List(values=[
         'left', 'all', 'right', 'none', 
     ]),
 })
 
-caption = Tag(rules={
+caption = Attributes(allow_empty=True, rules={
     'align': List(values=[
         'top', 'bottom', 'left', 'right', 
     ]),
 })
 
-cite = Tag()
+cite = Attributes()
 
-div = Tag(rules={
+div = Attributes(root_tag=True, rules={
     'style': attributes.style_display,
 })
 
-# dt = Tag(get_content=True)
+dl = Attributes(get_content=True, )
 
-h1 = Tag(rules={
+dt = Attributes(get_content=True, )
+
+# fieldset = Attributes(root_tag=True, )
+# ins = Attributes(root_tag=True, )
+# del = Attributes(root_tag=True, )
+
+h1 = Attributes(root_tag=True, rules={
     'align': text_align,
 })
 
-img = Tag(rules={
+img = Attributes(rules={
     'title': string,
     'src': Url(required=True, allow_foriegn=False, tag='download_image'), 
     'alt': String(default=''),
@@ -71,27 +77,27 @@ img = Tag(rules={
     # Can enable: 'name': String(default=''),
 })
 
-li = Tag(rules={
+li = Attributes(rules={
     'type': List(values=[
         'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
     ]),
     'value': number,
 })
 
-ol = Tag(rules={
+ol = Attributes(root_tag=True, rules={
     'type': List(values=[
         '1', 'a', 'A', 'i', 'I', 
     ]),
     'start': number,
 })
 
-p = Tag(rules={
+p = Attributes(root_tag=True, rules={
     # Can enable: 'align': text_align,
 })
 
-pre = Tag()
+pre = Attributes(root_tag=True, )
 
-span = Tag(rules={
+span = Attributes(rules={
     'style': Style(rules={
         'text-decoration': List(values=[
             'underline', 'line-through', 
@@ -99,7 +105,7 @@ span = Tag(rules={
     }),
 })
 
-table = Tag(rules={
+table = Attributes(root_tag=True, rules={
     'title': string,
     'summary': string,
     'width': length,
@@ -118,7 +124,7 @@ table = Tag(rules={
     'style': attributes.style,
 })
 
-tbody = Tag(rules={
+tbody = Attributes(rules={
     'align': List(values=[
         'left', 'center', 'right', 'justify', 'char', 
     ]),
@@ -129,7 +135,7 @@ tbody = Tag(rules={
     ]),
 })
 
-td = Tag(rules={
+td = Attributes(default='&nbsp;', rules={
     # Can enable: 'headers': string,
     'abbr': string,
     'scope': List(values=[
@@ -153,7 +159,7 @@ td = Tag(rules={
     'style': attributes.style_td,
 })
 
-tr = Tag(rules={
+tr = Attributes(rules={
     'align': List(values=[
         'left', 'center', 'right', 'justify', 'char', 
     ]),
@@ -165,47 +171,8 @@ tr = Tag(rules={
     # Can enable: 'bgcolor': color,
 })
 
-ul = Tag(rules={
+ul = Attributes(root_tag=True, rules={
     'type': List(values=[
         'disc', 'square', 'circle', 
     ]),
-})
-
-
-# For each tag-name you must specify list of attribute combinations:
-# { <attribute-name>: <validation object> }
-html = Html(rules={
-    'a': a,
-    'address': address,
-    'b': b,
-    'blockquote': blockquote,
-    'br': br,
-    'caption': caption,
-    'cite': cite,
-    'div': div,
-    'h1': h1,
-    'img': img,
-    'li': li,
-    'ol': ol,
-    'p': p,
-    'pre': pre,
-    'span': span,
-    'table': table,
-    'tbody': tbody,
-    'td': td,
-    'tr': tr,
-    'ul': ul,
-}
-, equivalents = {
-    'h1': [
-        'h2', 'h3', 'h4', 'h5', 'h6',
-    ],
-    'b': [
-        'em', 'i', 'strong', 'sub', 'sup', 'u',
-    ],
-#}, coreattrs = {
-#    'id': string,
-#    'title': string,
-#    'class': string,
-#    'style': attributes.style,
 })

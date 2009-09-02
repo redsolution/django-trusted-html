@@ -14,6 +14,8 @@ html = Html(rules={
     'caption': tags.caption,
     'cite': tags.cite,
     'div': tags.div,
+    'dl': tags.dl,
+    'dt': tags.dt,
     'h1': tags.h1,
     'img': tags.img,
     'li': tags.li,
@@ -33,6 +35,9 @@ html = Html(rules={
     ],
     'b': [
         'em', 'i', 'strong', 'sub', 'sup', 'u',
+    ],
+    'td': [
+        'th',
     ],
 #}, coreattrs = {
 #    'id': string,

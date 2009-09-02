@@ -9,7 +9,7 @@ from django.dispatch import Signal
 
 from signals import *
 
-TRUSTED_QUITE = False
+BeautifulSoup.QUOTE_TAGS = {}
 
 class TrustedException(ValueError):
     """
@@ -593,7 +593,7 @@ class Style(Sequence, Validator):
             for property_name, property_value in properties]
 
 
-class Tag(Rule, Validator):
+class Attributes(Rule, Validator):
     """
     Rule suppose that value is correct if ``value`` is LIST OF PAIRS
     (attribute_name, attribute_value) and each attribute_name
@@ -601,7 +601,8 @@ class Tag(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
     
-    def __init__(self, rules, equivalents={}, **kwargs):
+    def __init__(self, rules, equivalents={}, allow_empty=False, 
+        default=None, root_tag=False, get_content=False, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -610,8 +611,10 @@ class Tag(Rule, Validator):
         specified in ``rules`` and value is list of properties` names
         (or tag attribute) that must be validated by the same rule.  
         """
-        Rule.__init__(self, **kwargs)
+        Rule.__init__(self, allow_empty=allow_empty, default=default, **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        self.root_tag = root_tag
+        self.get_content = get_content
         
     def core(self, value, path):
         """Do it."""
@@ -620,16 +623,13 @@ class Tag(Rule, Validator):
         except (RequiredException, InvalidException):
             raise IncorrectException
 
-
-BeautifulSoup.QUOTE_TAGS = {}
-
-class Html(String, Validator):
+class Html(String):
     """
     Rule suppose that value is correct if it can be fixed
     over ``fix_number`` iterations.
     And chars in value can be prepared for fixing
     over ``prepare_number`` iterations per fix.
-    Validation will return valid html.
+    Validation will return valid tuple (valid_html, plain_text).
     """
     
     # All constants must be lowered. 
@@ -651,22 +651,7 @@ class Html(String, Validator):
     NBSP_TEXT = '&nbsp;'
     NBSP_RE = re.compile('[' + NBSP_CHAR + ' ]{2,}')
     
-    replace_rules = { # Use unicode text for replace
-    # dictionary = {tag_name: [list of rules], ...}
-    # rules = ([list of attrs], new_tag_name, [list of new_attrs])
-    # attrs & new_attrs = (attr, value)
-#        'span':
-#            [([('style', 'text-decoration: underline;'), ], u'u', []), ],
-    }
-    
-    empty_tags = ['td', 'th', 'caption', 'a', ]
-    nbsp_tag = ['td', 'th', ]
-    
-    start_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', # normal
-        'div', 'address', 'fieldset', 'ins', 'del', # w3c 
-        'ul', 'ol', 'blockquote', 'table', 'pre', # TinyMCE
-    ]
-    default_start_tag = 'p'
+    DEFAULT_ROOT_TAG = 'p'
     
     MARKUP_MASSAGE = BeautifulSoup.MARKUP_MASSAGE + [
         (re.compile('<!-([^-])'), lambda match: '<!--' + match.group(1))
@@ -686,24 +671,26 @@ class Html(String, Validator):
 
         ``prepare_number`` specified number of maximum attempts to prepare value.
         """
-        Rule.__init__(self, **kwargs)
-        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        super(Html, self).__init__(**kwargs)
+        self.rules = rules
+        self.equivalents = equivalents
         self.fix_number = fix_number
-        self.prepare_number = prepare_number 
-        
-    def code_re_sub(self, match):
-        try:
-            if match.group(2):
-                code = int(match.group(2))
-            elif match.group(3):
-                code = int(match.group(3), 16)
-            else:
-                code = 0
-            if code in self.CODE_RE_SPECIAL:
-                return self.CODE_RE_SPECIAL[code]
-            return unichr(code)
-        except (ValueError, OverflowError):
-            return ''
+        self.prepare_number = prepare_number
+        self.empty_tags = []
+        self.nbsp_tags = []
+        self.root_tags = []
+        for name, rule in self.rules.iteritems():
+            if rule.allow_empty or rule.default is not None:
+                self.empty_tags.append(name)
+                self.empty_tags.extend(self.equivalents.get(name, []))
+            if rule.default is not None:
+                self.nbsp_tags.append(name)
+                self.nbsp_tags.extend(self.equivalents.get(name, []))
+            if rule.root_tag:
+                self.root_tags.append(name)
+                self.root_tags.extend(self.equivalents.get(name, []))
+                
+                
 
     def remove_spaces(self, value):
         """Removes spaces from ``value``"""
@@ -711,56 +698,52 @@ class Html(String, Validator):
 
     def prepare(self, value):
         """Prepare chars in ``value``. Replace system values."""
+        def code_re_sub(match):
+            try:
+                if match.group(2):
+                    code = int(match.group(2))
+                elif match.group(3):
+                    code = int(match.group(3), 16)
+                else:
+                    code = 0
+                if code in self.CODE_RE_SPECIAL:
+                    return self.CODE_RE_SPECIAL[code]
+                return unichr(code)
+            except (ValueError, OverflowError):
+                return ''
         value = value.replace('\0', '')
-        value = self.CODE_RE.sub(self.code_re_sub, value)
+        value = self.CODE_RE.sub(code_re_sub, value)
         value = self.SYSTEM_RE.sub(' ', value)
         value = self.remove_spaces(value)
         return value
 
-    def tag_check(self, tag):
-        if tag.name not in self.trusted_dictionary:
-            print '\n!not', repr(tag.name)  
-            return False
-        self.rules = self.trusted_dictionary[tag.name]
-        return self.check(tag)
-        
-    def tag_replace(self, tag):
-        if tag.name not in self.replace_rules:
-            return
-        for old_attrs, new_name, new_attrs in self.replace_rules[tag.name]:
-            for old_attr, old_value in old_attrs:
-                if (old_attr, old_value) not in tag.attrs:
-                    break
-            else:
-                print '\n~rep', repr(tag.name), repr(tag.attrs)
-                other_attrs = [(attr, value) for attr, value in tag.attrs 
-                    if (attr, value) not in old_attrs]
-                other_attrs.extend(new_attrs)
-                tag.name = new_name
-                tag.attrs = other_attrs
-                print '\n=rep', repr(tag.name), repr(tag.attrs)
-                break
-    
-    def clear(self, soup):
+
+    def clear(self, soup, path):
         index = 0
         while index < len(soup.contents):
             if isinstance(soup.contents[index], Tag):
-                self.tag_replace(soup.contents[index])
-                if self.tag_check(soup.contents[index]):
-                    self.clear(soup.contents[index])
-                else:
-                    soup.contents[index].extract()
+                rule = self.rules.get(soup.contents[index].name, None)
+                try:
+                    if rule is None:
+                        raise IncorrectException
+                    rule.validate(soup.contents[index].attrs, path)
+                except TrustedException:
+                    element = soup.contents[index].extract()
+                    if rule is not None and getattr(rule, 'get_content', False):
+                        for content in element.contents:
+                            soup.insert(index, content)
                     continue
-            elif soup.contents[index].__class__ is not NavigableString:
-                soup.contents[index].extract()
-                continue
-            else:
+                self.clear(soup.contents[index])
+            elif soup.contents[index].__class__ is NavigableString:
                 value = soup.contents[index].string
                 value = self.remove_spaces(value)
-                for char, string in self.special_chars:
+                for char, string in self.SPECIAL_CHARS:
                     value = value.replace(char, string)
                 if value != soup.contents[index].string:
                     soup.contents[index].replaceWith(value)
+            else:
+                soup.contents[index].extract()
+                continue
             index = index + 1
         return soup
 
@@ -794,7 +777,7 @@ class Html(String, Validator):
                         # encoding=None: Fix bug in BeautifulSoup (don`t work with unicode)
                         text = self.prepare(text)
                         if not text or (text == ' ') or (text == self.NBSP_CHAR 
-                            and soup.contents[index].name not in self.nbsp_tag):
+                            and soup.contents[index].name not in self.nbsp_tags):
                             changed = True
                             if text:
                                 soup.contents[index].replaceWith(text)
@@ -821,7 +804,7 @@ class Html(String, Validator):
 
     def need_wrap(self, content, for_next):
         if isinstance(content, Tag):
-            if content.name in self.start_tags:
+            if content.name in self.root_tags:
                 return False
         else:
             if not for_next and (content.string == '' 
@@ -836,7 +819,7 @@ class Html(String, Validator):
                 index += 1
             if index >= len(soup.contents):
                 break
-            start = Tag(soup, self.default_start_tag)
+            start = Tag(soup, self.DEFAULT_ROOT_TAG)
             while index < len(soup.contents) and self.need_wrap(soup.contents[index], True):
                 content = soup.contents[index].extract()
                 start.append(content)
@@ -853,19 +836,22 @@ class Html(String, Validator):
                 for char, string in self.PLAIN_CHARS:
                     value = value.replace(string, char)
                 result += value
-        return unicode(result)
+        return result
 
     def fix(self, value, path):
+        source = value
         soup = BeautifulSoup(value, markupMassage=self.MARKUP_MASSAGE,
             convertEntities=BeautifulSoup.ALL_ENTITIES)
-        soup = self.clear(soup)
+        soup = self.clear(soup, path)
         soup = self.collapse(soup)
         soup = self.collapse_root(soup)
         soup = self.wrap(soup)
-        return unicode(soup)
+        plain = self.get_plain_text(soup)
+        return (unicode(soup), unicode(plain))
 
     def core(self, value, path):
         """Do it."""
+        path = path[:] + [self]
         value = String.core(self, value, path)
         for iteration in xrange(self.fix_number + 1):
             for preparing in xrange(self.prepare_number + 1):
@@ -876,8 +862,9 @@ class Html(String, Validator):
             else:
                 raise InvalidException('Too much attempts to prepare value')
             source = value
-            value = self.fix(value, path)
+            value, plain = self.fix(value, path)
             if source == value:
                 break
         else:
             raise InvalidException('Too much attempts to fix value')
+        return (value, plain)
