@@ -3,6 +3,7 @@
     ``sender`` - class of the rule
     ``rule`` - instance of the rule
     ``value`` - instance of the value
+    ``source`` - instance of value`s source variant
 Receiver functions must return correct value or raise TrustedException.
 Returned value will be used as result of validation.
 If more than one signals will be used than all signals will get source value
@@ -12,11 +13,12 @@ but only result of last signal will be used as result of validation.
     ``sender`` - class of the rule
     ``rule`` - instance of the rule
     ``value`` - instance of the value
+    ``source`` - instance of value`s source variant
     ``exception`` - raised exception
 """
 
 from django.dispatch import Signal
 
-rule_done = Signal(providing_args=['rule', 'parent', 'value', ])
+rule_done = Signal(providing_args=['rule', 'parent', 'value', 'source', ])
 
-rule_exception = Signal(providing_args=['rule', 'parent', 'value', 'state', 'exception', ])
+rule_exception = Signal(providing_args=['rule', 'parent', 'value', 'source', 'state', 'exception', ])

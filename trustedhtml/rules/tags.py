@@ -174,7 +174,7 @@ ul = Tag(rules={
 
 # For each tag-name you must specify list of attribute combinations:
 # { <attribute-name>: <validation object> }
-html = Html(tags={
+html = Html(rules={
     'a': a,
     'address': address,
     'b': b,
@@ -203,9 +203,9 @@ html = Html(tags={
     'b': [
         'em', 'i', 'strong', 'sub', 'sup', 'u',
     ],
-}, coreattrs = {
-    'id': string,
-    'title': string,
+#}, coreattrs = {
+#    'id': string,
+#    'title': string,
 #    'class': string,
 #    'style': attributes.style,
 })

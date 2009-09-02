@@ -9,8 +9,6 @@ from django.dispatch import Signal
 
 from signals import *
 
-TRUSTED_PREPARINGS = 2
-TRUSTED_ITERATIONS = 2
 TRUSTED_QUITE = False
 
 class TrustedException(ValueError):
@@ -98,6 +96,7 @@ class Rule(object):
         
         This function will call ``core()`` that can be overwritten by subclasses.
         """
+        source = value
         try:
             try:
                 if not self.allow_empty and not value:
@@ -116,13 +115,13 @@ class Rule(object):
                 raise InvalidException
 
             results = rule_done.send(sender=self.__class__, rule=self,
-                path=path, value=value)
+                path=path, value=value, source=source)
             for receiver, response in results:
                 value = response
 
         except TrustedException, exception:
             rule_exception.send(sender=self.__class__, rule=self,
-                path=path, value=value, exception=exception)
+                path=path, value=value, source=source, exception=exception)
             raise exception
         return value
 
@@ -586,7 +585,10 @@ class Style(Sequence, Validator):
             property_name = value[:value.find(':')].strip()
             property_value = value[value.find(':')+1:].strip()
             properties.append((property_name, partproperty_value))
-        properties = self.check(properties)
+        try:
+            properties = self.check(properties)
+        except RequiredException:
+            raise IncorrectException
         return ['%s: %s' % (property_name, property_value)
             for property_name, property_value in properties]
 
@@ -611,30 +613,43 @@ class Tag(Rule, Validator):
         Rule.__init__(self, **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         
-    def validate(self, value, path):
+    def core(self, value, path):
         """Do it."""
-        return self.check(value, path)
+        try:
+            return self.check(value, path)
+        except (RequiredException, InvalidException):
+            raise IncorrectException
 
 
-class Html(Validator):
+BeautifulSoup.QUOTE_TAGS = {}
+
+class Html(String, Validator):
+    """
+    Rule suppose that value is correct if it can be fixed
+    over ``fix_number`` iterations.
+    And chars in value can be prepared for fixing
+    over ``prepare_number`` iterations per fix.
+    Validation will return valid html.
+    """
+    
     # All constants must be lowered. 
-    special_chars = [
+    SPECIAL_CHARS = [
         ('&', '&amp;'), # Must be first element in list
         ('"', '&quot;'),
         ("'", '&apos;'),
         ('<', '&lt;'),
         ('>', '&gt;'),
-        #(nbsp_char, nbsp_text),
+        #(NBSP_CHAR, NBSP_TEXT),
     ]
-    plain_chars = [special_chars[index] for index in range(len(special_chars)-1, -1, -1)] 
-    code_re = re.compile('&#(([0-9]+);?|x([0-9A-Fa-f]+);?)')
-    code_re_special = dict([(0, '')] + 
-        [(ord(char), string) for char, string in special_chars])  
-    system_re = re.compile('[\x01-\x1F\s]+')
-    
-    nbsp_char = u'\xa0'
-    nbsp_text = '&nbsp;'
-    nbsp_re = re.compile('[' + nbsp_char + ' ]{2,}')
+    PLAIN_CHARS = [SPECIAL_CHARS[index] for index in range(len(SPECIAL_CHARS)-1, -1, -1)]
+    CODE_RE = re.compile('&#(([0-9]+);?|x([0-9A-Fa-f]+);?)')
+    CODE_RE_SPECIAL = dict([(0, '')] + 
+        [(ord(char), string) for char, string in SPECIAL_CHARS])  
+    SYSTEM_RE = re.compile('[\x01-\x1F\s]+')
+
+    NBSP_CHAR = u'\xa0'
+    NBSP_TEXT = '&nbsp;'
+    NBSP_RE = re.compile('[' + NBSP_CHAR + ' ]{2,}')
     
     replace_rules = { # Use unicode text for replace
     # dictionary = {tag_name: [list of rules], ...}
@@ -653,11 +668,30 @@ class Html(Validator):
     ]
     default_start_tag = 'p'
     
-    markupMassage = copy.copy(BeautifulSoup.MARKUP_MASSAGE)
-    markupMassage.extend([(re.compile('<!-([^-])'), 
-        lambda match: '<!--' + match.group(1))])
+    MARKUP_MASSAGE = BeautifulSoup.MARKUP_MASSAGE + [
+        (re.compile('<!-([^-])'), lambda match: '<!--' + match.group(1))
+    ]
 
-    def code_re_suber(self, match):
+    def __init__(self, rules, equivalents={},
+        fix_number=2, prepare_number=2 **kwargs):
+        """
+        ``rules`` is dictionary in witch key is name of property
+        (or tag attribute) and value is corresponding rule.
+        
+        ``equivalents`` is dictionary in witch key is name of property
+        specified in ``rules`` and value is list of properties` names
+        (or tag attribute) that must be validated by the same rule.  
+        
+        ``fix_number`` specified number of maximum attempts to fix value.
+
+        ``prepare_number`` specified number of maximum attempts to prepare value.
+        """
+        Rule.__init__(self, **kwargs)
+        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        self.fix_number = fix_number
+        self.prepare_number = prepare_number 
+        
+    def code_re_sub(self, match):
         try:
             if match.group(2):
                 code = int(match.group(2))
@@ -665,25 +699,24 @@ class Html(Validator):
                 code = int(match.group(3), 16)
             else:
                 code = 0
-            if code in self.code_re_special:
-                return self.code_re_special[code]
+            if code in self.CODE_RE_SPECIAL:
+                return self.CODE_RE_SPECIAL[code]
             return unichr(code)
         except (ValueError, OverflowError):
             return ''
-    
-    def remove_spaces(self, html):
-        return self.nbsp_re.sub(self.nbsp_char, html)
-    
-    def prepare(self, html):
-        html = html.replace('\0', '')
-        new_html = self.code_re.sub(self.code_re_suber, html)
-        if new_html != html:
-            print '\n~pre', repr(html), '\n=pre', repr(new_html)
-            html = new_html
-        html = self.system_re.sub(' ', html)
-        html = self.remove_spaces(html)
-        return html
-    
+
+    def remove_spaces(self, value):
+        """Removes spaces from ``value``"""
+        return self.NBSP_RE.sub(self.NBSP_CHAR, value)
+
+    def prepare(self, value):
+        """Prepare chars in ``value``. Replace system values."""
+        value = value.replace('\0', '')
+        value = self.CODE_RE.sub(self.code_re_sub, value)
+        value = self.SYSTEM_RE.sub(' ', value)
+        value = self.remove_spaces(value)
+        return value
+
     def tag_check(self, tag):
         if tag.name not in self.trusted_dictionary:
             print '\n!not', repr(tag.name)  
@@ -760,7 +793,7 @@ class Html(Validator):
                         text = soup.contents[index].renderContents(encoding=None)
                         # encoding=None: Fix bug in BeautifulSoup (don`t work with unicode)
                         text = self.prepare(text)
-                        if not text or (text == ' ') or (text == self.nbsp_char 
+                        if not text or (text == ' ') or (text == self.NBSP_CHAR 
                             and soup.contents[index].name not in self.nbsp_tag):
                             changed = True
                             if text:
@@ -780,7 +813,7 @@ class Html(Validator):
             if not isinstance(soup.contents[index], Tag):
                 text = soup.contents[index].string
                 text = self.prepare(text)
-                if not text or (text == ' ') or (text == self.nbsp_char):
+                if not text or (text == ' ') or (text == self.NBSP_CHAR):
                     soup.contents[index].extract()
                     continue
             index = index + 1
@@ -792,7 +825,7 @@ class Html(Validator):
                 return False
         else:
             if not for_next and (content.string == '' 
-                or content.string == ' ' or content.string == self.nbsp_char):
+                or content.string == ' ' or content.string == self.NBSP_CHAR):
                 return False
         return True
     
@@ -817,52 +850,34 @@ class Html(Validator):
                 result += self.get_plain_text(content)
             else:
                 value = content.string
-                for char, string in self.plain_chars:
+                for char, string in self.PLAIN_CHARS:
                     value = value.replace(string, char)
                 result += value
         return unicode(result)
-        
-    def get_soup(self, html):
-        return BeautifulSoup(html, markupMassage=self.markupMassage,
-            convertEntities=BeautifulSoup.ALL_ENTITIES) 
-        
-    def filter(self, html):
-        self.soup = self.get_soup(html)
-        self.soup = self.clear(self.soup)
-        self.soup = self.collapse(self.soup)
-        self.soup = self.collapse_root(self.soup)
-        self.soup = self.wrap(self.soup)
-        self.plain_text = self.get_plain_text(self.soup)
-        return unicode(self.soup)
-        
-    def __init__(self, raw_html, trusted_dictionary, data=None):
-    # Generate: self.html, self.plain_text
-        self.trusted_dictionary = trusted_dictionary
-        super(Html, self).__init__(rules=[], data=data)
-        BeautifulSoup.QUOTE_TAGS = {}
-        self.raw_html = unicode(raw_html)
-        self.html = self.raw_html
-        # print '\n~run', repr(self.html)
-        for iteration in xrange(TRUSTED_ITERATIONS + 1):
-            for preparing in xrange(TRUSTED_PREPARINGS + 1):
-                source_html = self.html
-                self.html = self.prepare(self.html)
-                if source_html == self.html:
+
+    def fix(self, value, path):
+        soup = BeautifulSoup(value, markupMassage=self.MARKUP_MASSAGE,
+            convertEntities=BeautifulSoup.ALL_ENTITIES)
+        soup = self.clear(soup)
+        soup = self.collapse(soup)
+        soup = self.collapse_root(soup)
+        soup = self.wrap(soup)
+        return unicode(soup)
+
+    def core(self, value, path):
+        """Do it."""
+        value = String.core(self, value, path)
+        for iteration in xrange(self.fix_number + 1):
+            for preparing in xrange(self.prepare_number + 1):
+                source = value
+                value = self.prepare(value)
+                if source == value:
                     break
             else:
-                raise ValidationError('Preparing misgiving')
-            source_html = self.html
-            self.html = self.filter(self.html)
-            if source_html == self.html:
+                raise InvalidException('Too much attempts to prepare value')
+            source = value
+            value = self.fix(value, path)
+            if source == value:
                 break
-            print '\n~fil', repr(source_html)
-            print '\n=fil', repr(self.html)
         else:
-            raise ValidationError('Iteration misgiving')
-        # print '\n=don', repr(self.html)
-        
-    def __str__(self):
-        return self.html
-
-    def __unicode__(self):
-        return self.html
+            raise InvalidException('Too much attempts to fix value')
