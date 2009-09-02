@@ -8,12 +8,11 @@ from trustedhtml.rules.common import *
 #    'inherit',
 #]
 
-# TODO: CssUrl
 css_url = Or(rules=[
     List(values=[
         'none'
     ]),
-    Url(),
+    Sequence(rule=Url(), delimiter_regexp='^url\((.*)\)$', min_split=3, max_split=3)
 ])
 
 background_attachment = List(values=[
@@ -216,7 +215,7 @@ list_style = Complex(trusted_sequence=[
 ])
 
 margin = Or(rules=[
-    Indent(),
+    indent,
     List(values=[
         'auto'
     ]),
@@ -268,7 +267,7 @@ page_break_inside = List(values=[
     'auto', 'avoid',
 ])
 
-padding = Indent()
+padding = indent
 
 padding_top = Size()
 

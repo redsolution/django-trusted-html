@@ -441,8 +441,9 @@ class Sequence(String):
     Validation will return first matched group.
     """
     
-    def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False, 
-        regexp_flags=0, join_string=' ', append_string=None, **kwargs):
+    def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False,
+        regexp_flags=0, min_split=0, max_split=0, skip_empty=False,
+        join_string=' ', prepend_string='', append_string='', **kwargs):
         """
         ``rule`` is the rule that will be called to validate each path of value.
         
@@ -450,23 +451,34 @@ class Sequence(String):
         to split specified value.
         
         ``case_sensitive`` if True than validation will be case sensitive.
-        
+
         ``regexp_flags`` specified flags for regular expression.
+        
+        ``min_split`` specified minimum allowed number of parts.
+        Validation will raise IncorrectException if number of parts is less.
+        
+        ``max_split`` specified maximum allowed number of parts.
+        Validation will raise IncorrectException if number of parts is less.
         
         ``join_string`` is string that will be used to join back
         validated parts of value.
         
+        ``prepend_string`` is string that will be inserted before joined value.
+        
         ``append_string`` is string that will be added to the end of joined value.
         """
         super(Sequence, self).__init__(**kwargs)
-        self.delimiter = delimiter
+        self.rule = rule
+        self.delimiter_regexp = delimiter_regexp
         self.regexp_flags = regexp_flags
         if not self.case_sensitive:
             self.regexp_flags = self.regexp_flags | re.IGNORECASE
-        self.compiled = re.compile(unicode(self.delimiter), self.regexp_flags)
-        
-        self.rule = rule
+        self.compiled = re.compile(unicode(self.delimiter_regexp), self.regexp_flags)
+        self.min_split = min_split
+        self.max_split = max_split
+        self.skip_empty = skip_empty
         self.join_string = join_string
+        self.prepend_string = prepend_string
         self.append_string = append_string
 
     def check(self, values, path):
@@ -485,28 +497,31 @@ class Sequence(String):
         for value in values:
             try:
                 result.append(self.rule.validate(value, path))
-            except RequiredException:
-                raise SequenceException
-            except EmptyException:
-                pass
+            except EmptyException, exception:
+                if not self.skip_empty:
+                    raise exception
         return result
 
     def core(self, value, path):
         """Do it."""
         value = super(Sequence, self).core(value, path)
-        path = path[:] + [self]
         values = self.compiled.split(value)
-        try:
-            values = self.check(values, path)
-        except SequenceException:
+        if (len(values) < self.min_split) or (self.max_split and len(values) > self.max_split):
             raise IncorrectException
+        path = path[:] + [self]
+        values = self.check(values, path)
         value = self.join_string.join(values)
-        if append_string:
-            value += self.append_string
+        value = self.prepend_string + value + self.append_string
         return value
 
 
 class Style(Sequence, Validator):
+    """
+    Rule suppose that value is correct if each path of value,
+    divided by ``delimiter_regexp`` match specified ``rule``.
+    Validation will return first matched group.
+    """
+    
     def __init__(self, rules, equivalents={}, delimiter_regexp='\s*;\s*', join_string='; ', append_string=';', **kwargs):
         super(Style, self).__init__(delimiter_regexp=delimiter_regexp, 
             join_string=join_string, append_string=append_string, **kwargs)
@@ -529,28 +544,6 @@ class Style(Sequence, Validator):
             raise SequenceException
         return ['%s: %s' % (property_name, property_value)
             for property_name, property_value in properties]
-
-
-class Indent(Sequence):
-    # EmptyException is the same to RequiredException.
-    # You may use DefaultException to skip value.
-    def __init__(self, validator=None, **kwargs):
-        if validator is None:
-            validator = Size()
-        kwargs['validator'] = validator
-        super(Indent, self).__init__(**kwargs)
-        
-    def sequence(self, value, parts):
-        if len(parts) not in [1, 2, 4]:
-            return False
-        result = []
-        for part in parts:
-            try:
-                result.append(self.validator.validate(self.name, self.attr, part, 
-                    path=self, data=self.data, quite=self.quite))
-            except (RequiredException, EmptyException):
-                raise SequenceException
-        return result
 
 
 class Complex(Indent):

@@ -23,12 +23,12 @@ lexic_dict['range'] = r'\?{1,6}|%(h)s(\?{0,5}|%(h)s(\?{0,4}|%(h)s(\?{0,3}|%(h)s(
 
 
 string = String()
-indent = Indent()
 number = RegExp(regexp=r'([-+]?\d{1,7})$')
 length = RegExp(regexp=r'([-+]?\d{1,7}%?)$')
 size = RegExp(regexp=r'([-+]?\d{1,7}(%s))$' % '|'.join([
     '', 'px', '%', 'cm', 'mm', 'in', 'pt', 'pc', 'em', 'ex', 
 ]))
+indent = Sequence(rule=size, min_split=1, max_split=4)
 char = Char()
 color = Or(rules=[
     List(values=[
