@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from trustedhtml.classes import *
-from trustedhtml.rules.common import *
+from trustedhtml.classes import Style, List, Char, String, RegExp, Url
 from trustedhtml.rules import css
+
+string = String()
+number = RegExp(regexp=r'([-+]?\d{1,7})$')
+length = RegExp(regexp=r'([-+]?\d{1,7}%?)$')
+char = Char()
 
 style = Style(rules={
     'background': css.background,
@@ -15,12 +19,12 @@ style = Style(rules={
     'border': css.border_complex,
     'border-width': css.border_width,
     'border-style': css.border_style,
-    'border-color': color,
+    'border-color': css.color,
     'border-collapse': css.border_collapse,
     
     'bottom': css.bottom,
     'clear': css.clear,
-    'color': color,
+    'color': css.color,
     
     # content is big security hole
     #'content':
@@ -33,8 +37,8 @@ style = Style(rules={
     'padding': css.padding,
     'padding-top': css.padding_top,
 
-    'width': size,
-    'height': size,
+    'width': css.size,
+    'height': css.size,
 
     'float': css.float,
 }, equivalents = {
@@ -86,3 +90,67 @@ charset = List(values=[
     # 'utf-7', # Disable (because of XSS)   
 ] ) # Full list: http://www.iana.org/assignments/character-sets
 
+title_a = String(default='', )
+
+href = Url(allow_anchor=True, required=True)
+
+cite = Url(allow_anchor=True)
+
+clear = List(values=[
+    'left', 'all', 'right', 'none', 
+])
+
+align = List(values=[
+    'left', 'right', 'center', 'justify', 
+])
+
+align_caption = List(values=[
+    'top', 'bottom', 'left', 'right', 
+])
+
+align_img = List(values=[
+    'top', 'middle', 'bottom', 'left', 'right', 
+])
+
+align_table = List(values=[
+    'left', 'center', 'right', 'justify', 'char', 
+])
+
+target = List(values=[
+    '_blank', '_self', '_parent', '_top',
+]),
+
+name_a = String(required=True, )
+
+src = Url(required=True, allow_foriegn=False)
+
+alt = String(default='')
+
+type_li = List(values=[
+    'disc', 'square', 'circle', '1', 'a', 'A', 'i', 'I', 
+])
+
+type_ol = List(values=[
+    '1', 'a', 'A', 'i', 'I', 
+])
+
+type_ul = List(values=[
+    'disc', 'square', 'circle',
+])
+
+frame = List(values=[
+    'void', 'above', 'below', 'hsides', 'lhs', 'rhs', 'vsides', 
+    'box', 'border', 
+])
+
+rules = List(values=[
+    'none', 'groups', 'rows', 'cols', 'all', 
+])
+
+valign = List(values=[
+    'top', 'middle', 'bottom', 'baseline', 
+])
+
+scope = List(values=[
+    'row', 'col', 'rowgroup', 'colgroup', 
+])

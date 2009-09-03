@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from trustedhtml.classes import *
-from trustedhtml.rules.common import *
-from trustedhtml.rules import attributes
+from trustedhtml.classes import Html
 from trustedhtml.rules import tags
 
-html = Html(rules={
+full = Html(rules={
     'a': tags.a,
     'address': tags.address,
     'b': tags.b,
@@ -39,9 +37,4 @@ html = Html(rules={
     'td': [
         'th',
     ],
-#}, coreattrs = {
-#    'id': string,
-#    'title': string,
-#    'class': string,
-#    'style': attributes.style,
 })

@@ -147,12 +147,12 @@ class String(Rule):
     Validation will return striped string value if specified. 
     """
     
-    def __init__(self, strip=True, kwargs):
+    def __init__(self, strip=True, **kwargs):
         """
         ``strip`` if True than remove leading and trailing whitespace.
         """
+        super(String, self).__init__(**kwargs)
         self.strip = strip
-        super(Content, self).__init__(**kwargs)
     
     def core(self, value, path):
         """Do it."""
@@ -318,6 +318,7 @@ class RegExp(String):
         """
         super(RegExp, self).__init__(**kwargs)
         self.regexp = regexp
+        self.case_sensitive= case_sensitive
         self.regexp_flags = regexp_flags
         if not self.case_sensitive:
             self.regexp_flags = self.regexp_flags | re.IGNORECASE
@@ -401,6 +402,7 @@ class Sequence(String):
         super(Sequence, self).__init__(**kwargs)
         self.rule = rule
         self.delimiter_regexp = delimiter_regexp
+        self.case_sensitive = case_sensitive
         self.regexp_flags = regexp_flags
         if not self.case_sensitive:
             self.regexp_flags = self.regexp_flags | re.IGNORECASE
@@ -601,7 +603,7 @@ class Attributes(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
     
-    def __init__(self, rules, equivalents={}, allow_empty=False, 
+    def __init__(self, rules={}, equivalents={}, allow_empty=False, 
         default=None, root_tag=False, get_content=False, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
@@ -658,7 +660,7 @@ class Html(String):
     ]
 
     def __init__(self, rules, equivalents={},
-        fix_number=2, prepare_number=2 **kwargs):
+        fix_number=2, prepare_number=2, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
