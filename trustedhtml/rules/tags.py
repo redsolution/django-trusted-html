@@ -4,7 +4,8 @@ from trustedhtml.classes import Attributes, Or, String, Url
 from trustedhtml.rules import values
 from trustedhtml.rules import custom
 
-a = Attributes(rules={
+a = Or(allow_empty=True, rules=[
+    Attributes(rules={
         'title': values.title_a,
         # Can enable: 'charset': values.charset,
         # Can enable: 'type': values.content_type,
@@ -17,12 +18,11 @@ a = Attributes(rules={
         # Can enable: 'coords': Sequence(validator=number, delimiter_regexp='\s*,\s*'),
         # Can enable: 'tabindex': number,
         'target': values.target, 
-    })
-#    Or(allow_empty=True, rules=[
-#    Attributes(rules={
-#        'name': values.name_a,
-#    }),
-#])
+    }),
+    Attributes(rules={
+        'name': values.name_a,
+    }),
+])
 
 address = Attributes(root_tag=True, )
 b = Attributes()

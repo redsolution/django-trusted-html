@@ -1,8 +1,145 @@
 # -*- coding: utf-8 -*-
 
-def html_page(html):
-    return """
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+import unittest
+from trustedhtml.classes import *
+from trustedhtml import rules
+from trustedhtml import signals
+
+class Classes(unittest.TestCase):
+    def setUp(self):
+        from django.contrib.sites.models import Site
+        site = Site.objects.get_current()
+        site.domain = 'www.example.com'
+        site.save()
+        
+    def test_rule(self):
+        rule = Rule()
+        class Test(object):
+            pass
+        test = Test()
+        self.assertEqual(rule.validate(test), test)
+
+    def test_string(self):
+        string = String()
+        self.assertEqual(string.validate(''), '')
+        self.assertEqual(string.validate('qwe'), 'qwe')
+        self.assertEqual(string.validate('  qw e '), 'qw e')
+        
+    def test_content(self):
+        rule = Content()
+        self.assertRaises(EmptyException, rule.validate, '')
+        self.assertEqual(rule.validate('  qw e '), 'qw e')
+
+    def test_char(self):
+        rule = Char()
+        self.assertRaises(EmptyException, rule.validate, '')
+        self.assertEqual(rule.validate('  qw e '), 'q')
+
+    def test_url_img(self):
+        rule = Url(allow_foreign=False, allow_local=True, allow_anchor=False)
+        self.assertEqual(rule.validate('#qwee'), '/#qwee')
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertRaises(IncorrectException, rule.validate, 'http://example.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://example.com/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('./img.jpg'), '/./img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        
+    def test_url_anchor(self):
+        rule = Url(allow_foreign=False, allow_local=False, allow_anchor=True)
+        self.assertEqual(rule.validate('#qwee'), '#qwee')
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertRaises(IncorrectException, rule.validate, 'http://example.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://example.com/img.jpg')
+        self.assertRaises(IncorrectException, rule.validate, 'img.jpg')
+        self.assertRaises(IncorrectException, rule.validate, './img.jpg')
+        self.assertRaises(IncorrectException, rule.validate, '/img.jpg')
+
+    def test_url_foreign(self):
+        rule = Url(allow_foreign=True, allow_local=False, allow_anchor=False)
+        self.assertEqual(rule.validate('#qwee'), 'http://#qwee')
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
+        self.assertEqual(rule.validate('http://example.com/img.jpg'), 'http://example.com/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'http://img.jpg')
+        self.assertEqual(rule.validate('./img.jpg'), 'http://./img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), 'http://www.example.com/img.jpg')
+        
+    def test_url_any(self):
+        rule = Url(allow_foreign=True, allow_local=True, allow_anchor=True)
+        self.assertEqual(rule.validate('#qwee'), '#qwee')
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
+        self.assertEqual(rule.validate('http://example.com/img.jpg'), 'http://example.com/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'http://img.jpg')
+        self.assertEqual(rule.validate('./img.jpg'), 'http://./img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+
+    def test_list(self):
+        rule = List(values=['a', 'aB', ], strip=True)
+        self.assertRaises(IncorrectException, rule.validate, 'ac')
+        self.assertEqual(rule.validate('  a '), 'a')
+        self.assertEqual(rule.validate('  Ab '), 'aB')
+        
+    def test_list_case(self):
+        rule = List(values=['a', 'aB', ], return_defined=False, case_sensitive=True)
+        self.assertRaises(IncorrectException, rule.validate, 'ac')
+        self.assertEqual(rule.validate('  a '), 'a')
+        self.assertRaises(IncorrectException, rule.validate, '  Ab ')
+
+    def test_regexp(self):
+        rule = RegExp(regexp=r'@*([-+]?\d{1,7})@*$')
+        self.assertRaises(IncorrectException, rule.validate, '-')
+        self.assertRaises(IncorrectException, rule.validate, '@@@-')
+        self.assertEqual(rule.validate('  @@@-12@ '), '-12')
+        
+    def test_or(self):
+        rule = Or(rules=[
+            List(values=['a', 'aB', ]),
+            RegExp(regexp=r'([-+]?\d{1,7})$'),
+        ])
+        self.assertRaises(IncorrectException, rule.validate, '')
+        self.assertRaises(IncorrectException, rule.validate, '-')
+        self.assertEqual(rule.validate('  -12 '), '-12')
+        self.assertEqual(rule.validate('  Ab '), 'aB')
+        
+    def test_or_empty(self):
+        rule = Or(rules=[
+            List(values=['a', 'aB', ]),
+            RegExp(regexp=r'([-+]?\d{1,7})$', allow_empty=False),
+        ])
+        self.assertRaises(EmptyException, rule.validate, '')
+        self.assertRaises(IncorrectException, rule.validate, '-')
+        self.assertEqual(rule.validate('  -12 '), '-12')
+        self.assertEqual(rule.validate('  Ab '), 'aB')
+         
+    def tearDown(self):
+        pass
+    
+class Rules(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+    
+
+class Signals(unittest.TestCase):
+    def setUp(self):
+        def done(sender, **kwargs):
+            pass
+
+        def exception(sender, **kwargs):
+            pass
+
+        signals.rule_done.connect(done)        
+        signals.rule_exception.connect(exception)        
+
+    def tearDown(self):
+        pass
+
+def get_html(html):
+    return """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>For w3c</title>
@@ -160,27 +297,6 @@ tiny_omg = u"""
 <h6>&clubs; 01.08.2008 &lt;img src="javascript:alert(1);"&gt; 16:27:31</h6>
 """
 
-#    def v(self, value, catch=True):
-#        if catch:
-#            try:
-#                return self.validate('name', 'attr', value)
-#            except TrustedException, error:
-#                return error
-#        else:
-#            return self.validate('name', 'attr', value)
-
-#TrustedStr().v('')
-#TrustedStr(allow_empty=False).v('')
-#TrustedList(values=['leFt', 'right', ]).v('  lEft')
-#TrustedList(values=['leFt', 'right', ], return_defined=False, case_sensitive=True).v('  lEft')
-#TrustedList(values=['leFt', 'right', ], return_defined=False, case_sensitive=True).v('  leFt')
-#TrustedUrl(allow_local=False).v('/gfdg')
-#TrustedUrl(allow_local=False).v('gfdg')
-#TrustedUrl().v('gfdg')
-#TrustedUrl().v('/gfdg')
-#TrustedUrl(allow_local=True).v('/gfdg')
-#TrustedUrl(allow_local=True).v('gfdg')
-#TrustedUrl(allow_foriegn=True).v('http://gfdg')
 #TrustedNumber().v('')
 #TrustedNumber(allow_sign=False).v('+34fd')
 #TrustedNumber(allow_sign=False).v('34fd')
@@ -209,5 +325,3 @@ tiny_omg = u"""
 #TrustedRules.border.v('2pxs soLLid blAck')
 #TrustedRules.style.v('float: left; margin: 4px; border: 2px solid black; ')
 #TrustedHtml('<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>').html
-
-#from utils.trustedhtml import *

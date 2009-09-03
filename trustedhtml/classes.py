@@ -349,6 +349,7 @@ class Or(Rule):
         """
         ``rules`` is list of rules to validate specified ``value``.
         """
+        super(Or, self).__init__(**kwargs)
         self.rules = rules
     
     def core(self, value, path):
@@ -356,7 +357,7 @@ class Or(Rule):
         value = super(Or, self).core(value, path)
         path = path[:] + [self]
         last = IncorrectException
-        for rule in rules:
+        for rule in self.rules:
             try:
                 return rule.validate(value, path)
             except InvalidException:
@@ -688,7 +689,7 @@ class Html(String):
             if rule.default is not None:
                 self.nbsp_tags.append(name)
                 self.nbsp_tags.extend(self.equivalents.get(name, []))
-            if rule.root_tag:
+            if getattr(rule, 'root_tag', False):
                 self.root_tags.append(name)
                 self.root_tags.extend(self.equivalents.get(name, []))
                 
