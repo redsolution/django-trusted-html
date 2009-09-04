@@ -147,6 +147,34 @@ class Rules(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_css(self):
+        self.assertRaises(IncorrectException, rules.css.number.validate, 'a')
+        self.assertRaises(IncorrectException, rules.css.number.validate, '1.')
+        self.assertEqual(rules.css.number.validate('  12.3 '), '12.3')
+
+        self.assertRaises(IncorrectException, rules.css.size.validate, '-')
+        self.assertRaises(IncorrectException, rules.css.size.validate, '-12pxs')
+        self.assertEqual(rules.css.size.validate('  .3 '), '.3')
+        self.assertEqual(rules.css.size.validate('  -12.3px '), '-12.3px')
+        
+        self.assertRaises(IncorrectException, rules.css.indent.validate, '')
+        self.assertEqual(rules.css.indent.validate('  -12.3px '), '-12.3px')
+        self.assertEqual(rules.css.indent.validate('  -12.3px    45em '), '-12.3px 45em')
+        self.assertEqual(rules.css.indent.validate('  -12.3px 45em 6%    7'), '-12.3px 45em 6% 7')
+        self.assertRaises(IncorrectException, rules.css.indent.validate, '  -12.3px 45  em 6%    7')
+        self.assertRaises(IncorrectException, rules.css.indent.validate, '  -12.3px 45em 6%    7 8')
+
+        self.assertEqual(rules.css.color.validate('  WinDow '), 'window')
+        self.assertEqual(rules.css.color.validate('Red'), 'red')
+        self.assertEqual(rules.css.color.validate('rgb( 1.2,  34%,5)'), 'rgb( 1.2,  34%,5)')
+        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,5a)')
+        self.assertEqual(rules.css.color.validate('#fff'), '#fff')
+        self.assertEqual(rules.css.color.validate('#aaafff'), '#aaafff')
+        self.assertRaises(IncorrectException, rules.css.color.validate, '#aazfff')
+#url = Sequence(rule=Url(), delimiter_regexp='^url\((.*)\)$', min_split=3, max_split=3,
+#    join_string='', prepend_string='url( ', append_string=' )')
+
+
     def tearDown(self):
         pass
     
