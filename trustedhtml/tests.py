@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#import rpdb2; rpdb2.start_embedded_debugger('1')
 
 import unittest
 from trustedhtml.classes import *
@@ -7,10 +8,7 @@ from trustedhtml import signals
 
 class Classes(unittest.TestCase):
     def setUp(self):
-        from django.contrib.sites.models import Site
-        site = Site.objects.get_current()
-        site.domain = 'www.example.com'
-        site.save()
+        pass
         
     def test_rule(self):
         rule = Rule()
@@ -35,46 +33,6 @@ class Classes(unittest.TestCase):
         self.assertRaises(EmptyException, rule.validate, '')
         self.assertEqual(rule.validate('  qw e '), 'q')
 
-    def test_url_img(self):
-        rule = Url(allow_foreign=False, allow_local=True, allow_anchor=False)
-        self.assertEqual(rule.validate('#qwee'), '/#qwee')
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertRaises(IncorrectException, rule.validate, 'http://example.com')
-        self.assertRaises(IncorrectException, rule.validate, 'http://example.com/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('./img.jpg'), '/./img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-        
-    def test_url_anchor(self):
-        rule = Url(allow_foreign=False, allow_local=False, allow_anchor=True)
-        self.assertEqual(rule.validate('#qwee'), '#qwee')
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertRaises(IncorrectException, rule.validate, 'http://example.com')
-        self.assertRaises(IncorrectException, rule.validate, 'http://example.com/img.jpg')
-        self.assertRaises(IncorrectException, rule.validate, 'img.jpg')
-        self.assertRaises(IncorrectException, rule.validate, './img.jpg')
-        self.assertRaises(IncorrectException, rule.validate, '/img.jpg')
-
-    def test_url_foreign(self):
-        rule = Url(allow_foreign=True, allow_local=False, allow_anchor=False)
-        self.assertEqual(rule.validate('#qwee'), 'http://#qwee')
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
-        self.assertEqual(rule.validate('http://example.com/img.jpg'), 'http://example.com/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'http://img.jpg')
-        self.assertEqual(rule.validate('./img.jpg'), 'http://./img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), 'http://www.example.com/img.jpg')
-        
-    def test_url_any(self):
-        rule = Url(allow_foreign=True, allow_local=True, allow_anchor=True)
-        self.assertEqual(rule.validate('#qwee'), '#qwee')
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
-        self.assertEqual(rule.validate('http://example.com/img.jpg'), 'http://example.com/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'http://img.jpg')
-        self.assertEqual(rule.validate('./img.jpg'), 'http://./img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-
     def test_list(self):
         rule = List(values=['a', 'aB', ], strip=True)
         self.assertRaises(IncorrectException, rule.validate, 'ac')
@@ -93,6 +51,75 @@ class Classes(unittest.TestCase):
         self.assertRaises(IncorrectException, rule.validate, '@@@-')
         self.assertEqual(rule.validate('  @@@-12@ '), '-12')
         
+    def test_url_core(self):
+        rule = Url()
+        self.assertEqual(rule.prepare('Q%WW%R%1TT%2%YYY%%34UU%a5%6A'), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
+        url = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
+        self.assertEqual(rule.split(url),
+            ('http', 'www.ics.uci.edu', '/pub/ietf/uri/', 'arg1=value1&arg2=value2', 'Related'))
+        self.assertEqual(rule.split('http:/www.ics.uci.edu/'),
+            ('http', None, '/www.ics.uci.edu/', None, None))
+        self.assertEqual(rule.split('http:www.ics.uci.edu/'),
+            ('http', None, 'www.ics.uci.edu/', None, None))
+        self.assertEqual(rule.split('http/://www.ics.uci.edu/'),
+            (None, None, 'http/://www.ics.uci.edu/', None, None))
+        self.assertEqual(rule.build(*rule.split(url)), url)
+
+    def test_url_a(self):
+        rule = Url()
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+
+    def test_url_a(self):
+        rule = Url()
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+
+    def test_url_a_local(self):
+        rule = Url(local_sites=['local.com', 'local-mirror.com'])
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+            
+    def test_url_img(self):
+        rule = Url(allow_sites=['local.com', 'local-mirror.com'])
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+            
+    def test_url_img_local(self):
+        rule = Url(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+
+    def test_url_ext(self):
+        rule = Url(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
+        self.assertEqual(rule.validate('http://local.com?qw'), '?qw')
+        self.assertEqual(rule.validate('http://local.com'), '/')
+
     def test_or(self):
         rule = Or(rules=[
             List(values=['a', 'aB', ]),
@@ -297,19 +324,8 @@ tiny_omg = u"""
 <h6>&clubs; 01.08.2008 &lt;img src="javascript:alert(1);"&gt; 16:27:31</h6>
 """
 
-#TrustedNumber().v('')
-#TrustedNumber(allow_sign=False).v('+34fd')
-#TrustedNumber(allow_sign=False).v('34fd')
-#TrustedNumber().v('-34fd')
-#TrustedSize().v('+4 p xs')
 #TrustedRules.border_width.v('thsin')
 #TrustedRules.border_width.v('+3px')
-#TrustedColor().v('deepskybluE   ')
-#TrustedColor().v('rgb( 3,  343%,3)')
-#TrustedColor().v('#fff')
-#TrustedColor().v('#aaafff')
-#TrustedColor().v('#aazfff')
-#TrustedSequence(rule=numer, delimiter_regexp='\s*,\s*').v('a,23,,43,')
 #TrustedStyle(rules=[ {'text-decoration': TrustedList(values=['underline','line-through']),}, ]).v('text-decoration: line-through; foo: line-through; text-decoration: bar; text-decoration: underline')
 #TrustedRules.border.v('')
 #TrustedRules.border.v('2pxs')

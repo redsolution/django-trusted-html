@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from trustedhtml.classes import Style, List, Char, String, RegExp, Url
+from trustedhtml.classes import Style, List, Char, String, RegExp, Url, Or
 from trustedhtml.rules import css
 
 string = String()
@@ -92,9 +92,17 @@ charset = List(values=[
 
 title_a = String(default='', )
 
-href = Url(allow_anchor=True, required=True)
+anchor = RegExp(regexp=r'^\s*(#\w+)$')
 
-cite = Url(allow_anchor=True)
+href = Or(rules=[
+    Url(required=True),
+    anchor,
+])
+
+cite = Or(rules=[
+    Url(),
+    anchor,
+])
 
 clear = List(values=[
     'left', 'all', 'right', 'none', 
@@ -122,7 +130,7 @@ target = List(values=[
 
 name_a = String(required=True, )
 
-src = Url(required=True, allow_foriegn=False)
+src = Url(required=True, allow_sites=[])
 
 alt = String(default='')
 

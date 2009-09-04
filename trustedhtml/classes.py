@@ -3,7 +3,6 @@
 import re
 import copy
 from beautifulsoup import BeautifulSoup, NavigableString, Tag
-from django.contrib.sites.models import Site
 from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
@@ -56,7 +55,7 @@ class Rule(object):
     """
 
     def __init__(self, required=False, default=None, allow_empty=True,
-        invalid=False, data=None, **kwargs):
+        invalid=False, data=None):
         """
         Sets behaviour for the rule:
 
@@ -100,19 +99,19 @@ class Rule(object):
         try:
             try:
                 if not self.allow_empty and not value:
-                    raise EmptyException
+                    raise EmptyException(value)
                 value = self.core(value, path)
                 if not self.allow_empty and not value:
-                    raise EmptyException
+                    raise EmptyException(value)
             except TrustedException, exception:
                 if self.default is None:
                     if self.required:
-                        raise RequiredException
+                        raise RequiredException(*exception.args)
                     else:
                         raise exception
                 value = self.default
             if self.invalid:
-                raise InvalidException
+                raise InvalidException(value)
 
             results = rule_done.send(sender=self.__class__, rule=self,
                 path=path, value=value, source=source)
@@ -147,13 +146,45 @@ class String(Rule):
     Validation will return striped string value if specified. 
     """
     
-    def __init__(self, strip=True, **kwargs):
+    def __init__(self, case_sensitive=False, strip=True, **kwargs):
         """
         ``strip`` if True than remove leading and trailing whitespace.
+
+        ``case_sensitive`` if True than validation will be case sensitive.
         """
         super(String, self).__init__(**kwargs)
+        self.case_sensitive = case_sensitive
         self.strip = strip
+
     
+    def lower_string(self, value):
+        """
+        ``value`` is an object with __unicode__ method.
+        ``value`` can be None.
+        
+        Returns ``value`` in low case if ``case_sensitive`` is True.
+        """
+        if value is None:
+            return value
+        if self.case_sensitive:
+            return unicode(value)
+        else:
+            return unicode(value).lower()
+
+
+    def lower_list(self, values):
+        """
+        ``values`` is list of objects.
+        ``value`` can be None.
+        
+        Returns list of ``values`` in low case if ``case_sensitive`` is True.
+        """
+        if values is None:
+            return values
+        return [self.lower_string(value)
+            for value in values]
+
+
     def core(self, value, path):
         """Do it."""
         value = super(String, self).core(value, path)
@@ -189,105 +220,36 @@ class Char(Content):
         return value[:1]
 
 
-class Url(Content):
-    """
-    Rule suppose that value is correct if it is a URL with allowed ``SCHEMES``.
-    Validation will return correct URL.
-    """
-
-    SCHEMES = ['http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
-        'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
-    ]
-    GLOBAL_PREFIX = 'http://'
-    LOCAL_PREFIX = '/'
-    ANCHOR = re.compile(r'^#\w+$')
-    ANCHOR_SPACES = re.compile(r'\s')
-
-    def __init__(self, allow_foreign=False, allow_local=True, allow_anchor=False, **kwargs):
-        """
-        ``allow_foreign`` if True then URL to foreign sites will be allowed.
-        Valid example: 'http://example.com/media/img.jpg'
-        
-        If ``allow_foreign`` is True and ``value`` is without schema 
-        and ``value`` not started with ``LOCAL_PREFIX`` ('/') then
-        ``GLOBAL_PREFIX`` ('http://') will be added to the ``value``.
-        
-        ``allow_local`` if True then local URL will be allowed.
-        Valid examples: '/media/img.jpg' , '../img.jpg'
-        
-        If ``allow_local`` is False and ``value`` is without schema then
-        ``Site.objects.get_current()`` will be added to the ``value``.
-        
-        ``allow_anchor`` if True then anchor will be allowed.
-        Valid example: '#start-anchor'
-        """
-        super(Url, self).__init__(**kwargs)
-        self.allow_foreign = allow_foreign
-        self.allow_local = allow_local
-        self.allow_anchor = allow_anchor
-        if ':' not in self.GLOBAL_PREFIX:
-            self.GLOBAL_PREFIX = self.GLOBAL_PREFIX + ':'
-
-    def core(self, value, path):
-        """Do it."""
-        value = super(Url, self).core(value, path)
-        value = iri_to_uri(value)
-        if ':' not in value:
-            if self.allow_anchor:
-                spaceless = self.ANCHOR_SPACES.sub('', value)
-                if self.ANCHOR.match(spaceless):
-                    return spaceless
-            if value.startswith(self.LOCAL_PREFIX):
-                if self.allow_local:
-                    return value
-                else:
-                    value = unicode(Site.objects.get_current()) + value
-            else:
-                if not self.allow_foreign:
-                    return self.LOCAL_PREFIX + value
-            value = self.GLOBAL_PREFIX + value
-        scheme = value[:value.find(':')].lower()
-        if scheme not in self.SCHEMES:
-            raise IncorrectException
-        return value
-
-
 class List(String):
     """
     Rule suppose that value is correct if it is in ``values``.
     Validation will return corresponding item from ``values``.
     """    
 
-    def __init__(self, values, case_sensitive=False, return_defined=True, **kwargs):
+    def __init__(self, values, return_defined=True, **kwargs):
         """
         ``values`` is list of allowed values. 
-        
-        ``case_sensitive`` if True than validation will be case sensitive.
         
         ``return_defined`` if True than return value as it was defined in ``values``.
         """
         super(List, self).__init__(**kwargs)
         self.source_values = values
-        self.case_sensitive = case_sensitive
         self.return_defined = return_defined
-
-        self.values = []
-        for value in self.values:
-            value = unicode(value)
-            if not self.case_sensitive:
-                value = value.lower()
-            self.values.append(value)
+        self.values = self.lower_list(self.source_values)
 
 
     def core(self, value, path):
         """Do it."""
         value = super(List, self).core(value, path)
-        if not self.case_sensitive:
-            value = value.lower()
+        source = value
+        value = self.lower_string(value)
         if value not in self.values:
-            raise IncorrectException
-        if not self.case_sensitive and self.return_defined:
-            value = self.source_values[self.values.index(value)]
+            raise IncorrectException(value)
+        if not self.case_sensitive:
+            if self.return_defined:
+                value = self.source_values[self.values.index(value)]
+            else:
+                value = source
         return value
 
 
@@ -308,17 +270,14 @@ class RegExp(String):
         (only digits, without sign) and skip all following chars.
     """
 
-    def __init__(self, regexp, case_sensitive=False, regexp_flags=0, **kwargs):
+    def __init__(self, regexp, regexp_flags=0, **kwargs):
         """
         ``regexp`` specified string with regular expression to validate ``value``.
-        
-        ``case_sensitive`` if True than validation will be case sensitive.
         
         ``regexp_flags`` specified flags for regular expression.
         """
         super(RegExp, self).__init__(**kwargs)
         self.regexp = regexp
-        self.case_sensitive= case_sensitive
         self.regexp_flags = regexp_flags
         if not self.case_sensitive:
             self.regexp_flags = self.regexp_flags | re.IGNORECASE
@@ -329,11 +288,105 @@ class RegExp(String):
         value = super(RegExp, self).core(value, path)
         match = self.compiled.match(value)
         if match is None:
-            raise IncorrectException
+            raise IncorrectException(value)
         try:
             value = match.group(1)
         except IndexError:
             value = ''
+        return value
+
+
+class Url(RegExp):
+    """
+    Rule suppose that value is correct if it is allowed URL.
+    Validation will return correct URL.
+    """
+    
+    PERCENT_RE = re.compile('%(?![0-9A-Fa-f]{2})')
+    PERCENT_VALUE = '%25'
+
+    def __init__(self, allow_sites=None, allow_schemes=[
+            'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
+            'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
+        ], local_sites=[], local_schemes=['http', ], **kwargs):
+        """
+        ``allow_sites`` is list of allowed sites or is None to allow all sites.
+
+        To allow only your sites, you can use:
+        [site.domain for site in django.contrib.sites.models.Site.objects.all()]
+        
+        To disallow all sites (only paths will be available), you can use:
+        []
+        
+        ``allow_schemes`` is list of allowed schemes for URLs.
+        
+        ``local_sites`` is list of sites for witch
+        scheme and site-name will be removed from url.
+        
+        ``local_schemes`` is list of schemes that can be removed.
+        Only urls with such scheme will be cut.
+        """
+        super(Url, self).__init__(
+            regexp=r'^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?',
+            case_sensitive=False, **kwargs)
+        self.allow_sites = self.lower_list(allow_sites)
+        self.allow_schemes = self.lower_list(allow_schemes)
+        self.local_sites = self.lower_list(local_sites)
+        if self.local_sites is None:
+            self.local_sites = []
+        self.local_schemes = self.lower_list(local_schemes)
+
+    def prepare(self, url):
+        """
+        Return prepared ``url`` with correct escaped-chars (%hh).
+        """
+        return self.PERCENT_RE.sub(self.PERCENT_VALUE, unicode(url))
+    
+    def split(self, url):
+        """
+        Return tuple (scheme, authority, path, query, fragment) for given ``url``.
+        """
+        match = self.compiled.match(url)
+        return (match.group(2), match.group(4), match.group(5), match.group(7), match.group(9))
+
+    
+    def build(self, scheme, authority, path, query, fragment):
+        """
+        Return url from given (scheme, authority, path, query, fragment).
+        """
+        result = ''
+        if scheme is not None:
+            result += scheme + ':'
+        if authority is not None:
+            result += '//' + authority
+        if path is not None:
+            result += path
+        if query is not None:
+            result += '?' + query
+        if fragment is not None:
+            result += '#' + fragment
+        return result
+        
+    def core(self, value, path):
+        """Do it."""
+        value = String.core(self, value, path)
+        value = self.prepare(value)
+        scheme_source, authority_source, path, query, fragment = self.split(value)
+        scheme = self.lower_string(scheme_source)
+        authority = self.lower_string(authority_source)
+        if scheme is not None:
+            if scheme not in self.allow_schemes:
+                raise IncorrectException(value)
+        if authority is not None and self.allow_sites is not None:
+            if authority not in self.allow_sites:
+                raise IncorrectException(value)
+        if (scheme is None or scheme in self.local_schemes)\
+            and (authority in self.local_sites):
+            scheme = None
+            authority = None
+            if not path and not query and not fragment:
+                path = '/'
+        value = self.build(scheme, authority, path, query, fragment)
         return value
 
 
@@ -360,8 +413,8 @@ class Or(Rule):
         for rule in self.rules:
             try:
                 return rule.validate(value, path)
-            except InvalidException:
-                raise InvalidException
+            except InvalidException, exception:
+                raise exception
             except TrustedException, exception:
                 last = exception
         raise last
@@ -374,8 +427,8 @@ class Sequence(String):
     Validation will return joined parts of value.
     """
     
-    def __init__(self, rule, delimiter_regexp='\s+', case_sensitive=False,
-        regexp_flags=0, min_split=0, max_split=0, skip_empty=False,
+    def __init__(self, rule, delimiter_regexp='\s+', regexp_flags=0,
+        min_split=0, max_split=0, skip_empty=False,
         join_string=' ', prepend_string='', append_string='', **kwargs):
         """
         ``rule`` is the rule that will be called to validate each path of value.
@@ -383,8 +436,6 @@ class Sequence(String):
         ``delimiter_regexp`` specified string with regular expression
         to split specified value.
         
-        ``case_sensitive`` if True than validation will be case sensitive.
-
         ``regexp_flags`` specified flags for regular expression.
         
         ``min_split`` specified minimum allowed number of parts.
@@ -403,7 +454,6 @@ class Sequence(String):
         super(Sequence, self).__init__(**kwargs)
         self.rule = rule
         self.delimiter_regexp = delimiter_regexp
-        self.case_sensitive = case_sensitive
         self.regexp_flags = regexp_flags
         if not self.case_sensitive:
             self.regexp_flags = self.regexp_flags | re.IGNORECASE
@@ -441,7 +491,7 @@ class Sequence(String):
         value = super(Sequence, self).core(value, path)
         values = self.compiled.split(value)
         if (len(values) < self.min_split) or (self.max_split and len(values) > self.max_split):
-            raise IncorrectException
+            raise IncorrectException(value)
         path = path[:] + [self]
         values = self.sequence(values, path)
         value = self.join_string.join(values)
@@ -485,7 +535,7 @@ class Complex(Sequence):
         if value_index >= len(values):
             return parts
         if rule_index >= len(rules):
-            raise IncorrectException
+            raise IncorrectException(values)
         try:
             value = rules[rule_index].validate(values[value_index], path)
             result = self.complex(values, path, value_index + 1, rule_index + 1)
@@ -545,7 +595,7 @@ class Validator(object):
                     try:
                         value = values[name]
                     except IndexError:
-                        raise EmptyException
+                        raise EmptyException(None)
                     correct[name] = rule.validate(value, path)
                 except (EmptyException, IncorrectException):
                     pass
@@ -590,8 +640,8 @@ class Style(Sequence, Validator):
             properties.append((property_name, partproperty_value))
         try:
             properties = self.check(properties)
-        except RequiredException:
-            raise IncorrectException
+        except RequiredException, exception:
+            raise IncorrectException(*exception.args)
         return ['%s: %s' % (property_name, property_value)
             for property_name, property_value in properties]
 
@@ -623,8 +673,8 @@ class Attributes(Rule, Validator):
         """Do it."""
         try:
             return self.check(value, path)
-        except (RequiredException, InvalidException):
-            raise IncorrectException
+        except (RequiredException, InvalidException), exception:
+            raise IncorrectException(*exception.args)
 
 class Html(String):
     """
@@ -728,7 +778,7 @@ class Html(String):
                 rule = self.rules.get(soup.contents[index].name, None)
                 try:
                     if rule is None:
-                        raise IncorrectException
+                        raise IncorrectException(None)
                     rule.validate(soup.contents[index].attrs, path)
                 except TrustedException:
                     element = soup.contents[index].extract()
