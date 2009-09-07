@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #import rpdb2; rpdb2.start_embedded_debugger('1')
 
+import re
 import unittest
 from trustedhtml.classes import *
 from trustedhtml import rules
@@ -144,36 +145,62 @@ class Classes(unittest.TestCase):
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertEqual(rule.validate('  -12 '), '-12')
         self.assertEqual(rule.validate('  Ab '), 'aB')
-        
+
+    def test_and(self):
+        rule = And(rules=[
+            RegExp(regexp=r'!*(\w{2})$'),
+            List(values=['a', 'aB', 'Cd', ]),
+        ])
+        self.assertRaises(IncorrectException, rule.validate, '')
+        self.assertRaises(IncorrectException, rule.validate, '-')
+        self.assertRaises(IncorrectException, rule.validate, 'a')
+        self.assertEqual(rule.validate('  Ab '), 'aB')
+        self.assertRaises(IncorrectException, rule.validate, 'ef')
+        self.assertEqual(rule.validate('  !!cD '), 'Cd')
+
     def test_style(self):
         text_decoration = List(values=['underline', 'line-through'], )
+        simple_margin_top = RegExp(regexp=r'(\w+)$')
         rule = Style(rules={
             'text-decoration': text_decoration,
+            'margin-top': simple_margin_top,
+        }, equivalents = {
+            'margin-top': [
+                'margin-bottom', 'margin-left', 'margin-right',
+            ],
         })
-        self.assertEqual(rule.validate(
-            'text-decoration: line-through; foo: line-through;'
-            'text-decoration: bar; text-decoration: underline'
-        ),
-            'text-decoration: underline;'
-        )
+#        self.assertEqual(rule.validate(
+#            'text-decoration: line-through; foo: line-through;'
+#            'text-decoration: bar; text-decoration: underline'
+#            'margin-ttop: 1; margin-left: 2; margin-tOP: 3;'
+#        ),
+#            'text-decoration: underline; margin-left: 2; margin-top: 3;'
+#        )
 
     def tearDown(self):
         pass
     
-class Rules(unittest.TestCase):
+class Css(unittest.TestCase):
+
     def setUp(self):
         pass
+    
+    def test_re(self):
+        self.assertEqual(re.match('%(escape)s$' % rules.css.lexic_dict, '\\\a'), None)
+        self.assertNotEqual(re.match('%(escape)s$' % rules.css.lexic_dict, u'\\\u044f'), None)
 
-    def test_css(self):
+    def test_number(self):
         self.assertRaises(IncorrectException, rules.css.number.validate, 'a')
         self.assertRaises(IncorrectException, rules.css.number.validate, '1.')
         self.assertEqual(rules.css.number.validate('  12.3 '), '12.3')
 
+    def test_size(self):
         self.assertRaises(IncorrectException, rules.css.size.validate, '-')
         self.assertRaises(IncorrectException, rules.css.size.validate, '-12pxs')
         self.assertEqual(rules.css.size.validate('  .3 '), '.3')
         self.assertEqual(rules.css.size.validate('  -12.3px '), '-12.3px')
         
+    def test_indent(self):
         self.assertRaises(IncorrectException, rules.css.indent.validate, '')
         self.assertEqual(rules.css.indent.validate('  -12.3px '), '-12.3px')
         self.assertEqual(rules.css.indent.validate('  -12.3px    45em '), '-12.3px 45em')
@@ -181,6 +208,7 @@ class Rules(unittest.TestCase):
         self.assertRaises(IncorrectException, rules.css.indent.validate, '  -12.3px 45  em 6%    7')
         self.assertRaises(IncorrectException, rules.css.indent.validate, '  -12.3px 45em 6%    7 8')
 
+    def test_color(self):
         self.assertEqual(rules.css.color.validate('  WinDow '), 'window')
         self.assertEqual(rules.css.color.validate('Red'), 'red')
         self.assertEqual(rules.css.color.validate('rgb( 1.2,  34%,5)'), 'rgb(1.2,34%,5)')
@@ -192,20 +220,31 @@ class Rules(unittest.TestCase):
         self.assertEqual(rules.css.color.validate('#aaafff'), '#aaafff')
         self.assertRaises(IncorrectException, rules.css.color.validate, '#aazfff')
         
-        self.assertEqual(rules.css.background_position.validate(' lEft  toP '), 'left top')
-        self.assertRaises(IncorrectException, rules.css.background_position.validate(' toP  lEft '))
-        self.assertEqual(rules.css.background_position.validate(' lEft  12pX '), 'left 12pX')
-        self.assertRaises(IncorrectException, rules.css.background_position.validate(' lEft 12 px '))
-        self.assertRaises(IncorrectException, rules.css.background_position.validate(' lEft 12pxs '))
-        self.assertRaises(IncorrectException, rules.css.background_position.validate(' toP 12pX '))
-        self.assertEqual(rules.css.background_position.validate(' 34em  toP '), '34em top')
-        self.assertRaises(IncorrectException, rules.css.background_position.validate(' 34em toP '))
-        self.assertEqual(rules.css.background_position.validate(' 34em  12px '), '34em 12px')
-                
-        
-#url = Sequence(rule=Url(), delimiter_regexp='^url\((.*)\)$', min_split=3, max_split=3,
-#    join_string='', prepend_string='url( ', append_string=' )')
+    def test_url(self):
+        self.assertEqual(rules.css.url.validate('url( img.jpg  )'), 'url(img.jpg)')
+        self.assertEqual(rules.css.url.validate('url( http://ya.ru/img.jpg   )'), 'url(http://ya.ru/img.jpg)')
+        self.assertEqual(rules.css.url.validate(u'url( http://ya.ru/im\u044fg.jpg  )'), u'url(http://ya.ru/im\u044fg.jpg)')
+        self.assertEqual(rules.css.url.validate('url( http://ya.ru/img.jpg \t   )'), 'url(http://ya.ru/img.jpg)')
+        self.assertRaises(IncorrectException, rules.css.url.validate, 'url( script:alert(1)  )')
+        self.assertEqual(rules.css.url.validate('url( \"img\' .jpg\"  )'), 'url(\"img\' .jpg\")')
+        self.assertEqual(rules.css.url.validate('url( \'img\" .jpg\'  )'), 'url(\'img\" .jpg\')')
 
+    def test_background_position(self):
+        self.assertEqual(rules.css.background_position.validate(' lEft  toP '), 'left top')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate, ' toP  lEft ')
+        self.assertEqual(rules.css.background_position.validate(' lEft  12pX '), 'left 12pX')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate, ' lEft 12 px ')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate, ' lEft 12pxs ')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate, ' toP 12pX ')
+        self.assertEqual(rules.css.background_position.validate(' 34em  toP '), '34em top')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate, ' 34em lEft ')
+        self.assertEqual(rules.css.background_position.validate(' 34em  12px '), '34em 12px')
+        self.assertEqual(rules.css.background_position.validate(' 34em  '), '34em')
+        self.assertEqual(rules.css.background_position.validate(' lEft  '), 'left')
+        self.assertEqual(rules.css.background_position.validate(' toP  '), 'top')
+
+    def test_border(self):
+        pass
 #        rules.css.border.validate('')
 #        rules.css.border.validate('2pxs')
 #        rules.css.border.validate('soLid')
@@ -218,14 +257,61 @@ class Rules(unittest.TestCase):
 #        rules.css.border.validate('pxs soLid')
 #        rules.css.border.validate('2pxs blAAck')
 #        rules.css.border.validate('2pxs soLLid blAck')
-#        rules.value.style.validate('float: left; margin: 4px; border: 2px solid black; ')
-#        rules.html.full('<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>').html
 
+    def tearDown(self):
+        pass
+
+    
+class Values(unittest.TestCase):
+
+    def setUp(self):
+        pass
+    
+    def test_style(self):
+        pass
+#        rules.value.style.validate('float: left; margin: 4px; border: 2px solid black; ')
+
+    def tearDown(self):
+        pass
+
+    
+class Attributes(unittest.TestCase):
+
+    def setUp(self):
+        pass
+    
+    def test_a(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+
+class Tags(unittest.TestCase):
+
+    def setUp(self):
+        pass
+    
+    def test_a(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+
+class Html(unittest.TestCase):
+
+    def setUp(self):
+        pass
+    
+    def test_style(self):
+        pass
+#        rules.html.full('<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>').html
 
     def tearDown(self):
         pass
     
-
+    
 class Signals(unittest.TestCase):
     def setUp(self):
         def done(sender, **kwargs):
@@ -239,6 +325,7 @@ class Signals(unittest.TestCase):
 
     def tearDown(self):
         pass
+
 
 def get_html(html):
     return """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">

@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from trustedhtml.classes import RegExp, Sequence, Or, List, Url, Complex, String
+from trustedhtml.classes import RegExp, Sequence, Or, And, List, Url, Complex, String
 
 lexic_dict = {}
 lexic_dict['h'] = r'([0-9a-f])' % lexic_dict
 lexic_dict['w'] = r'([ \t\r\n\f]*)' % lexic_dict
 lexic_dict['nl'] = r'(\n|\r\n|\r|\f)' % lexic_dict
-lexic_dict['nonascii'] = r'([\200-\4177777])' % lexic_dict
+lexic_dict['nonascii'] = r'([^\x00-\x7f])' % lexic_dict
 lexic_dict['unicode'] = r'(\\%(h)s{1,6}[ \t\r\n\f]?)' % lexic_dict
-lexic_dict['escape'] = r'(%(unicode)s|\\[ -~\200-\4177777])' % lexic_dict
+lexic_dict['escape'] = r'(%(unicode)s|\\[ -~]|\\[^\x00-\x7f])' % lexic_dict
 lexic_dict['nmstart'] = r'([a-z]|%(nonascii)s|%(escape)s)' % lexic_dict
 lexic_dict['nmchar'] = r'([a-z0-9-]|%(nonascii)s|%(escape)s)' % lexic_dict
-lexic_dict['string1'] = r'(\"([\t !#$%%&(-~]|\\%(nl)s|\'|%(nonascii)s|%(escape)s)*\")' % lexic_dict
-lexic_dict['string2'] = r'(\'([\t !#$%%&(-~]|\\%(nl)s|\"|%(nonascii)s|%(escape)s)*\')' % lexic_dict
+lexic_dict['string1'] = r'(\"(?P<string1>([\t !#$%%&(-~]|\\%(nl)s|\'|%(nonascii)s|%(escape)s)*)\")' % lexic_dict
+lexic_dict['string2'] = r'(\'(?P<string2>([\t !#$%%&(-~]|\\%(nl)s|\"|%(nonascii)s|%(escape)s)*)\')' % lexic_dict
 
 lexic_dict['ident'] = r'(%(nmstart)s%(nmchar)s*)' % lexic_dict
 lexic_dict['name'] = r'(%(nmchar)s+)' % lexic_dict
 lexic_dict['num'] = r'([0-9]+|[0-9]*\.[0-9]+)' % lexic_dict
 lexic_dict['string'] = r'(%(string1)s|%(string2)s)' % lexic_dict
-lexic_dict['url'] = r'(([!#$%%&*-~]|%(nonascii)s|%(escape)s)*)' % lexic_dict
+lexic_dict['url'] = r'(?P<url>([!#$%%&*-~]|%(nonascii)s|%(escape)s)*)' % lexic_dict
 lexic_dict['range'] = r'(\?{1,6}|%(h)s(\?{0,5}|%(h)s(\?{0,4}|%(h)s(\?{0,3}|%(h)s(\?{0,2}|%(h)s(\??|%(h)s))))))' % lexic_dict
 
 lexic_dict['size_ext'] = '|'.join([
@@ -97,13 +97,32 @@ color = Or(rules=[
     color_hex,
 ])
 
-
-url = Sequence(rule=Url(), delimiter_regexp='^url\((.*)\)$', min_split=3, max_split=3,
-    join_string='', prepend_string='url( ', append_string=' )'
-)
-    # , skip_empty=True
-
-
+url = Or(rules=[
+    And(rules=[
+        RegExp(
+            regexp=r'url\(%(w)s%(url)s%(w)s\)' % lexic_dict,
+            expand=r'\g<url>',
+        ),
+        Url(),
+        RegExp(regexp=r'(.*)$', expand='url(\\1)', ),
+    ]),
+    And(rules=[
+        RegExp(
+            regexp=r'url\(%(w)s(%(string1)s)%(w)s\)' % lexic_dict,
+            expand=r'\g<string1>',
+        ),
+        Url(),
+        RegExp(regexp=r'(.*)$', expand='url(\"\\1\")', ),
+    ]),
+    And(rules=[
+        RegExp(
+            regexp=r'url\(%(w)s(%(string2)s)%(w)s\)' % lexic_dict,
+            expand=r'\g<string2>',
+        ),
+        Url(),
+        RegExp(regexp=r'(.*)$', expand='url(\'\\1\')', ),
+    ]),
+])
 # TODO: add it to Style
 #core_css_values = [
 #    'inherit',
