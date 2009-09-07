@@ -99,10 +99,10 @@ class Rule(object):
         try:
             try:
                 if not self.allow_empty and not value:
-                    raise EmptyException(value)
+                    raise EmptyException(self, value)
                 value = self.core(value, path)
                 if not self.allow_empty and not value:
-                    raise EmptyException(value)
+                    raise EmptyException(self, value)
             except TrustedException, exception:
                 if self.default is None:
                     if self.required:
@@ -111,7 +111,7 @@ class Rule(object):
                         raise exception
                 value = self.default
             if self.invalid:
-                raise InvalidException(value)
+                raise InvalidException(self, value)
 
             results = rule_done.send(sender=self.__class__, rule=self,
                 path=path, value=value, source=source)
@@ -244,7 +244,7 @@ class List(String):
         source = value
         value = self.lower_string(value)
         if value not in self.values:
-            raise IncorrectException(value)
+            raise IncorrectException(self, value)
         if not self.case_sensitive:
             if self.return_defined:
                 value = self.source_values[self.values.index(value)]
@@ -290,7 +290,7 @@ class RegExp(String):
         value = super(RegExp, self).core(value, path)
         match = self.compiled.match(value)
         if match is None:
-            raise IncorrectException(value)
+            raise IncorrectException(self, value)
         value = match.expand(self.expand)
         return value
 
@@ -365,7 +365,7 @@ class Url(RegExp):
         if fragment is not None:
             result += '#' + fragment
         return result
-        
+
     def core(self, value, path):
         """Do it."""
         value = String.core(self, value, path)
@@ -375,10 +375,10 @@ class Url(RegExp):
         authority = self.lower_string(authority_source)
         if scheme is not None:
             if scheme not in self.allow_schemes:
-                raise IncorrectException(value)
+                raise IncorrectException(self, value)
         if authority is not None and self.allow_sites is not None:
             if authority not in self.allow_sites:
-                raise IncorrectException(value)
+                raise IncorrectException(self, value)
         if (scheme is None or scheme in self.local_schemes)\
             and (authority in self.local_sites):
             scheme = None
@@ -386,6 +386,30 @@ class Url(RegExp):
             if not path and not query and not fragment:
                 path = '/'
         value = self.build(scheme, authority, path, query, fragment)
+        return value
+
+
+class And(Rule):
+    """
+    Rule suppose that value is correct if it corresponding to all ``rules``.
+    Validation will return correct value from the last rule.
+    First rule will validate specified ``value``,
+    second rule will validate result of first validation, etc.
+    """
+    
+    def __init__(self, rules, **kwargs):
+        """
+        ``rules`` is list of rules to validate specified ``value``.
+        """
+        super(And, self).__init__(**kwargs)
+        self.rules = rules
+    
+    def core(self, value, path):
+        """Do it."""
+        value = super(And, self).core(value, path)
+        path = path[:] + [self]
+        for rule in self.rules:
+            value = rule.validate(value, path)
         return value
 
 
@@ -490,7 +514,7 @@ class Sequence(String):
         value = super(Sequence, self).core(value, path)
         values = self.compiled.split(value)
         if (len(values) < self.min_split) or (self.max_split and len(values) > self.max_split):
-            raise IncorrectException(value)
+            raise IncorrectException(self, value)
         path = path[:] + [self]
         values = self.sequence(values, path)
         value = self.join_string.join(values)
@@ -534,7 +558,7 @@ class Complex(Sequence):
         if value_index >= len(values):
             return values
         if rule_index >= len(self.rules):
-            raise IncorrectException(values)
+            raise IncorrectException(self, values)
         try:
             value = self.rules[rule_index].validate(values[value_index], path)
             result = self.complex(values, path, value_index + 1, rule_index + 1)
@@ -594,7 +618,7 @@ class Validator(object):
                     try:
                         value = values[name]
                     except IndexError:
-                        raise EmptyException(None)
+                        raise EmptyException(self, None)
                     correct[name] = rule.validate(value, path)
                 except (EmptyException, IncorrectException):
                     pass
@@ -614,7 +638,8 @@ class Style(Sequence, Validator):
     has valid property_value corresponding to ``rules`` dictionary.
     Validation will return joined only valid pairs.
     """
-    
+    COMMENT_RE = re.compile(r'\/\*[^*]*\*+([^/][^*]*\*+)*\/')
+
     def __init__(self, rules, equivalents={}, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
@@ -628,6 +653,11 @@ class Style(Sequence, Validator):
             join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         
+    def core(self, value, path):
+        """Do it."""
+        value = COMMENT_RE.sub('', value)
+        value = super(Style, self).core(value, path)
+
     def sequence(self, values, path):
         """Do it."""
         properties = []
@@ -683,7 +713,7 @@ class Html(String):
     over ``prepare_number`` iterations per fix.
     Validation will return valid tuple (valid_html, plain_text).
     """
-    
+
     # All constants must be lowered. 
     SPECIAL_CHARS = [
         ('&', '&amp;'), # Must be first element in list
@@ -777,7 +807,7 @@ class Html(String):
                 rule = self.rules.get(soup.contents[index].name, None)
                 try:
                     if rule is None:
-                        raise IncorrectException(None)
+                        raise IncorrectException(self, None)
                     rule.validate(soup.contents[index].attrs, path)
                 except TrustedException:
                     element = soup.contents[index].extract()
@@ -912,11 +942,11 @@ class Html(String):
                 if source == value:
                     break
             else:
-                raise InvalidException('Too much attempts to prepare value')
+                raise InvalidException(self, 'Too much attempts to prepare value')
             source = value
             value, plain = self.fix(value, path)
             if source == value:
                 break
         else:
-            raise InvalidException('Too much attempts to fix value')
+            raise InvalidException(self, 'Too much attempts to fix value')
         return (value, plain)
