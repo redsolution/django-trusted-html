@@ -256,32 +256,34 @@ class List(String):
 class RegExp(String):
     """
     Rule suppose that value is correct if it match specified ``regexp``.
-    Validation will return first matched group.
-    
-    If You want to return not empty value than
-    specify at least one group in ``regexp``.
-    If You don`t want cut end of ``value`` than
-    specify '$' char at the end of ``regexp``.
-    Example:
-        regexp: '[+-]?(\d*)'
-        value: '+12asd'
-        result of validation: '12'
-        description: will pass validation and return only first group
-        (only digits, without sign) and skip all following chars.
+    Validation will return expanded match object.
     """
 
-    def __init__(self, regexp, regexp_flags=0, **kwargs):
+    def __init__(self, regexp, flags=0, expand=r'\1', **kwargs):
         """
         ``regexp`` specified string with regular expression to validate ``value``.
+        Specify '$' char at the end of expression to avoid cutting end of string. 
         
-        ``regexp_flags`` specified flags for regular expression.
+        ``flags`` specified flags for regular expression.
+        
+        ``expand`` is string using to expand match objects
+        and to return result of validation.
+        
+        Example of validation:
+            regexp: r'([+-]?\d*),(?P<a>\d*)$'
+            expand: r'\g<a>;\1'
+            value: '-12,34'
+            result: '34;-12'
+            description: return group "a" and first group.
+            '$' at the and of string will prevent skipping all following chars.
         """
         super(RegExp, self).__init__(**kwargs)
         self.regexp = regexp
-        self.regexp_flags = regexp_flags
+        self.flags = flags
+        self.expand = expand
         if not self.case_sensitive:
-            self.regexp_flags = self.regexp_flags | re.IGNORECASE
-        self.compiled = re.compile(unicode(self.regexp), self.regexp_flags)
+            self.flags = self.flags | re.IGNORECASE
+        self.compiled = re.compile(unicode(self.regexp), self.flags)
         
     def core(self, value, path):
         """Do it."""
@@ -289,10 +291,7 @@ class RegExp(String):
         match = self.compiled.match(value)
         if match is None:
             raise IncorrectException(value)
-        try:
-            value = match.group(1)
-        except IndexError:
-            value = ''
+        value = match.expand(self.expand)
         return value
 
 
@@ -427,7 +426,7 @@ class Sequence(String):
     Validation will return joined parts of value.
     """
     
-    def __init__(self, rule, delimiter_regexp='\s+', regexp_flags=0,
+    def __init__(self, rule, delimiter_regexp='\s+', flags=0,
         min_split=0, max_split=0, skip_empty=False,
         join_string=' ', prepend_string='', append_string='', **kwargs):
         """
@@ -436,7 +435,7 @@ class Sequence(String):
         ``delimiter_regexp`` specified string with regular expression
         to split specified value.
         
-        ``regexp_flags`` specified flags for regular expression.
+        ``flags`` specified flags for regular expression.
         
         ``min_split`` specified minimum allowed number of parts.
         Validation will raise IncorrectException if number of parts is less.
@@ -454,10 +453,10 @@ class Sequence(String):
         super(Sequence, self).__init__(**kwargs)
         self.rule = rule
         self.delimiter_regexp = delimiter_regexp
-        self.regexp_flags = regexp_flags
+        self.flags = flags
         if not self.case_sensitive:
-            self.regexp_flags = self.regexp_flags | re.IGNORECASE
-        self.compiled = re.compile(unicode(self.delimiter_regexp), self.regexp_flags)
+            self.flags = self.flags | re.IGNORECASE
+        self.compiled = re.compile(unicode(self.delimiter_regexp), self.flags)
         self.min_split = min_split
         self.max_split = max_split
         self.skip_empty = skip_empty
@@ -533,11 +532,11 @@ class Complex(Sequence):
         Return correct list of parts of value or raise IncorrectException or InvalidException.
         """
         if value_index >= len(values):
-            return parts
-        if rule_index >= len(rules):
+            return values
+        if rule_index >= len(self.rules):
             raise IncorrectException(values)
         try:
-            value = rules[rule_index].validate(values[value_index], path)
+            value = self.rules[rule_index].validate(values[value_index], path)
             result = self.complex(values, path, value_index + 1, rule_index + 1)
             result[value_index] = value
             return result
@@ -637,9 +636,9 @@ class Style(Sequence, Validator):
                 continue
             property_name = value[:value.find(':')].strip()
             property_value = value[value.find(':')+1:].strip()
-            properties.append((property_name, partproperty_value))
+            properties.append((property_name, property_value))
         try:
-            properties = self.check(properties)
+            properties = self.check(properties, path)
         except RequiredException, exception:
             raise IncorrectException(*exception.args)
         return ['%s: %s' % (property_name, property_value)

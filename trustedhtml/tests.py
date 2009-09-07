@@ -45,11 +45,16 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('  a '), 'a')
         self.assertRaises(IncorrectException, rule.validate, '  Ab ')
 
-    def test_regexp(self):
+    def test_regexp_regexp(self):
         rule = RegExp(regexp=r'@*([-+]?\d{1,7})@*$')
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertRaises(IncorrectException, rule.validate, '@@@-')
         self.assertEqual(rule.validate('  @@@-12@ '), '-12')
+        
+    def test_regexp_expand(self):
+        rule = RegExp(regexp=r'([+-]?\d*),(?P<a>\d*)$', expand=r'\g<a>;\1')
+        self.assertEqual(rule.validate('-12,34'), '34;-12')
+        self.assertRaises(IncorrectException, rule.validate, '-12,34a')
         
     def test_url_core(self):
         rule = Url()
@@ -139,7 +144,19 @@ class Classes(unittest.TestCase):
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertEqual(rule.validate('  -12 '), '-12')
         self.assertEqual(rule.validate('  Ab '), 'aB')
-         
+        
+    def test_style(self):
+        text_decoration = List(values=['underline', 'line-through'], )
+        rule = Style(rules={
+            'text-decoration': text_decoration,
+        })
+        self.assertEqual(rule.validate(
+            'text-decoration: line-through; foo: line-through;'
+            'text-decoration: bar; text-decoration: underline'
+        ),
+            'text-decoration: underline;'
+        )
+
     def tearDown(self):
         pass
     
@@ -166,13 +183,43 @@ class Rules(unittest.TestCase):
 
         self.assertEqual(rules.css.color.validate('  WinDow '), 'window')
         self.assertEqual(rules.css.color.validate('Red'), 'red')
-        self.assertEqual(rules.css.color.validate('rgb( 1.2,  34%,5)'), 'rgb( 1.2,  34%,5)')
+        self.assertEqual(rules.css.color.validate('rgb( 1.2,  34%,5)'), 'rgb(1.2,34%,5)')
+        self.assertEqual(rules.css.color.validate('rgba( 1.2,  34%,5  , 1 )'), 'rgba(1.2,34%,5,1)')
         self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,5a)')
+        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,-5)')
+        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,5)-')
         self.assertEqual(rules.css.color.validate('#fff'), '#fff')
         self.assertEqual(rules.css.color.validate('#aaafff'), '#aaafff')
         self.assertRaises(IncorrectException, rules.css.color.validate, '#aazfff')
+        
+        self.assertEqual(rules.css.background_position.validate(' lEft  toP '), 'left top')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate(' toP  lEft '))
+        self.assertEqual(rules.css.background_position.validate(' lEft  12pX '), 'left 12pX')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate(' lEft 12 px '))
+        self.assertRaises(IncorrectException, rules.css.background_position.validate(' lEft 12pxs '))
+        self.assertRaises(IncorrectException, rules.css.background_position.validate(' toP 12pX '))
+        self.assertEqual(rules.css.background_position.validate(' 34em  toP '), '34em top')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate(' 34em toP '))
+        self.assertEqual(rules.css.background_position.validate(' 34em  12px '), '34em 12px')
+                
+        
 #url = Sequence(rule=Url(), delimiter_regexp='^url\((.*)\)$', min_split=3, max_split=3,
 #    join_string='', prepend_string='url( ', append_string=' )')
+
+#        rules.css.border.validate('')
+#        rules.css.border.validate('2pxs')
+#        rules.css.border.validate('soLid')
+#        rules.css.border.validate('2pxs soLid')
+#        rules.css.border.validate('blAck')
+#        rules.css.border.validate('2pxs blAck')
+#        rules.css.border.validate('soLid blAck')
+#        rules.css.border.validate('2pxs soLid blAck')
+#        rules.css.border.validate('pxs')
+#        rules.css.border.validate('pxs soLid')
+#        rules.css.border.validate('2pxs blAAck')
+#        rules.css.border.validate('2pxs soLLid blAck')
+#        rules.value.style.validate('float: left; margin: 4px; border: 2px solid black; ')
+#        rules.html.full('<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>').html
 
 
     def tearDown(self):
@@ -351,21 +398,3 @@ tiny_omg = u"""
 <h5>5</h5>
 <h6>&clubs; 01.08.2008 &lt;img src="javascript:alert(1);"&gt; 16:27:31</h6>
 """
-
-#TrustedRules.border_width.v('thsin')
-#TrustedRules.border_width.v('+3px')
-#TrustedStyle(rules=[ {'text-decoration': TrustedList(values=['underline','line-through']),}, ]).v('text-decoration: line-through; foo: line-through; text-decoration: bar; text-decoration: underline')
-#TrustedRules.border.v('')
-#TrustedRules.border.v('2pxs')
-#TrustedRules.border.v('soLid')
-#TrustedRules.border.v('2pxs soLid')
-#TrustedRules.border.v('blAck')
-#TrustedRules.border.v('2pxs blAck')
-#TrustedRules.border.v('soLid blAck')
-#TrustedRules.border.v('2pxs soLid blAck')
-#TrustedRules.border.v('pxs')
-#TrustedRules.border.v('pxs soLid')
-#TrustedRules.border.v('2pxs blAAck')
-#TrustedRules.border.v('2pxs soLLid blAck')
-#TrustedRules.style.v('float: left; margin: 4px; border: 2px solid black; ')
-#TrustedHtml('<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>').html

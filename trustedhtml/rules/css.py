@@ -29,56 +29,72 @@ size = RegExp(regexp=r'([-+]?%(num)s(%(size_ext)s))$' % lexic_dict)
 number = RegExp(regexp='(%(num)s)$' % lexic_dict)
 indent = Sequence(rule=size, min_split=1, max_split=4)
 
+color_func = RegExp(
+    regexp=r'(?P<n>rgb|hsl)\('
+        '%(w)s(?P<a>%(num)s%%?)%(w)s\,'
+        '%(w)s(?P<b>%(num)s%%?)%(w)s\,'
+        '%(w)s(?P<c>%(num)s%%?)%(w)s\)$' % lexic_dict,
+    expand=r'\g<n>(\g<a>,\g<b>,\g<c>)',
+)
+color_alpha = RegExp(
+    regexp=r'(?P<n>rgba|hsla)\('
+        '%(w)s(?P<a>%(num)s%%?)%(w)s\,'
+        '%(w)s(?P<b>%(num)s%%?)%(w)s\,'
+        '%(w)s(?P<c>%(num)s%%?)%(w)s\,'
+        '%(w)s(?P<d>%(num)s%%?)%(w)s\)$' % lexic_dict,
+    expand=r'\g<n>(\g<a>,\g<b>,\g<c>,\g<d>)',
+)
+color_hex = RegExp(regexp=r'(#%(h)s{3}|#%(h)s{6})$' % lexic_dict,)
+color_list = List(values=[
+    'activeborder', 'activecaption', 'appworkspace', 
+    'background', 'buttonface', 'buttonhighlight', 'buttonshadow', 
+    'buttontext', 'captiontext', 'graytext', 'highlight', 
+    'highlighttext', 'inactiveborder', 'inactivecaption', 
+    'inactivecaptiontext', 'infobackground', 'infotext', 'menu', 
+    'menutext', 'scrollbar', 'threeddarkshadow', 'threedface', 
+    'threedhighlight', 'threedlightshadow', 'threedshadow', 
+    'window', 'windowframe', 'windowtext', 'currentcolor', 
+] + [
+    'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',  
+    'beige', 'bisque', 'black', 'blanchedalmond', 'blue',
+    'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
+    'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson',
+    'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray',
+    'darkgreen', 'darkgrey', 'darkkhaki', 'darkmagenta',
+    'darkolivegreen', 'darkorange', 'darkorchid', 'darkred',
+    'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray',
+    'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
+    'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
+    'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro',
+    'ghostwhite', 'gold', 'goldenrod', 'gray', 'green',
+    'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred',
+    'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush',
+    'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral',
+    'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen',
+    'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen',
+    'lightskyblue', 'lightslategray', 'lightslategrey',
+    'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen',
+    'magenta', 'maroon', 'mediumaquamarine', 'mediumblue',
+    'mediumorchid', 'mediumpurple', 'mediumseagreen',
+    'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
+    'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose',
+    'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive',
+    'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
+    'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip',
+    'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple',
+    'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon',
+    'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver',
+    'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow',
+    'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 
+    'turquoise', 'violet', 'wheat', 'white', 'whitesmoke',
+    'yellow', 'yellowgreen', 
+])
+
 color = Or(rules=[
-    List(values=[
-        'activeborder', 'activecaption', 'appworkspace', 
-        'background', 'buttonface', 'buttonhighlight', 'buttonshadow', 
-        'buttontext', 'captiontext', 'graytext', 'highlight', 
-        'highlighttext', 'inactiveborder', 'inactivecaption', 
-        'inactivecaptiontext', 'infobackground', 'infotext', 'menu', 
-        'menutext', 'scrollbar', 'threeddarkshadow', 'threedface', 
-        'threedhighlight', 'threedlightshadow', 'threedshadow', 
-        'window', 'windowframe', 'windowtext', 'currentcolor', 
-    ] + [
-        'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure',  
-        'beige', 'bisque', 'black', 'blanchedalmond', 'blue',
-        'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
-        'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson',
-        'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray',
-        'darkgreen', 'darkgrey', 'darkkhaki', 'darkmagenta',
-        'darkolivegreen', 'darkorange', 'darkorchid', 'darkred',
-        'darksalmon', 'darkseagreen', 'darkslateblue', 'darkslategray',
-        'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
-        'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
-        'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro',
-        'ghostwhite', 'gold', 'goldenrod', 'gray', 'green',
-        'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred',
-        'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush',
-        'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral',
-        'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen',
-        'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen',
-        'lightskyblue', 'lightslategray', 'lightslategrey',
-        'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen',
-        'magenta', 'maroon', 'mediumaquamarine', 'mediumblue',
-        'mediumorchid', 'mediumpurple', 'mediumseagreen',
-        'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
-        'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose',
-        'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive',
-        'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod',
-        'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip',
-        'peachpuff', 'peru', 'pink', 'plum', 'powderblue', 'purple',
-        'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon',
-        'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver',
-        'skyblue', 'slateblue', 'slategray', 'slategrey', 'snow',
-        'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 
-        'turquoise', 'violet', 'wheat', 'white', 'whitesmoke',
-        'yellow', 'yellowgreen', 
-    ]),
-    RegExp(regexp=
-        '(((rgb|hsl)\(%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\))|'
-        '((rgba|hsla)\(%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s\,%(w)s%(num)s%%?%(w)s,%(w)s%(num)s%%(w)s\))|'
-        '((#%(h)s{6})|(#%(h)s{3})))$' % lexic_dict
-    ),
+    color_list,
+    color_func,
+    color_alpha,
+    color_hex,
 ])
 
 
