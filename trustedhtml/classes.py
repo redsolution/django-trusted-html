@@ -389,6 +389,17 @@ class Url(RegExp):
         return value
 
 
+class No(Rule):
+    """
+    Rule suppose that value never is correct.
+    Validation always will raise IncorrectException.
+    """
+    
+    def core(self, value, path):
+        """Do it."""
+        raise IncorrectException
+
+
 class And(Rule):
     """
     Rule suppose that value is correct if it corresponding to all ``rules``.
@@ -450,7 +461,7 @@ class Sequence(String):
     Validation will return joined parts of value.
     """
     
-    def __init__(self, rule, delimiter_regexp='\s+', flags=0,
+    def __init__(self, rule, delimiter_regexp=r'\s+', flags=0,
         min_split=0, max_split=0, skip_empty=False,
         join_string=' ', prepend_string='', append_string='', **kwargs):
         """
@@ -649,7 +660,7 @@ class Style(Sequence, Validator):
         specified in ``rules`` and value is list of properties` names
         (or tag attribute) that must be validated by the same rule.  
         """
-        Sequence.__init__(self, rule=None, delimiter_regexp='\s*;\s*',
+        Sequence.__init__(self, rule=None, delimiter_regexp=r'\s*;\s*',
             join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         

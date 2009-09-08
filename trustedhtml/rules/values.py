@@ -1,78 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from trustedhtml.classes import Style, List, Char, String, RegExp, Url, Or
-from trustedhtml.rules import css
+from trustedhtml.rules.css import index
 
 string = String()
 number = RegExp(regexp=r'([-+]?\d{1,7})$')
 length = RegExp(regexp=r'([-+]?\d{1,7}%?)$')
 char = Char()
 
-style = Style(rules={
-    'background': css.background,
-    'background-color': css.background_color,
-    'background-image': css.background_image,
-    'background-repeat': css.background_repeat,
-    'background-attachment': css.background_attachment,
-    'background-position': css.background_position,
-    
-    'border': css.border,
-    'border-width': css.border_width,
-    'border-style': css.border_style,
-    'border-color': css.color,
-    'border-collapse': css.border_collapse,
-    
-    'bottom': css.bottom,
-    'clear': css.clear,
-    'color': css.color,
-    
-    # content is big security hole
-    #'content':
-    #'counter-increment': 
-    #'counter-reset': 
-    
-    'margin': css.margin,
-    'margin-top': css.margin_top,
-
-    'padding': css.padding,
-    'padding-top': css.padding_top,
-
-    'width': css.size,
-    'height': css.size,
-
-    'float': css.float,
-}, equivalents = {
-    'border': [
-        'border-top', 'border-bottom', 'border-left', 'border-right'
-    ],
-    'border-width': [
-        'border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width',
-    ],
-    'border-style': [
-        'border-top-style', 'border-bottom-style', 'border-left-style', 'border-right-style',
-    ],
-    'border-color': [
-        'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color',
-    ],
-    'bottom': [
-        'height', 'left', 'right', 'top', 'width',
-    ],
-    'letter-spacing': [
-        'word-spacing',
-    ],
-    'page-break-after': [
-        'page-break-before',
-    ],
-    'margin-top': [
-        'margin-bottom', 'margin-left', 'margin-right',
-    ],
-    'max-height': [
-        'max-width',
-    ],
-    'padding-top': [
-        'padding-bottom', 'padding-left', 'padding-right',
-    ],
-})
+style = Style(rules=index)
 
 link_type = List(values=[
     'alternate', 'stylesheet', 'start', 'next', 'prev', 
