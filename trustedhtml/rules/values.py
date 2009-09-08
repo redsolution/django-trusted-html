@@ -16,7 +16,7 @@ style = Style(rules={
     'background-attachment': css.background_attachment,
     'background-position': css.background_position,
     
-    'border': css.border_complex,
+    'border': css.border,
     'border-width': css.border_width,
     'border-style': css.border_style,
     'border-color': css.color,

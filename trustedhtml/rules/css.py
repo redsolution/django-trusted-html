@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+# W3C CSS2 Grammar ( http://www.w3.org/TR/1998/REC-CSS2-19980512/grammar.html )
+# specified rules that not always corresponded to Syntax and basic data types section
+# ( http://www.w3.org/TR/1998/REC-CSS2-19980512/syndata.html )
+# So we will fix it and add comments with source grammar.
+
 from trustedhtml.classes import RegExp, Sequence, Or, And, List, Url, Complex, String
 
 lexic_dict = {}
@@ -16,32 +21,53 @@ lexic_dict['string2'] = r'(\'(?P<string2>([\t !#$%%&(-~]|\\%(nl)s|\"|%(nonascii)
 
 lexic_dict['ident'] = r'(%(nmstart)s%(nmchar)s*)' % lexic_dict
 lexic_dict['name'] = r'(%(nmchar)s+)' % lexic_dict
-lexic_dict['num'] = r'([0-9]+|[0-9]*\.[0-9]+)' % lexic_dict
+
+# W3C grammar:
+#lexic_dict['num'] = r'([0-9]+|[0-9]*\.[0-9]+)' % lexic_dict
+#W3C syntax and basic data types:
+lexic_dict['int'] = r'([-+]?[0-9]+)' % lexic_dict
+lexic_dict['real'] = r'([-+]?[0-9]*\.[0-9]+)' % lexic_dict
+lexic_dict['num'] = r'(%(int)s|%(real)s)' % lexic_dict
+lexic_dict['+int'] = r'([0-9]+)' % lexic_dict
+lexic_dict['+real'] = r'([0-9]*\.[0-9]+)' % lexic_dict
+lexic_dict['+num'] = r'(%(+int)s|%(+real)s)' % lexic_dict
+
 lexic_dict['string'] = r'(%(string1)s|%(string2)s)' % lexic_dict
 lexic_dict['url'] = r'(?P<url>([!#$%%&*-~]|%(nonascii)s|%(escape)s)*)' % lexic_dict
 lexic_dict['range'] = r'(\?{1,6}|%(h)s(\?{0,5}|%(h)s(\?{0,4}|%(h)s(\?{0,3}|%(h)s(\?{0,2}|%(h)s(\??|%(h)s))))))' % lexic_dict
 
-lexic_dict['size_ext'] = '|'.join([
-    '', 'px', '%', 'cm', 'mm', 'in', 'pt', 'pc', 'em', 'ex', 
-])
-
-size = RegExp(regexp=r'([-+]?%(num)s(%(size_ext)s))$' % lexic_dict)
+#W3C grammar:
+#ems = RegExp(regexp='(%(num)s(em))$' % lexic_dict)
+#exs = RegExp(regexp='(%(num)s(ex))$' % lexic_dict)
+#length = RegExp(regexp='(%(num)s(px|cm|mm|in|pt|pc))$' % lexic_dict)
+#W3C syntax and basic data types:
+length = RegExp(regexp='((%(num)s(px|cm|mm|in|pt|pc|em|ex)|0+))$' % lexic_dict)
+# Browsers:
+#length = RegExp(regexp='(%(num)s(|px|cm|mm|in|pt|pc|em|ex))$' % lexic_dict)
+  
+angle = RegExp(regexp='(%(num)s(deg|rad|grad))$' % lexic_dict)
+time = RegExp(regexp='(%(+num)s(ms|s))$' % lexic_dict)
+freq = RegExp(regexp='(%(+num)s(hz|khz))$' % lexic_dict)
+dimen = RegExp(regexp='(%(num)s%(ident)s)$' % lexic_dict)
+percentage = RegExp(regexp='(%(num)s%%)$' % lexic_dict)
 number = RegExp(regexp='(%(num)s)$' % lexic_dict)
+
+size = RegExp(regexp=r'(%(num)s(|%%|px|cm|mm|in|pt|pc|em|ex))$' % lexic_dict)
 indent = Sequence(rule=size, min_split=1, max_split=4)
 
-color_func = RegExp(
+color_spec = RegExp(
     regexp=r'(?P<n>rgb|hsl)\('
-        '%(w)s(?P<a>%(num)s%%?)%(w)s\,'
-        '%(w)s(?P<b>%(num)s%%?)%(w)s\,'
-        '%(w)s(?P<c>%(num)s%%?)%(w)s\)$' % lexic_dict,
+        '%(w)s(?P<a>%(int)s%%?)%(w)s\,'
+        '%(w)s(?P<b>%(int)s%%?)%(w)s\,'
+        '%(w)s(?P<c>%(int)s%%?)%(w)s\)$' % lexic_dict,
     expand=r'\g<n>(\g<a>,\g<b>,\g<c>)',
 )
 color_alpha = RegExp(
     regexp=r'(?P<n>rgba|hsla)\('
-        '%(w)s(?P<a>%(num)s%%?)%(w)s\,'
-        '%(w)s(?P<b>%(num)s%%?)%(w)s\,'
-        '%(w)s(?P<c>%(num)s%%?)%(w)s\,'
-        '%(w)s(?P<d>%(num)s%%?)%(w)s\)$' % lexic_dict,
+        '%(w)s(?P<a>%(int)s%%?)%(w)s\,'
+        '%(w)s(?P<b>%(int)s%%?)%(w)s\,'
+        '%(w)s(?P<c>%(int)s%%?)%(w)s\,'
+        '%(w)s(?P<d>%(int)s%%?)%(w)s\)$' % lexic_dict,
     expand=r'\g<n>(\g<a>,\g<b>,\g<c>,\g<d>)',
 )
 color_hex = RegExp(regexp=r'(#%(h)s{3}|#%(h)s{6})$' % lexic_dict,)
@@ -92,20 +118,12 @@ color_list = List(values=[
 
 color = Or(rules=[
     color_list,
-    color_func,
+    color_spec,
     color_alpha,
     color_hex,
 ])
 
 url = Or(rules=[
-    And(rules=[
-        RegExp(
-            regexp=r'url\(%(w)s%(url)s%(w)s\)' % lexic_dict,
-            expand=r'\g<url>',
-        ),
-        Url(),
-        RegExp(regexp=r'(.*)$', expand='url(\\1)', ),
-    ]),
     And(rules=[
         RegExp(
             regexp=r'url\(%(w)s(%(string1)s)%(w)s\)' % lexic_dict,
@@ -122,7 +140,22 @@ url = Or(rules=[
         Url(),
         RegExp(regexp=r'(.*)$', expand='url(\'\\1\')', ),
     ]),
+    And(rules=[
+        RegExp(
+            regexp=r'url\(%(w)s%(url)s%(w)s\)' % lexic_dict,
+            expand=r'\g<url>',
+        ),
+        Url(),
+        RegExp(regexp=r'(.*)$', expand='url(\\1)', ),
+    ]),
 ])
+
+inherit = List(values=[
+    'inherit'
+])
+
+#
+
 # TODO: add it to Style
 #core_css_values = [
 #    'inherit',
@@ -197,7 +230,7 @@ border_width = Or(rules=[
     ]),
 ])
 
-border_complex = Complex(rules=[
+border = Complex(rules=[
     border_width,
     border_style,
     border_color,

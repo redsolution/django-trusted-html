@@ -188,6 +188,8 @@ class Css(unittest.TestCase):
     def test_re(self):
         self.assertEqual(re.match('%(escape)s$' % rules.css.lexic_dict, '\\\a'), None)
         self.assertNotEqual(re.match('%(escape)s$' % rules.css.lexic_dict, u'\\\u044f'), None)
+        self.assertEqual(re.match('%(string1)s$' % rules.css.lexic_dict, '"img".jpg"'), None)
+        self.assertNotEqual(re.match('%(string1)s$' % rules.css.lexic_dict, '"img\\".jpg"'), None)
 
     def test_number(self):
         self.assertRaises(IncorrectException, rules.css.number.validate, 'a')
@@ -211,11 +213,12 @@ class Css(unittest.TestCase):
     def test_color(self):
         self.assertEqual(rules.css.color.validate('  WinDow '), 'window')
         self.assertEqual(rules.css.color.validate('Red'), 'red')
-        self.assertEqual(rules.css.color.validate('rgb( 1.2,  34%,5)'), 'rgb(1.2,34%,5)')
-        self.assertEqual(rules.css.color.validate('rgba( 1.2,  34%,5  , 1 )'), 'rgba(1.2,34%,5,1)')
-        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,5a)')
-        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,-5)')
-        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1.2,  34%,5)-')
+        self.assertEqual(rules.css.color.validate('rgb( 1,  34%,5)'), 'rgb(1,34%,5)')
+        self.assertEqual(rules.css.color.validate('rgba( 1,  34%,5  , 1 )'), 'rgba(1,34%,5,1)')
+        self.assertEqual(rules.css.color.validate('rgb( 1,  34%,-5)'), 'rgb(1,34%,-5)')
+        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1,  34%,5a)')
+        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1,  34%,5)-')
+        self.assertRaises(IncorrectException, rules.css.color.validate, 'rgb( 1,  34%,0.5)')
         self.assertEqual(rules.css.color.validate('#fff'), '#fff')
         self.assertEqual(rules.css.color.validate('#aaafff'), '#aaafff')
         self.assertRaises(IncorrectException, rules.css.color.validate, '#aazfff')
@@ -226,8 +229,9 @@ class Css(unittest.TestCase):
         self.assertEqual(rules.css.url.validate(u'url( http://ya.ru/im\u044fg.jpg  )'), u'url(http://ya.ru/im\u044fg.jpg)')
         self.assertEqual(rules.css.url.validate('url( http://ya.ru/img.jpg \t   )'), 'url(http://ya.ru/img.jpg)')
         self.assertRaises(IncorrectException, rules.css.url.validate, 'url( script:alert(1)  )')
-        self.assertEqual(rules.css.url.validate('url( \"img\' .jpg\"  )'), 'url(\"img\' .jpg\")')
-        self.assertEqual(rules.css.url.validate('url( \'img\" .jpg\'  )'), 'url(\'img\" .jpg\')')
+        self.assertEqual(rules.css.url.validate('url( \"http://ya.ru/img\' .jpg\"  )'), 'url(\"http://ya.ru/img\' .jpg\")')
+        self.assertEqual(rules.css.url.validate('url( \'http://ya.ru/img\" .jpg\'  )'), 'url(\'http://ya.ru/img\" .jpg\')')
+        self.assertEqual(rules.css.url.validate('url( \'http://ya.ru/img\\\' .jpg\'  )'), 'url(\'http://ya.ru/img\\\' .jpg\')')
 
     def test_background_position(self):
         self.assertEqual(rules.css.background_position.validate(' lEft  toP '), 'left top')
@@ -242,21 +246,26 @@ class Css(unittest.TestCase):
         self.assertEqual(rules.css.background_position.validate(' 34em  '), '34em')
         self.assertEqual(rules.css.background_position.validate(' lEft  '), 'left')
         self.assertEqual(rules.css.background_position.validate(' toP  '), 'top')
+        self.assertRaises(IncorrectException, rules.css.background_position.validate, '')
 
     def test_border(self):
-        pass
-#        rules.css.border.validate('')
-#        rules.css.border.validate('2pxs')
-#        rules.css.border.validate('soLid')
-#        rules.css.border.validate('2pxs soLid')
-#        rules.css.border.validate('blAck')
-#        rules.css.border.validate('2pxs blAck')
-#        rules.css.border.validate('soLid blAck')
-#        rules.css.border.validate('2pxs soLid blAck')
-#        rules.css.border.validate('pxs')
-#        rules.css.border.validate('pxs soLid')
-#        rules.css.border.validate('2pxs blAAck')
-#        rules.css.border.validate('2pxs soLLid blAck')
+        self.assertEqual(rules.css.border.validate(' 2px  Solid Black'), '2px solid black')
+        self.assertEqual(rules.css.border.validate(' 2px  Black'), '2px black')
+        self.assertEqual(rules.css.border.validate(' 2px  Solid Black'), '2px solid black')
+        self.assertEqual(rules.css.border.validate(' 2px  Solid'), '2px solid')
+        self.assertEqual(rules.css.border.validate(' Solid Black'), 'solid black')
+        self.assertEqual(rules.css.border.validate(' Solid'), 'solid')
+        self.assertEqual(rules.css.border.validate(' Black'), 'black')
+        self.assertEqual(rules.css.border.validate(' 2px'), '2px')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2px  Solid BBlack')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2px  SSolid Black')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2pxx  Solid Black')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2px  Black  Solid')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' Solid Black 2px')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2px Solid Black 2px')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2px 2px Solid Black')
+        self.assertRaises(IncorrectException, rules.css.border.validate, ' 2px Solid Black Black')
+        self.assertRaises(IncorrectException, rules.css.border.validate, '')
 
     def tearDown(self):
         pass
@@ -367,6 +376,7 @@ K<IMG STYLE="exp/*<A STYLE='no\xss:noxss("*//*");xss:&#101;x&#x2F;*XSS*//*/*/pre
 L<A HREF="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</A>
 M<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'))">div</div>
 N<DIV STYLE="background:#fff url(\0031.jpg);">NOXSS</div>
+O<DIV STYLE="background-image:url(javascript\3aalert(1))">XSS</DIV>
 O<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028'\0058'\0029'\0029">XSS</DIV>
 P<IMG SRC='%399.jpg'>
 Q<DIV STYLE="background-image:url('\x3c\x3C\u003c\u003C')>div</div>
