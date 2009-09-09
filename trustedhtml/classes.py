@@ -7,7 +7,7 @@ from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
 from signals import rule_done, rule_exception
-from utils import get_cdata, get_url, get_style
+from utils import get_cdata, get_uri, get_style
 
 BeautifulSoup.QUOTE_TAGS = {}
 
@@ -292,10 +292,10 @@ class RegExp(String):
         return value
 
 
-class Url(RegExp):
+class Uri(RegExp):
     """
-    Rule suppose that value is correct if it is allowed URL.
-    Validation will return correct URL.
+    Rule suppose that value is correct if it is allowed URI.
+    Validation will return correct URI.
     """
     
     def __init__(self, allow_sites=None, allow_schemes=[
@@ -311,15 +311,15 @@ class Url(RegExp):
         To disallow all sites (only paths will be available), you can use:
         []
         
-        ``allow_schemes`` is list of allowed schemes for URLs.
+        ``allow_schemes`` is list of allowed schemes for URIs.
         
         ``local_sites`` is list of sites for witch
-        scheme and site-name will be removed from url.
+        scheme and site-name will be removed from uri.
         
         ``local_schemes`` is list of schemes that can be removed.
-        Only urls with such scheme will be cut.
+        Only uris with such scheme will be cut.
         """
-        super(Url, self).__init__(
+        super(Uri, self).__init__(
             regexp=r'^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?',
             case_sensitive=False, **kwargs)
         self.allow_sites = self.lower_list(allow_sites)
@@ -330,22 +330,27 @@ class Url(RegExp):
         self.local_schemes = self.lower_list(local_schemes)
 
     def prepare(self, value, path):
-        """Replace correct escaped-chars (%hh)"""
-        value = super(URL, self).prepare(value, path)
-        value = get_url(value)
+        """
+        Correct escaped-chars (%hh).
+        We don`t replace escaped-chars, just replace "%Z" with "%25Z".
+        Escaped-chars not allowed in scheme and authority paths,
+        so we can trust prepared values.
+        """
+        value = super(Uri, self).prepare(value, path)
+        value = get_uri(value)
         return value
 
-    def split(self, url):
+    def split(self, uri):
         """
-        Return tuple (scheme, authority, path, query, fragment) for given ``url``.
+        Return tuple (scheme, authority, path, query, fragment) for given ``uri``.
         """
-        match = self.compiled.match(url)
+        match = self.compiled.match(uri)
         return (match.group(2), match.group(4), match.group(5), match.group(7), match.group(9))
 
     
     def build(self, scheme, authority, path, query, fragment):
         """
-        Return url from given (scheme, authority, path, query, fragment).
+        Return uri from given (scheme, authority, path, query, fragment).
         """
         result = ''
         if scheme is not None:

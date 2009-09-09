@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from trustedhtml.classes import Attributes, Or, String, Url
+from trustedhtml.classes import Attributes, Or, String, Uri
 from trustedhtml.rules import values
 from trustedhtml.rules import custom
 
@@ -61,7 +61,7 @@ img = Attributes(rules={
     'title': values.string,
     'src': values.src, 
     'alt': values.alt,
-    # Can enable: 'longdesc': Url(),
+    # Can enable: 'longdesc': Uri(),
     'width': values.length,
     'height': values.length,
     'align': values.align_img,

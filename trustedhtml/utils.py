@@ -235,7 +235,7 @@ SGML_CHARACTER_ENTITIES={
 # http://www.w3.org/TR/REC-html40/sgml/entities.html
 # Entities` names was lower cased.
 
-SGML_CHARACTER_RE = re.compile(r'(?P<string>&(#(?P<dec>[0-9]+)|#x(?P<hex>[0-9A-Fa-f]+)|(?P<name>[a-zA-Z]+[a-zA-Z0-9]*));?)')
+SGML_CHARACTER_RE = re.compile(r'(?P<string>&(#(?P<dec>[0-9]+)|#x(?P<hex>[0-9A-Fa-f]+)|(?P<name>[a-zA-Z][a-zA-Z0-9]*));?)')
 def SGML_CHARACTER_REPL(match):
     """Replace character entity with character"""
     dict = match.groupdict()
@@ -268,16 +268,16 @@ def get_cdata(value):
     value = SGML_SPACE_RE.sub(SGML_SPACE_REPL, value)
     return value
 
-URL_PERCENT_RE = re.compile(r'%(?![0-9A-Fa-f]{2})')
-URL_PERCENT_RELP = '%25'
+URI_PERCENT_RE = re.compile(r'%(?![0-9A-Fa-f]{2})')
+URI_PERCENT_RELP = '%25'
 
-def get_url(value):
+def get_uri(value):
     """
-    Return unquoted url.
+    Return unquoted URI.
     
     http://www.ietf.org/rfc/rfc2396.txt
     """
-    return URL_PERCENT_RE.sub(URL_PERCENT_RELP, value)
+    return URI_PERCENT_RE.sub(URI_PERCENT_RELP, value)
 
 STYLE_COMMENT_RE = re.compile(r'\/\*[^*]*\*+([^/][^*]*\*+)*\/')
 STYLE_COMMENT_REPL = ''

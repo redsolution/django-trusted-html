@@ -7,7 +7,7 @@ from trustedhtml.classes import List, RegExp, No, Or, Sequence, Complex
 
 from trustedhtml.rules.css.consts import inherit, none, auto
 from trustedhtml.rules.css.grammar import grammar
-from trustedhtml.rules.css.syndata import length, string, url
+from trustedhtml.rules.css.syndata import length, string, uri
 
 content = No()
 # Applies to: :before and :after pseudo-elements
@@ -41,7 +41,7 @@ list_style_type = List(values=[
 # Applies to: elements with 'display: list-item'  
 
 list_style_image = Or(rules=[
-    url, none, inherit
+    uri, none, inherit
 ])
 # Applies to: elements with 'display: list-item'  
 

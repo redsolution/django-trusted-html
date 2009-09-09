@@ -3,7 +3,7 @@ CSS2 syntax and basic data types
 http://www.w3.org/TR/1998/REC-CSS2-19980512/syndata.html
 """
 
-from trustedhtml.classes import List, RegExp, Url, Or, And
+from trustedhtml.classes import List, RegExp, Uri, Or, And
 from trustedhtml.rules.css.grammar import grammar
 
 number = RegExp(regexp=r'%(num)s$' % grammar)
@@ -94,13 +94,13 @@ color = Or(rules=[
     color_hex,
 ])
 
-url = Or(rules=[
+uri = Or(rules=[
     And(rules=[
         RegExp(
             regexp=r'url\(%(w)s(%(string1)s)%(w)s\)' % grammar,
             expand=r'\g<string1>',
         ),
-        Url(),
+        Uri(),
         RegExp(regexp=r'(.*)$', expand='url(\"\\1\")', ),
     ]),
     And(rules=[
@@ -108,7 +108,7 @@ url = Or(rules=[
             regexp=r'url\(%(w)s(%(string2)s)%(w)s\)' % grammar,
             expand=r'\g<string2>',
         ),
-        Url(),
+        Uri(),
         RegExp(regexp=r'(.*)$', expand='url(\'\\1\')', ),
     ]),
     And(rules=[
@@ -116,7 +116,7 @@ url = Or(rules=[
             regexp=r'url\(%(w)s%(url)s%(w)s\)' % grammar,
             expand=r'\g<url>',
         ),
-        Url(),
+        Uri(),
         RegExp(regexp=r'(.*)$', expand='url(\\1)', ),
     ]),
 ])

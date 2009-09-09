@@ -57,11 +57,11 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('-12,34'), '34;-12')
         self.assertRaises(IncorrectException, rule.validate, '-12,34a')
         
-    def test_url_core(self):
-        rule = Url()
+    def test_uri_core(self):
+        rule = Uri()
         self.assertEqual(rule.prepare('Q%WW%R%1TT%2%YYY%%34UU%a5%6A'), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
-        url = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
-        self.assertEqual(rule.split(url),
+        uri = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
+        self.assertEqual(rule.split(uri),
             ('http', 'www.ics.uci.edu', '/pub/ietf/uri/', 'arg1=value1&arg2=value2', 'Related'))
         self.assertEqual(rule.split('http:/www.ics.uci.edu/'),
             ('http', None, '/www.ics.uci.edu/', None, None))
@@ -69,10 +69,10 @@ class Classes(unittest.TestCase):
             ('http', None, 'www.ics.uci.edu/', None, None))
         self.assertEqual(rule.split('http/://www.ics.uci.edu/'),
             (None, None, 'http/://www.ics.uci.edu/', None, None))
-        self.assertEqual(rule.build(*rule.split(url)), url)
+        self.assertEqual(rule.build(*rule.split(uri)), uri)
 
-    def test_url_a(self):
-        rule = Url()
+    def test_uri_a(self):
+        rule = Uri()
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
         self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
         self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
@@ -81,18 +81,8 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
 
-    def test_url_a(self):
-        rule = Url()
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
-        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
-        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
-        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-
-    def test_url_a_local(self):
-        rule = Url(local_sites=['local.com', 'local-mirror.com'])
+    def test_uri_a_local(self):
+        rule = Uri(local_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
         self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
         self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
@@ -101,8 +91,8 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
             
-    def test_url_img(self):
-        rule = Url(allow_sites=['local.com', 'local-mirror.com'])
+    def test_uri_img(self):
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
         self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
         self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
@@ -111,8 +101,8 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
             
-    def test_url_img_local(self):
-        rule = Url(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
+    def test_uri_img_local(self):
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
         self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
         self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
@@ -121,8 +111,8 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
 
-    def test_url_ext(self):
-        rule = Url(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
+    def test_uri_ext(self):
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
         self.assertEqual(rule.validate('http://local.com?qw'), '?qw')
         self.assertEqual(rule.validate('http://local.com'), '/')
 
@@ -216,15 +206,15 @@ class Css(unittest.TestCase):
         self.assertEqual(rules.css.syndata.color.validate('#aaafff'), '#aaafff')
         self.assertRaises(IncorrectException, rules.css.syndata.color.validate, '#aazfff')
         
-    def test_url(self):
-        self.assertEqual(rules.css.syndata.url.validate('url( img.jpg  )'), 'url(img.jpg)')
-        self.assertEqual(rules.css.syndata.url.validate('url( http://ya.ru/img.jpg   )'), 'url(http://ya.ru/img.jpg)')
-        self.assertEqual(rules.css.syndata.url.validate(u'url( http://ya.ru/im\u044fg.jpg  )'), u'url(http://ya.ru/im\u044fg.jpg)')
-        self.assertEqual(rules.css.syndata.url.validate('url( http://ya.ru/img.jpg \t   )'), 'url(http://ya.ru/img.jpg)')
-        self.assertRaises(IncorrectException, rules.css.syndata.url.validate, 'url( script:alert(1)  )')
-        self.assertEqual(rules.css.syndata.url.validate('url( \"http://ya.ru/img\' .jpg\"  )'), 'url(\"http://ya.ru/img\' .jpg\")')
-        self.assertEqual(rules.css.syndata.url.validate('url( \'http://ya.ru/img\" .jpg\'  )'), 'url(\'http://ya.ru/img\" .jpg\')')
-        self.assertEqual(rules.css.syndata.url.validate('url( \'http://ya.ru/img\\\' .jpg\'  )'), 'url(\'http://ya.ru/img\\\' .jpg\')')
+    def test_uri(self):
+        self.assertEqual(rules.css.syndata.uri.validate('url( img.jpg  )'), 'url(img.jpg)')
+        self.assertEqual(rules.css.syndata.uri.validate('url( http://ya.ru/img.jpg   )'), 'url(http://ya.ru/img.jpg)')
+        self.assertEqual(rules.css.syndata.uri.validate(u'url( http://ya.ru/im\u044fg.jpg  )'), u'url(http://ya.ru/im\u044fg.jpg)')
+        self.assertEqual(rules.css.syndata.uri.validate('url( http://ya.ru/img.jpg \t   )'), 'url(http://ya.ru/img.jpg)')
+        self.assertRaises(IncorrectException, rules.css.syndata.uri.validate, 'url( script:alert(1)  )')
+        self.assertEqual(rules.css.syndata.uri.validate('url( \"http://ya.ru/img\' .jpg\"  )'), 'url(\"http://ya.ru/img\' .jpg\")')
+        self.assertEqual(rules.css.syndata.uri.validate('url( \'http://ya.ru/img\" .jpg\'  )'), 'url(\'http://ya.ru/img\" .jpg\')')
+        self.assertEqual(rules.css.syndata.uri.validate('url( \'http://ya.ru/img\\\' .jpg\'  )'), 'url(\'http://ya.ru/img\\\' .jpg\')')
 
     def test_background_position(self):
         self.assertEqual(rules.css.index['background-position'].validate(' lEft  toP '), 'left top')
