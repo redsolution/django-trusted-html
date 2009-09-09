@@ -6,7 +6,8 @@ from beautifulsoup import BeautifulSoup, NavigableString, Tag
 from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
-from signals import *
+from signals import rule_done, rule_exception
+from consts import CHARACTER_ENTITIES
 
 BeautifulSoup.QUOTE_TAGS = {}
 
@@ -93,13 +94,15 @@ class Rule(object):
         ``path`` is the list of rules that called this validation.
         First element of this list will be first rule.
         
-        This function will call ``core()`` that can be overwritten by subclasses.
+        This function will call ``prepare`` and ``core()`` functions.
+        They can be overwritten by subclasses.
         """
         source = value
         try:
             try:
                 if not self.allow_empty and not value:
                     raise EmptyException(self, value)
+                value = self.prepare(value, path)
                 value = self.core(value, path)
                 if not self.allow_empty and not value:
                     raise EmptyException(self, value)
@@ -140,10 +143,25 @@ class Rule(object):
         return value
 
 
+    def prepare(self, value, path):
+        """
+        This function is called while validation before ``core``.
+        Subclasses can overwrite this one to define another prepare mechanism.
+
+        ``value`` is value for validation.
+
+        ``path`` is the list of rules that called this validation.
+        First element of this list will be first rule.
+
+        Return value, prepared for ``core`` function.
+        """
+        return value
+
+
 class String(Rule):
     """
     Rule suppose that any string value is correct.
-    Validation will return striped string value if specified. 
+    Validation will return striped string value if specified.
     """
     
     def __init__(self, case_sensitive=False, strip=True, **kwargs):
@@ -151,6 +169,9 @@ class String(Rule):
         ``strip`` if True than remove leading and trailing whitespace.
 
         ``case_sensitive`` if True than validation will be case sensitive.
+        
+        This class don`t prepare ``value`` according to ``case_sensitive``.
+        Just specified functions to do it.
         """
         super(String, self).__init__(**kwargs)
         self.case_sensitive = case_sensitive
@@ -185,9 +206,9 @@ class String(Rule):
             for value in values]
 
 
-    def core(self, value, path):
+    def prepare(self, value, path):
         """Do it."""
-        value = super(String, self).core(value, path)
+        value = super(String, self).prepare(value, path)
         if value is None:
             value = ''
         value = unicode(value)
@@ -195,29 +216,42 @@ class String(Rule):
             value = value.strip()
         return value
 
-class Content(String):
-    """
-    Rule suppose that any not empty string value is correct.
-    Validation will return source value. 
-    """
 
-    def __init__(self, allow_empty=False, **kwargs):
-        """
-        Just replace default settings.
-        """
-        super(Content, self).__init__(allow_empty=allow_empty, **kwargs)
-
-
-class Char(Content):
+class Cdata(String):
     """
-    Rule suppose that any not empty string value is correct.
-    Validation will return only first chat from the source value. 
+    Rule suppose that value is correct if it is string.
+    Validation will return correct CDATA:
+        Replace character entities with characters,
+        Ignore line feeds,
+        Replace each carriage return or tab with a single space.
+    http://www.w3.org/TR/REC-html40/charset.html#h-5.3
     """
 
-    def core(self, value, path):
+    CHARACTER_RE = re.compile(r'(?P<string>&(#(?P<dec>[0-9]+)|#x(?P<hex>[0-9A-Fa-f]+)|(?P<name>[a-zA-Z]+[a-zA-Z0-9]*));?)')
+    def character_repl(match):
+        dict = match.groupdict()
+        try:
+            if dict['dec']:
+                code = int(dict['dec'])
+            elif dict['hex']:
+                code = int(dict['hex'], 16)
+            elif dict['name']:
+                code = CHARACTER_ENTITIES[dict['name'].lower()]
+            else:
+                raise ValueError
+            return unichr(code)
+        except (ValueError, IndexError, OverflowError):
+            return dict['string']
+    
+    SPACE_RE = re.compile(r'[\n\r\t]')
+    SPACE_REPL = ''
+
+    def prepare(self, value, path):
         """Do it."""
-        value = super(Char, self).core(value, path)
-        return value[:1]
+        value = super(Cdata, self).prepare(value, path)
+        value = self.CHARACTER_RE.sub(self.character_repl, value)
+        value = self.SPACE_RE.sub(self.SPACE_REPL, value)
+        return value
 
 
 class List(String):
@@ -268,7 +302,7 @@ class RegExp(String):
         
         ``expand`` is string using to expand match objects
         and to return result of validation.
-        
+
         Example of validation:
             regexp: r'([+-]?\d*),(?P<a>\d*)$'
             expand: r'\g<a>;\1'
@@ -284,7 +318,7 @@ class RegExp(String):
         if not self.case_sensitive:
             self.flags = self.flags | re.IGNORECASE
         self.compiled = re.compile(unicode(self.regexp), self.flags)
-        
+
     def core(self, value, path):
         """Do it."""
         value = super(RegExp, self).core(value, path)
@@ -301,7 +335,7 @@ class Url(RegExp):
     Validation will return correct URL.
     """
     
-    PERCENT_RE = re.compile('%(?![0-9A-Fa-f]{2})')
+    PERCENT_RE = re.compile(r'%(?![0-9A-Fa-f]{2})')
     PERCENT_VALUE = '%25'
 
     def __init__(self, allow_sites=None, allow_schemes=[
@@ -335,12 +369,12 @@ class Url(RegExp):
             self.local_sites = []
         self.local_schemes = self.lower_list(local_schemes)
 
-    def prepare(self, url):
-        """
-        Return prepared ``url`` with correct escaped-chars (%hh).
-        """
-        return self.PERCENT_RE.sub(self.PERCENT_VALUE, unicode(url))
-    
+    def prepare(self, value, path):
+        """Replace correct escaped-chars (%hh)"""
+        value = super(URL, self).prepare(value, path)
+        value = self.PERCENT_RE.sub(self.PERCENT_VALUE, value)
+        return value
+
     def split(self, url):
         """
         Return tuple (scheme, authority, path, query, fragment) for given ``url``.
@@ -369,7 +403,6 @@ class Url(RegExp):
     def core(self, value, path):
         """Do it."""
         value = String.core(self, value, path)
-        value = self.prepare(value)
         scheme_source, authority_source, path, query, fragment = self.split(value)
         scheme = self.lower_string(scheme_source)
         authority = self.lower_string(authority_source)
@@ -457,17 +490,16 @@ class Or(Rule):
 class Sequence(String):
     """
     Rule suppose that value is correct if each part of value,
-    divided by ``delimiter_regexp`` matches specified ``rule``.
+    divided by ``regexp`` matches specified ``rule``.
     Validation will return joined parts of value.
     """
     
-    def __init__(self, rule, delimiter_regexp=r'\s+', flags=0,
-        min_split=0, max_split=0, skip_empty=False,
+    def __init__(self, rule, regexp=r'\s+', flags=0, min_split=0, max_split=0, 
         join_string=' ', prepend_string='', append_string='', **kwargs):
         """
         ``rule`` is the rule that will be called to validate each path of value.
         
-        ``delimiter_regexp`` specified string with regular expression
+        ``regexp`` specified string with regular expression
         to split specified value.
         
         ``flags`` specified flags for regular expression.
@@ -487,14 +519,13 @@ class Sequence(String):
         """
         super(Sequence, self).__init__(**kwargs)
         self.rule = rule
-        self.delimiter_regexp = delimiter_regexp
+        self.regexp = regexp
         self.flags = flags
         if not self.case_sensitive:
             self.flags = self.flags | re.IGNORECASE
-        self.compiled = re.compile(unicode(self.delimiter_regexp), self.flags)
+        self.compiled = re.compile(unicode(self.regexp), self.flags)
         self.min_split = min_split
         self.max_split = max_split
-        self.skip_empty = skip_empty
         self.join_string = join_string
         self.prepend_string = prepend_string
         self.append_string = append_string
@@ -513,11 +544,7 @@ class Sequence(String):
         """
         result = []
         for value in values:
-            try:
-                result.append(self.rule.validate(value, path))
-            except EmptyException, exception:
-                if not self.skip_empty:
-                    raise exception
+            result.append(self.rule.validate(value, path))
         return result
 
     def core(self, value, path):
@@ -528,15 +555,14 @@ class Sequence(String):
             raise IncorrectException(self, value)
         path = path[:] + [self]
         values = self.sequence(values, path)
-        value = self.join_string.join(values)
-        value = self.prepend_string + value + self.append_string
+        value = self.prepend_string + self.join_string.join(values) + self.append_string
         return value
 
 
 class Complex(Sequence):
     """
     Rule suppose that value is correct if each part of value,
-    divided by ``delimiter_regexp`` matches one of specified
+    divided by ``regexp`` matches one of specified
     ``rules`` list in corresponding order.
     Validation will return joined parts of value.
     """
@@ -547,7 +573,7 @@ class Complex(Sequence):
         """
         super(Complex, self).__init__(rule=None, **kwargs)
         self.rules = rules
-        
+
     def sequence(self, values, path):
         """Do it."""
         return self.complex(values, path, 0, 0)    
@@ -650,6 +676,7 @@ class Style(Sequence, Validator):
     Validation will return joined only valid pairs.
     """
     COMMENT_RE = re.compile(r'\/\*[^*]*\*+([^/][^*]*\*+)*\/')
+    COMMENT_REPL = ''
 
     def __init__(self, rules, equivalents={}, **kwargs):
         """
@@ -660,14 +687,15 @@ class Style(Sequence, Validator):
         specified in ``rules`` and value is list of properties` names
         (or tag attribute) that must be validated by the same rule.  
         """
-        Sequence.__init__(self, rule=None, delimiter_regexp=r'\s*;\s*',
+        Sequence.__init__(self, rule=None, regexp=r'\s*;\s*',
             join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
         
-    def core(self, value, path):
+    def prepare(self, value, patj):
         """Do it."""
-        value = COMMENT_RE.sub('', value)
-        value = super(Style, self).core(value, path)
+        value = super(Style, self).prepare(value, path)
+        value = self.COMMENT_RE.sub(self.COMMENT_REPL, value)
+        return value
 
     def sequence(self, values, path):
         """Do it."""

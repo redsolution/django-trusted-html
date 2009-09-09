@@ -15,7 +15,7 @@ a = Or(allow_empty=True, rules=[
         # Can enable: 'rev': values.link_type,    or     string,
         # Can enable: 'accesskey': char,
         # Can enable: 'shape':  List(values=['rect', 'circle', 'poly', 'default', ] ),
-        # Can enable: 'coords': Sequence(validator=number, delimiter_regexp=r'\s*,\s*'),
+        # Can enable: 'coords': Sequence(validator=number, regexp=r'\s*,\s*'),
         # Can enable: 'tabindex': number,
         'target': values.target, 
     }),

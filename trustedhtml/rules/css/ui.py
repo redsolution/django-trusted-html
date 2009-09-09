@@ -19,7 +19,7 @@ cursor_base = Or(rules=[
 ])
 
 cursor = Or(rules=[
-    Sequence(rule=cursor_base, delimiter_regexp=r'\s,\s', join_string=','),
+    Sequence(rule=cursor_base, regexp=r'\s,\s', join_string=','),
     inherit,
 ])
 # Bug: correct sequence is [<uri> ,]* list

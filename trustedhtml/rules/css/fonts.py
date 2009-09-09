@@ -21,7 +21,7 @@ font_family = Or(rules=[
     Sequence(rule=Or(rules=[
         family_name,
         generic_family
-    ]), delimiter_regexp='\s*,\s*', join_string=',', min_split=1),
+    ]), regexp='\s*,\s*', join_string=',', min_split=1),
     inherit,
 ])
 

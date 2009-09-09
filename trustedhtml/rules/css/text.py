@@ -32,7 +32,7 @@ text_decoration = Or(rules=[
 text_shadow_base = Complex(rules=[
     color,
     Sequence(rule=length, min_split=2, max_split=3),
-], delimiter_regexp=r'\s*,\s*', join_string=',', min_split=1)
+], regexp=r'\s*,\s*', join_string=',', min_split=1)
 
 text_shadow = Or(rules=[
     text_shadow_base, none, inherit,
