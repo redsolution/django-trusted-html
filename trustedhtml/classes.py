@@ -7,7 +7,7 @@ from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
 from signals import rule_done, rule_exception
-from consts import CHARACTER_ENTITIES
+from utils import get_cdata, get_url, get_style
 
 BeautifulSoup.QUOTE_TAGS = {}
 
@@ -217,43 +217,6 @@ class String(Rule):
         return value
 
 
-class Cdata(String):
-    """
-    Rule suppose that value is correct if it is string.
-    Validation will return correct CDATA:
-        Replace character entities with characters,
-        Ignore line feeds,
-        Replace each carriage return or tab with a single space.
-    http://www.w3.org/TR/REC-html40/charset.html#h-5.3
-    """
-
-    CHARACTER_RE = re.compile(r'(?P<string>&(#(?P<dec>[0-9]+)|#x(?P<hex>[0-9A-Fa-f]+)|(?P<name>[a-zA-Z]+[a-zA-Z0-9]*));?)')
-    def character_repl(match):
-        dict = match.groupdict()
-        try:
-            if dict['dec']:
-                code = int(dict['dec'])
-            elif dict['hex']:
-                code = int(dict['hex'], 16)
-            elif dict['name']:
-                code = CHARACTER_ENTITIES[dict['name'].lower()]
-            else:
-                raise ValueError
-            return unichr(code)
-        except (ValueError, IndexError, OverflowError):
-            return dict['string']
-    
-    SPACE_RE = re.compile(r'[\n\r\t]')
-    SPACE_REPL = ''
-
-    def prepare(self, value, path):
-        """Do it."""
-        value = super(Cdata, self).prepare(value, path)
-        value = self.CHARACTER_RE.sub(self.character_repl, value)
-        value = self.SPACE_RE.sub(self.SPACE_REPL, value)
-        return value
-
-
 class List(String):
     """
     Rule suppose that value is correct if it is in ``values``.
@@ -335,9 +298,6 @@ class Url(RegExp):
     Validation will return correct URL.
     """
     
-    PERCENT_RE = re.compile(r'%(?![0-9A-Fa-f]{2})')
-    PERCENT_VALUE = '%25'
-
     def __init__(self, allow_sites=None, allow_schemes=[
             'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
             'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
@@ -372,7 +332,7 @@ class Url(RegExp):
     def prepare(self, value, path):
         """Replace correct escaped-chars (%hh)"""
         value = super(URL, self).prepare(value, path)
-        value = self.PERCENT_RE.sub(self.PERCENT_VALUE, value)
+        value = get_url(value)
         return value
 
     def split(self, url):
@@ -675,8 +635,6 @@ class Style(Sequence, Validator):
     has valid property_value corresponding to ``rules`` dictionary.
     Validation will return joined only valid pairs.
     """
-    COMMENT_RE = re.compile(r'\/\*[^*]*\*+([^/][^*]*\*+)*\/')
-    COMMENT_REPL = ''
 
     def __init__(self, rules, equivalents={}, **kwargs):
         """
@@ -694,7 +652,7 @@ class Style(Sequence, Validator):
     def prepare(self, value, patj):
         """Do it."""
         value = super(Style, self).prepare(value, path)
-        value = self.COMMENT_RE.sub(self.COMMENT_REPL, value)
+        value = get_style(value)
         return value
 
     def sequence(self, values, path):
@@ -721,7 +679,7 @@ class Attributes(Rule, Validator):
     has valid attribute_value corresponding to ``rules`` dictionary.
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
-    
+
     def __init__(self, rules={}, equivalents={}, allow_empty=False, 
         default=None, root_tag=False, get_content=False, **kwargs):
         """
@@ -737,12 +695,20 @@ class Attributes(Rule, Validator):
         self.root_tag = root_tag
         self.get_content = get_content
         
+    def prepare(self, value, path):
+        """Do it."""
+        value = super(Attributes, self).prepare(value, path)
+        value = [(attribute_name, get_cdata(attribute_value))
+            for attribute_name, attribute_value in value]
+        return value
+        
     def core(self, value, path):
         """Do it."""
         try:
             return self.check(value, path)
         except (RequiredException, InvalidException), exception:
             raise IncorrectException(*exception.args)
+
 
 class Html(String):
     """
