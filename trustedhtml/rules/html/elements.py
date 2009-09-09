@@ -3,9 +3,6 @@ Index of Elements
 http://www.w3.org/TR/REC-html40/index/elements.html
 """
 
-#Element.OPTIONAL
-#Element.FORBIDDEN
-
 elements = {}
 
 elements['a'] = Element()
@@ -21,19 +18,19 @@ elements['address'] = Element()
 # information on author
 
 elements['applet'] = Element(deprecated=True, )
-# Java applet, Loose DTD
+# Java applet
 
-elements['area'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['area'] = Element(empty=True, )
 # client-side image map area
 
 elements['b'] = Element()
 # bold text style
 
-elements['base'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['base'] = Element(empty=True, )
 # document base URI
 
-elements['basefont'] = Element(end=Element.FORBIDDEN, empty=True, deprecated=True, )
-# base font size, Loose DTD
+elements['basefont'] = Element(empty=True, deprecated=True, )
+# base font size
 
 elements['bdo'] = Element()
 # I18N BiDi over-ride
@@ -44,10 +41,10 @@ elements['big'] = Element()
 elements['blockquote'] = Element()
 # long quotation
 
-elements['body'] = Element(start=Element.OPTIONAL, end=Element.OPTIONAL, )
+elements['body'] = Element(optional_start=True, optional_end=True, )
 # document body
 
-elements['br'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['br'] = Element(empty=True, )
 # forced line break
 
 elements['button'] = Element()
@@ -57,7 +54,7 @@ elements['caption'] = Element()
 # table caption
 
 elements['center'] = Element(deprecated=True, )
-# shorthand for DIV align=center, Loose DTD
+# shorthand for DIV align=center
 
 elements['cite'] = Element()
 # citation
@@ -65,13 +62,13 @@ elements['cite'] = Element()
 elements['code'] = Element()
 # computer code fragment
 
-elements['col'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['col'] = Element(empty=True, )
 # table column
 
-elements['colgroup'] = Element(end=Element.OPTIONAL, )
+elements['colgroup'] = Element(optional_end=True, )
 # table column group
 
-elements['dd'] = Element(end=Element.OPTIONAL, )
+elements['dd'] = Element(optional_end=True, )
 # definition description
 
 elements['del'] = Element()
@@ -81,7 +78,7 @@ elements['dfn'] = Element()
 # instance definition
 
 elements['dir'] = Element(deprecated=True, )
-# directory list, Loose DTD
+# directory list
 
 elements['div'] = Element()
 # generic language/style container
@@ -89,7 +86,7 @@ elements['div'] = Element()
 elements['dl'] = Element()
 # definition list
 
-elements['dt'] = Element(end=Element.OPTIONAL, )
+elements['dt'] = Element(optional_end=True, )
 # definition term
 
 elements['em'] = Element()
@@ -99,12 +96,12 @@ elements['fieldset'] = Element()
 # form control group
 
 elements['font'] = Element(deprecated=True, )
-# local change to font, Loose DTD
+# local change to font
 
 elements['form'] = Element()
 # interactive form
 
-elements['frame'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['frame'] = Element(empty=True, )
 # subwindow, Frameset DTD, 
 
 elements['frameset'] = Element()
@@ -128,32 +125,32 @@ elements['h5'] = Element()
 elements['h6'] = Element()
 # heading
 
-elements['head'] = Element(start=Element.OPTIONAL, end=Element.OPTIONAL, )
+elements['head'] = Element(optional_start=True, optional_end=True, )
 # document head
 
-elements['hr'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['hr'] = Element(empty=True, )
 # horizontal rule
 
-elements['html'] = Element(start=Element.OPTIONAL, end=Element.OPTIONAL, )
+elements['html'] = Element(optional_start=True, optional_end=True, )
 # document root element
 
 elements['i'] = Element()
 # italic text style
 
 elements['iframe'] = Element()
-# inline subwindow, Loose DTD
+# inline subwindow
 
-elements['img'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['img'] = Element(empty=True, )
 # Embedded image
 
-elements['input'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['input'] = Element(empty=True, )
 # form control
 
 elements['ins'] = Element()
 # inserted text
 
-elements['isindex'] = Element(end=Element.FORBIDDEN, empty=True, deprecated=True, )
-# single line prompt, Loose DTD
+elements['isindex'] = Element(empty=True, deprecated=True, )
+# single line prompt
 
 elements['kbd'] = Element()
 # text to be entered by the user
@@ -164,19 +161,19 @@ elements['label'] = Element()
 elements['legend'] = Element()
 # fieldset legend
 
-elements['li'] = Element(end=Element.OPTIONAL, )
+elements['li'] = Element(optional_end=True, )
 # list item
 
-elements['link'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['link'] = Element(empty=True, )
 # a media-independent link
 
 elements['map'] = Element()
 # client-side image map
 
 elements['menu'] = Element(deprecated=True, )
-# menu list, Loose DTD
+# menu list
 
-elements['meta'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['meta'] = Element(empty=True, )
 # generic metainformation
 
 elements['noframes'] = Element()
@@ -194,13 +191,13 @@ elements['ol'] = Element()
 elements['optgroup'] = Element()
 # option group
 
-elements['option'] = Element(end=Element.OPTIONAL, )
+elements['option'] = Element(optional_end=True, )
 # selectable choice
 
-elements['p'] = Element(end=Element.OPTIONAL, )
+elements['p'] = Element(optional_end=True, )
 # paragraph
 
-elements['param'] = Element(end=Element.FORBIDDEN, empty=True, )
+elements['param'] = Element(empty=True, )
 # named property value
 
 elements['pre'] = Element()
@@ -210,7 +207,7 @@ elements['q'] = Element()
 # short inline quotation
 
 elements['s'] = Element(deprecated=True, )
-# strike-through text style, Loose DTD
+# strike-through text style
 
 elements['samp'] = Element()
 # sample program output, scripts, etc.
@@ -228,7 +225,7 @@ elements['span'] = Element()
 # generic language/style container
 
 elements['strike'] = Element(deprecated=True, )
-# strike-through text, Loose DTD
+# strike-through text
 
 elements['strong'] = Element()
 # strong emphasis
@@ -245,39 +242,38 @@ elements['sup'] = Element()
 elements['table'] = Element()
 # 
 
-elements['tbody'] = Element(start=Element.OPTIONAL, end=Element.OPTIONAL, )
+elements['tbody'] = Element(optional_start=True, optional_end=True, )
 # table body
 
-elements['td'] = Element(end=Element.OPTIONAL, )
+elements['td'] = Element(optional_end=True, )
 # table data cell
 
 elements['textarea'] = Element()
 # multi-line text field
 
-elements['tfoot'] = Element(end=Element.OPTIONAL, )
+elements['tfoot'] = Element(optional_end=True, )
 # table footer
 
-elements['th'] = Element(end=Element.OPTIONAL, )
+elements['th'] = Element(optional_end=True, )
 # table header cell
 
-elements['thead'] = Element(end=Element.OPTIONAL, )
+elements['thead'] = Element(optional_end=True, )
 # table header
 
 elements['title'] = Element()
 # document title
 
-elements['tr'] = Element(end=Element.OPTIONAL, )
+elements['tr'] = Element(optional_end=True, )
 # table row
 
 elements['tt'] = Element()
 # teletype or monospaced text style
 
 elements['u'] = Element(deprecated=True, )
-# underlined text style, Loose DTD
+# underlined text style
 
 elements['ul'] = Element()
 # unordered list
 
 elements['var'] = Element()
 # instance of a variable or program argument
-

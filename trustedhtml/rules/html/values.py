@@ -3,29 +3,6 @@
 from trustedhtml.classes import Style, List, Char, String, RegExp, Uri, Or
 from trustedhtml.rules.css import index
 
-string = String()
-number = RegExp(regexp=r'([-+]?\d{1,7})$')
-length = RegExp(regexp=r'([-+]?\d{1,7}%?)$')
-char = Char()
-
-style = Style(rules=index)
-
-link_type = List(values=[
-    'alternate', 'stylesheet', 'start', 'next', 'prev', 
-    'contents', 'index', 'glossary', 'copyright', 'chapter', 
-    'section', 'subsection', 'appendix', 'help', 'bookmark',
-] )
-
-content_type = List(values=[
-    'text/html', 'image/jpeg', 'image/png', 'image/gif', 'audio/mpeg', 'video/mpeg',    
-    # Disabled: 'text/javascript', 'text/css', 
-] ) # Full list: http://www.iana.org/assignments/media-types/
-
-charset = List(values=[
-    'utf-8', 'windows-1251', 'koi8-r', 'koi8-r', 'cp866', 'iso-8859-1', 'utf-16',
-    # 'utf-7', # Disable (because of XSS)   
-] ) # Full list: http://www.iana.org/assignments/character-sets
-
 title_a = String(default='', )
 
 anchor = RegExp(regexp=r'^\s*(#\w+)$')
