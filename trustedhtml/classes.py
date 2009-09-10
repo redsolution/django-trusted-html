@@ -94,18 +94,16 @@ class Rule(object):
         ``path`` is the list of rules that called this validation.
         First element of this list will be first rule.
         
-        This function will call ``prepare`` and ``core()`` functions.
+        This function will call ``preprocess``, ``core`` and 
+        ``postprocess`` functions.
         They can be overwritten by subclasses.
         """
         source = value
         try:
             try:
-                if not self.allow_empty and not value:
-                    raise EmptyException(self, value)
-                value = self.prepare(value, path)
+                value = self.preprocess(value, path)
                 value = self.core(value, path)
-                if not self.allow_empty and not value:
-                    raise EmptyException(self, value)
+                value = self.postprocess(value, path)
             except TrustedException, exception:
                 if self.default is None:
                     if self.required:
@@ -143,18 +141,38 @@ class Rule(object):
         return value
 
 
-    def prepare(self, value, path):
+    def preprocess(self, value, path):
         """
         This function is called while validation before ``core``.
-        Subclasses can overwrite this one to define another prepare mechanism.
+        It checks ``value`` according to ``allow_empty`` property.  
+        Subclasses can overwrite this one to define another preprocess mechanism.
 
         ``value`` is value for validation.
 
         ``path`` is the list of rules that called this validation.
         First element of this list will be first rule.
 
-        Return value, prepared for ``core`` function.
+        Return prepared value for ``core`` function.
         """
+        if not self.allow_empty and not value:
+            raise EmptyException(self, value)
+        return value
+    
+    def postprocess(self, value, path):
+        """
+        This function is called while validation after ``core``.
+        It checks ``value`` according to ``allow_empty`` property.  
+        Subclasses can overwrite this one to define another postprocess mechanism.
+
+        ``value`` is value for validation.
+
+        ``path`` is the list of rules that called this validation.
+        First element of this list will be first rule.
+
+        Return prepared value after ``core`` function.
+        """
+        if not self.allow_empty and not value:
+            raise EmptyException(self, value)
         return value
 
 
@@ -206,9 +224,9 @@ class String(Rule):
             for value in values]
 
 
-    def prepare(self, value, path):
+    def preprocess(self, value, path):
         """Do it."""
-        value = super(String, self).prepare(value, path)
+        value = super(String, self).preprocess(value, path)
         if value is None:
             value = ''
         value = unicode(value)
@@ -334,14 +352,14 @@ class Uri(RegExp):
         self.local_schemes = self.lower_list(local_schemes)
         self.is_image = is_image
 
-    def prepare(self, value, path):
+    def preprocess(self, value, path):
         """
         Correct escaped-chars (%hh).
         We don`t replace escaped-chars, just replace "%Z" with "%25Z".
         Escaped-chars not allowed in scheme and authority paths,
         so we can trust prepared values.
         """
-        value = super(Uri, self).prepare(value, path)
+        value = super(Uri, self).preprocess(value, path)
         value = get_uri(value)
         return value
 
@@ -525,7 +543,10 @@ class Sequence(String):
             raise IncorrectException(self, value)
         path = path[:] + [self]
         values = self.sequence(values, path)
-        value = self.prepend_string + self.join_string.join(values) + self.append_string
+        if values:
+            value = self.prepend_string + self.join_string.join(values) + self.append_string
+        else:
+            value = u''
         return value
 
 
@@ -612,23 +633,27 @@ class Validator(object):
         if not self.rules:
             return []
         correct = {}
-        values = dict(values)
+        source = {}
+        for name, value in values:
+            name = name.lower()
+            source[name] = value
         for name, rule in self.rules.iteritems():
             try:
+                name = name.lower()
                 try:
-                    value = values[name]
-                except IndexError:
+                    value = source[name]
+                except KeyError:
                     raise EmptyException(self, None)
                 correct[name] = rule.validate(value, path)
             except (EmptyException, IncorrectException):
                 pass
         # Order values is source ordering. New values will be appended.
-        order = [attr for attr, value in values]
-        append = [attr for attr, value in correct.iteritems() if attr not in order]
+        order = [name.lower() for name, value in values]
+        append = [name for name, value in correct.iteritems() if name not in order]
         order.extend(append)
-        values = [(order.index(attr), attr, value) for attr, value in correct.iteritems()]
+        values = [(order.index(name), name, value) for name, value in correct.iteritems()]
         values.sort()
-        return [(item, value) for index, item, value in values]
+        return [(name, value) for index, name, value in values]
 
 
 class Style(Sequence, Validator):
@@ -648,9 +673,9 @@ class Style(Sequence, Validator):
             join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, **kwargs)
         
-    def prepare(self, value, patj):
+    def preprocess(self, value, path):
         """Do it."""
-        value = super(Style, self).prepare(value, path)
+        value = super(Style, self).preprocess(value, path)
         value = get_style(value)
         return value
 
@@ -697,7 +722,7 @@ class Element(Rule, Validator):
         ``save_content`` whether content of incorrect tag must be saved
         to parent tag. 
         """
-        if self.empty_tag:
+        if empty_tag:
             allow_empty = True
         Rule.__init__(self, allow_empty=allow_empty, **kwargs)
         Validator.__init__(self, rules=rules, **kwargs)
@@ -707,13 +732,18 @@ class Element(Rule, Validator):
         self.root_tag = root_tag
         self.save_content = save_content
         
-    def prepare(self, value, path):
+    def preprocess(self, value, path):
         """Do it."""
-        value = super(Attributes, self).prepare(value, path)
+        # Don`t call super to avoid raise EmptyException
         value = [(attribute_name, get_cdata(attribute_value))
             for attribute_name, attribute_value in value]
         return value
-        
+
+    def postprocess(self, value, path):
+        """Do it."""
+        # Don`t call super to avoid raise EmptyException
+        return value
+
     def core(self, value, path):
         """Do it."""
         try:
@@ -755,6 +785,8 @@ class Html(String):
     MARKUP_MASSAGE = BeautifulSoup.MARKUP_MASSAGE + [
         (re.compile('<!-([^-])'), lambda match: '<!--' + match.group(1))
     ]
+    
+    BEAUTIFUL_SOUP = BeautifulSoup()
 
     def __init__(self, rules, fix_number=2, prepare_number=2, **kwargs):
         """
@@ -779,13 +811,14 @@ class Html(String):
                 self.nbsp_tags.append(name)
             if getattr(rule, 'root_tag', False):
                 self.root_tags.append(name)
-                
+        if self.DEFAULT_ROOT_TAG not in self.root_tags:
+            self.root_tags.append(self.DEFAULT_ROOT_TAG)
 
     def remove_spaces(self, value):
         """Removes spaces from ``value``"""
         return self.NBSP_RE.sub(self.NBSP_CHAR, value)
 
-    def prepare(self, value):
+    def correct(self, value):
         """Prepare chars in ``value``. Replace system values."""
         def code_re_sub(match):
             try:
@@ -815,14 +848,15 @@ class Html(String):
                 try:
                     if rule is None:
                         raise IncorrectException(self, None)
-                    rule.validate(soup.contents[index].attrs, path)
+                    tag = soup.contents[index]
+                    tag.attrs = rule.validate(tag.attrs, path)
                 except TrustedException:
                     element = soup.contents[index].extract()
                     if rule is not None and getattr(rule, 'save_content', False):
                         for content in element.contents:
                             soup.insert(index, content)
                     continue
-                self.clear(soup.contents[index])
+                self.clear(soup.contents[index], path)
             elif soup.contents[index].__class__ is NavigableString:
                 value = soup.contents[index].string
                 value = self.remove_spaces(value)
@@ -843,7 +877,7 @@ class Html(String):
             if (not isinstance(soup.contents[index + 1], Tag)
                 and not isinstance(soup.contents[index], Tag)):
                 text = soup.contents[index].string + soup.contents[index + 1].string
-                text = self.prepare(text)
+                text = self.correct(text)
                 if text != soup.contents[index].string:
                     soup.contents[index].replaceWith(text)
                 soup.contents[index + 1].extract()
@@ -860,11 +894,11 @@ class Html(String):
             while index < len(soup.contents):
                 if isinstance(soup.contents[index], Tag):
                     self.collapse(soup.contents[index])
-                    if (not self.soup.isSelfClosingTag(soup.contents[index].name)
+                    if (not self.BEAUTIFUL_SOUP.isSelfClosingTag(soup.contents[index].name)
                         and soup.contents[index].name not in self.empty_tags):
                         text = soup.contents[index].renderContents(encoding=None)
                         # encoding=None: Fix bug in BeautifulSoup (don`t work with unicode)
-                        text = self.prepare(text)
+                        text = self.correct(text)
                         if not text or (text == ' ') or (text == self.NBSP_CHAR 
                             and soup.contents[index].name not in self.nbsp_tags):
                             changed = True
@@ -884,7 +918,7 @@ class Html(String):
         while index < len(soup.contents):
             if not isinstance(soup.contents[index], Tag):
                 text = soup.contents[index].string
-                text = self.prepare(text)
+                text = self.correct(text)
                 if not text or (text == ' ') or (text == self.NBSP_CHAR):
                     soup.contents[index].extract()
                     continue
@@ -935,8 +969,8 @@ class Html(String):
         soup = self.collapse(soup)
         soup = self.collapse_root(soup)
         soup = self.wrap(soup)
-        plain = self.get_plain_text(soup)
-        return (unicode(soup), unicode(plain))
+#        plain = self.get_plain_text(soup)
+        return unicode(soup)
 
     def core(self, value, path):
         """Do it."""
@@ -945,15 +979,15 @@ class Html(String):
         for iteration in xrange(self.fix_number + 1):
             for preparing in xrange(self.prepare_number + 1):
                 source = value
-                value = self.prepare(value)
+                value = self.correct(value)
                 if source == value:
                     break
             else:
                 raise InvalidException(self, 'Too much attempts to prepare value')
             source = value
-            value, plain = self.fix(value, path)
+            value = self.fix(value, path)
             if source == value:
                 break
         else:
             raise InvalidException(self, 'Too much attempts to fix value')
-        return (value, plain)
+        return value

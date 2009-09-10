@@ -98,13 +98,13 @@ attributes['address'] = {
 }
 
 attributes['applet'] = {
-    'align~i': values['align~i'],
+    'align': values['align~i'],
     'alt': values['alt'],
-    'archive~a': values['archive~a'],
+    'archive': values['archive~a'],
     'class': values['class'],
     'code': values['code'],
     'codebase': values['codebase'],
-    'height~r': values['height~r'],
+    'height': values['height~r'],
     'hspace': values['hspace'],
     'id': values['id'],
     'name': values['name'],
@@ -112,12 +112,12 @@ attributes['applet'] = {
     'style': values['style'],
     'title': values['title'],
     'vspace': values['vspace'],
-    'width~r': values['width~r'],
+    'width': values['width~r'],
 }
 
 attributes['area'] = {
     'accesskey': values['accesskey'],
-    'alt~r': values['alt~r'],
+    'alt': values['alt~r'],
     'class': values['class'],
     'coords': values['coords'],
     'dir': values['dir'],
@@ -172,12 +172,12 @@ attributes['basefont'] = {
     'color': values['color'],
     'face': values['face'],
     'id': values['id'],
-    'size~b': values['size~b'],
+    'size': values['size~b'],
 }
 
 attributes['bdo'] = {
     'class': values['class'],
-    'dir~r': values['dir~r'],
+    'dir': values['dir~r'],
     'id': values['id'],
     'lang': values['lang'],
     'style': values['style'],
@@ -286,7 +286,7 @@ attributes['button'] = {
 }
 
 attributes['caption'] = {
-    'align~c': values['align~c'],
+    'align': values['align~c'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -384,7 +384,7 @@ attributes['col'] = {
     'style': values['style'],
     'title': values['title'],
     'valign': values['valign'],
-    'width~c': values['width~c'],
+    'width': values['width~c'],
 }
 
 attributes['colgroup'] = {
@@ -409,7 +409,7 @@ attributes['colgroup'] = {
     'style': values['style'],
     'title': values['title'],
     'valign': values['valign'],
-    'width~c': values['width~c'],
+    'width': values['width~c'],
 }
 
 attributes['dd'] = {
@@ -492,7 +492,7 @@ attributes['dir'] = {
 }
 
 attributes['div'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -595,7 +595,7 @@ attributes['font'] = {
     'face': values['face'],
     'id': values['id'],
     'lang': values['lang'],
-    'size~f': values['size~f'],
+    'size': values['size~f'],
     'style': values['style'],
     'title': values['title'],
 }
@@ -655,7 +655,7 @@ attributes['frameset'] = {
 }
 
 attributes['h1'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -675,7 +675,7 @@ attributes['h1'] = {
 }
 
 attributes['h2'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -695,7 +695,7 @@ attributes['h2'] = {
 }
 
 attributes['h3'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -715,7 +715,7 @@ attributes['h3'] = {
 }
 
 attributes['h4'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -735,7 +735,7 @@ attributes['h4'] = {
 }
 
 attributes['h5'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -755,7 +755,7 @@ attributes['h5'] = {
 }
 
 attributes['h6'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -781,7 +781,7 @@ attributes['head'] = {
 }
 
 attributes['hr'] = {
-    'align~h': values['align~h'],
+    'align': values['align~h'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -797,7 +797,7 @@ attributes['hr'] = {
     'onmouseout': values['onmouseout'],
     'onmouseover': values['onmouseover'],
     'onmouseup': values['onmouseup'],
-    'size~h': values['size~h'],
+    'size': values['size~h'],
     'style': values['style'],
     'title': values['title'],
     'width': values['width'],
@@ -829,7 +829,7 @@ attributes['i'] = {
 }
 
 attributes['iframe'] = {
-    'align~i': values['align~i'],
+    'align': values['align~i'],
     'class': values['class'],
     'frameborder': values['frameborder'],
     'height': values['height'],
@@ -846,8 +846,8 @@ attributes['iframe'] = {
 }
 
 attributes['img'] = {
-    'align~i': values['align~i'],
-    'alt~r': values['alt~r'],
+    'align': values['align~i'],
+    'alt': values['alt~r'],
     'border': values['border'],
     'class': values['class'],
     'dir': values['dir'],
@@ -868,7 +868,7 @@ attributes['img'] = {
     'onmouseout': values['onmouseout'],
     'onmouseover': values['onmouseover'],
     'onmouseup': values['onmouseup'],
-    'src~r': values['src~r'],
+    'src': values['src~r'],
     'style': values['style'],
     'title': values['title'],
     'usemap': values['usemap'],
@@ -879,7 +879,7 @@ attributes['img'] = {
 attributes['input'] = {
     'accept': values['accept'],
     'accesskey': values['accesskey'],
-    'align~i': values['align~i'],
+    'align': values['align~i'],
     'alt': values['alt'],
     'checked': values['checked'],
     'class': values['class'],
@@ -906,11 +906,11 @@ attributes['input'] = {
     'onselect': values['onselect'],
     'readonly': values['readonly'],
     'size': values['size'],
-    'src~i': values['src~i'],
+    'src': values['src~i'],
     'style': values['style'],
     'tabindex': values['tabindex'],
     'title': values['title'],
-    'type~i': values['type~i'],
+    'type': values['type~i'],
     'usemap': values['usemap'],
     'value': values['value'],
 }
@@ -990,7 +990,7 @@ attributes['label'] = {
 
 attributes['legend'] = {
     'accesskey': values['accesskey'],
-    'align~l': values['align~l'],
+    'align': values['align~l'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -1026,8 +1026,8 @@ attributes['li'] = {
     'onmouseup': values['onmouseup'],
     'style': values['style'],
     'title': values['title'],
-    'type~l': values['type~l'],
-    'value~l': values['value~l'],
+    'type': values['type~l'],
+    'value': values['value~l'],
 }
 
 attributes['link'] = {
@@ -1062,7 +1062,7 @@ attributes['map'] = {
     'dir': values['dir'],
     'id': values['id'],
     'lang': values['lang'],
-    'name~r': values['name~r'],
+    'name': values['name~r'],
     'onclick': values['onclick'],
     'ondblclick': values['ondblclick'],
     'onkeydown': values['onkeydown'],
@@ -1145,7 +1145,7 @@ attributes['noscript'] = {
 }
 
 attributes['object'] = {
-    'align~i': values['align~i'],
+    'align': values['align~i'],
     'archive': values['archive'],
     'border': values['border'],
     'class': values['class'],
@@ -1199,7 +1199,7 @@ attributes['ol'] = {
     'start': values['start'],
     'style': values['style'],
     'title': values['title'],
-    'type~o': values['type~o'],
+    'type': values['type~o'],
 }
 
 attributes['optgroup'] = {
@@ -1207,7 +1207,7 @@ attributes['optgroup'] = {
     'dir': values['dir'],
     'disabled': values['disabled'],
     'id': values['id'],
-    'label~r': values['label~r'],
+    'label': values['label~r'],
     'lang': values['lang'],
     'onclick': values['onclick'],
     'ondblclick': values['ondblclick'],
@@ -1247,7 +1247,7 @@ attributes['option'] = {
 }
 
 attributes['p'] = {
-    'align~d': values['align~d'],
+    'align': values['align~d'],
     'class': values['class'],
     'dir': values['dir'],
     'id': values['id'],
@@ -1268,7 +1268,7 @@ attributes['p'] = {
 
 attributes['param'] = {
     'id': values['id'],
-    'name~r': values['name~r'],
+    'name': values['name~r'],
     'type': values['type'],
     'value': values['value'],
     'valuetype': values['valuetype'],
@@ -1291,7 +1291,7 @@ attributes['pre'] = {
     'onmouseup': values['onmouseup'],
     'style': values['style'],
     'title': values['title'],
-    'width~p': values['width~p'],
+    'width': values['width~p'],
 }
 
 attributes['q'] = {
@@ -1357,7 +1357,7 @@ attributes['script'] = {
     'defer': values['defer'],
     'language': values['language'],
     'src': values['src'],
-    'type~r': values['type~r'],
+    'type': values['type~r'],
 }
 
 attributes['select'] = {
@@ -1468,7 +1468,7 @@ attributes['style'] = {
     'lang': values['lang'],
     'media': values['media'],
     'title': values['title'],
-    'type~r': values['type~r'],
+    'type': values['type~r'],
 }
 
 attributes['sub'] = {
@@ -1510,7 +1510,7 @@ attributes['sup'] = {
 }
 
 attributes['table'] = {
-    'align~t': values['align~t'],
+    'align': values['align~t'],
     'bgcolor': values['bgcolor'],
     'border': values['border'],
     'cellpadding': values['cellpadding'],
@@ -1787,7 +1787,7 @@ attributes['ul'] = {
     'onmouseup': values['onmouseup'],
     'style': values['style'],
     'title': values['title'],
-    'type~u': values['type~u'],
+    'type': values['type~u'],
 }
 
 attributes['var'] = {

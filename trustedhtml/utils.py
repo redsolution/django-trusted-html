@@ -1,5 +1,7 @@
 """Utils used by classes"""
 
+import re
+
 SGML_CHARACTER_ENTITIES={
     'nbsp': 160,
     'iexcl': 161,

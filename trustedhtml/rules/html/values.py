@@ -13,6 +13,15 @@ In such case we will assign same values to the same attributes.
 We do it to parse descriptions and generate ``map.py``.
 """
 
+from trustedhtml.classes import RegExp, Sequence
+
+from trustedhtml.rules.html.types import name, name_required, idrefs, idrefs_comma, number,\
+    number_required, positive_number, text, text_required, uri, uri_required,\
+    uri_image, uri_image_required, uris, color, pixels, length, multi_length,\
+    multi_lengths, length_required, coords, content_type, content_types,\
+    content_type_required, language_code, charset, charsets, character,\
+    datetime, link_types, media_descs, style_sheet, frame_target, script 
+
 values = {}
 
 values['abbr'] = text
@@ -189,7 +198,7 @@ values['enctype'] = content_type
 values['face'] = idrefs_comma
 # comma-separated list of font names (BASEFONT, FONT); deprecated
 
-values['for'] = idref
+values['for'] = name
 # matches field ID value (LABEL)
 
 values['frame'] = RegExp(regexp=r'(void|above|below|hsides|lhs|rhs|vsides|box|border)$')
@@ -447,10 +456,10 @@ values['size~b'] = RegExp(regexp=r'([-+]?[1-7])$', required=True)
 values['size'] = number
 # rows visible (SELECT)
 
-values['span'] = positive_int
+values['span'] = positive_number
 # COL attributes affect N columns (COL)
 
-values['span'] = positive_int
+values['span'] = positive_number
 # default number of columns in group (COLGROUP)
 
 values['src'] = uri

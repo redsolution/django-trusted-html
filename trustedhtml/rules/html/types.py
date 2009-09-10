@@ -3,18 +3,20 @@ Basic HTML data types
 http://www.w3.org/TR/REC-html40/types.html
 """
 
-from trustedhtml.classes import String, RegExp, Uri, No
+from trustedhtml.classes import String, RegExp, Uri, No, Sequence, Style
 
 from trustedhtml.rules.html.grammar import grammar
 from trustedhtml.rules import css
 
-cdata = String()
 idref = name = RegExp(regexp=r'(%(name)s)$' % grammar)
+name_required = RegExp(regexp=r'(%(name)s)$' % grammar, required=True)
+
 idrefs = RegExp(regexp=r'(%(name)s(%(w)s%(name)s)*)$' % grammar)
-idrefs_comma = RegExp(regexp=r'(%(name)s(%(w),%(w)s%(name)s)*)$' % grammar)
+idrefs_comma = RegExp(regexp=r'(%(name)s(%(w)s,%(w)s%(name)s)*)$' % grammar)
+
 number = RegExp(regexp=r'(%(number)s)$' % grammar)
 number_required = RegExp(regexp=r'(%(number)s)$' % grammar, required=True)
-positive_int = RegExp(regexp=r'(%(positive-int)s)$' % grammar)
+positive_number = RegExp(regexp=r'(%(positive-number)s)$' % grammar)
 
 text = String()
 text_required = String(required=True)
@@ -33,14 +35,14 @@ color = RegExp(regexp=r'(%(color)s)$' % grammar)
 #    RegExp(regexp=r'(#%(h)s{6})$' % grammar)
 #])
 
-pixels = RegExp(regexp=r'(%(int)s)$' % grammar)
+pixels = RegExp(regexp=r'(%(number)s)$' % grammar)
 length = RegExp(regexp=r'(%(length)s)$' % grammar)
 multi_length = RegExp(regexp=r'(%(multi-length)s)$' % grammar)
 multi_lengths = RegExp(regexp=r'(%(multi-length)s(%(w)s,%(w)s%(multi-length)s)*)$' % grammar)
 
 length_required = RegExp(regexp=r'(%(length)s)$' % grammar, required=True)
 
-coords = RegExp(regexp=r'(%(length)s(%(w)s,%(w)s%(length)s)(%(w)s,%(w)s%(length)s)+$' % grammar)
+coords = RegExp(regexp=r'(%(length)s(%(w)s,%(w)s%(length)s)(%(w)s,%(w)s%(length)s)+)$' % grammar)
 
 content_type = RegExp(regexp=r'(%(content-type)s)$' % grammar)
 content_types = RegExp(regexp=r'(%(content-type)s(%(w)s,%(w)s%(content-type)s)*)$' % grammar)
@@ -63,9 +65,7 @@ media_descs = Sequence(regexp=r'\s*,\s*', join_string=',', rule=
     RegExp(regexp=r'(%(media-desc)s)' % grammar), # Yes without $ in the end
 )
 
-style_sheet = Style(rules=css.values, 
-#    allowed_value=List(values='inherit'),
-)
+style_sheet = css.full
 
 frame_target = RegExp(regexp=r'(%(frame-target)s)$' % grammar)
 

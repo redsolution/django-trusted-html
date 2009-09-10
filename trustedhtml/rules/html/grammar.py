@@ -4,14 +4,14 @@ http://www.w3.org/TR/REC-html40/types.html
 """
 
 grammar = {}
+grammar['h'] = r'([0-9a-f])' % grammar
 grammar['w'] = r'([ \t\r\n\f]*)' % grammar
 grammar['name'] = r'([a-z][-_:.a-z0-9]*)' % grammar
-grammar['int'] = r'([0-9]+)' % grammar
-grammar['number'] = r'(%(int)s)' % grammar
-grammar['positive-int'] = r'([1-9][0-9]*)' % grammar
-grammar['percentage'] = r'(%(int)s%%)' % grammar
-grammar['length'] = r'(%(int)s|%(percentage)s)' % grammar
-grammar['multi-length'] = r'(%(int)s|%(percentage)s|%(int)s\*|\*)' % grammar
+grammar['number'] = r'([0-9]+)' % grammar
+grammar['positive-number'] = r'([1-9][0-9]*)' % grammar
+grammar['percentage'] = r'(%(number)s%%)' % grammar
+grammar['length'] = r'(%(number)s|%(percentage)s)' % grammar
+grammar['multi-length'] = r'(%(number)s|%(percentage)s|%(number)s\*|\*)' % grammar
 
 grammar['color'] = r'(#%(h)s{6}|black|green|silver|lime|gray|olive|white|yellow|maroon|navy|red|blue|purple|teal|fuchsia|aqua)' % grammar
 
@@ -31,7 +31,7 @@ grammar['charset'] = r'((?!utf-7$)([-+:.a-z0-9]+))' % grammar
 # Full list (828 charsets):
 # http://www.iana.org/assignments/character-sets
 
-grammar['datetime'] = r'([0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](Z|((+|-)[0-2][0-9]:[0-5][0-9])))' % grammar
+grammar['datetime'] = r'([0-9]{4}-[0-1][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](Z|([-+][0-2][0-9]:[0-5][0-9])))' % grammar
 
 grammar['link-types'] = r'(%(name)s(%(w)s%(name)s))' % grammar
 # Full list (but "Authors may wish to define additional link types"):
