@@ -7,13 +7,15 @@ grammar = {}
 grammar['w'] = r'([ \t\r\n\f]*)' % grammar
 grammar['name'] = r'([a-z][-_:.a-z0-9]*)' % grammar
 grammar['int'] = r'([0-9]+)' % grammar
-# [-+]?
 grammar['number'] = r'(%(int)s)' % grammar
+grammar['positive-int'] = r'([1-9][0-9]*)' % grammar
 grammar['percentage'] = r'(%(int)s%%)' % grammar
+grammar['length'] = r'(%(int)s|%(percentage)s)' % grammar
+grammar['multi-length'] = r'(%(int)s|%(percentage)s|%(int)s\*|\*)' % grammar
 
 grammar['color'] = r'(#%(h)s{6}|black|green|silver|lime|gray|olive|white|yellow|maroon|navy|red|blue|purple|teal|fuchsia|aqua)' % grammar
 
-grammar['content-type'] = r'(text/html|image/(jpeg|png|gif)|audio/mpeg|video/mpeg)' % grammar
+grammar['content-type'] = r'(text/html|image/(jpeg|png|gif)|audio/mpeg|video/mpeg|application/x-www-form-urlencoded|multipart/form-data)' % grammar
 # Must be disabled: 'text/javascript', 'text/css', 
 # Full list of types:
 # http://www.iana.org/assignments/media-types/

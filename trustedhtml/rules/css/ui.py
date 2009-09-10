@@ -6,7 +6,7 @@ http://www.w3.org/TR/1998/REC-CSS2-19980512/ui.html
 from trustedhtml.classes import List, Or, Sequence, Complex
 
 from trustedhtml.rules.css.consts import inherit
-from trustedhtml.rules.css.syndata import color, uri
+from trustedhtml.rules.css.syndata import color, uri_image
 from trustedhtml.rules.css.box import border_width_base, border_style_base
 
 cursor_base = Or(rules=[
@@ -15,7 +15,7 @@ cursor_base = Or(rules=[
         'nw-resize', 'n-resize', 'se-resize', 'sw-resize', 's-resize', 'w-resize',
         'text', 'wait', 'help'
     ]),
-    uri,
+    uri_image,
 ])
 
 cursor = Or(rules=[

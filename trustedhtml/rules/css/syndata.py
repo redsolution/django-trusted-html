@@ -94,29 +94,53 @@ color = Or(rules=[
     color_hex,
 ])
 
+uri_base = Uri()
+uri_image = Uri(is_image=True)
+uri_string1_in = RegExp(
+    regexp=r'url\(%(w)s(%(string1)s)%(w)s\)' % grammar,
+    expand=r'\g<string1>',
+)
+uri_string1_out = RegExp(
+    regexp=r'(.*)$',
+    expand='url(\"\\1\")',
+)
+uri_string2_in = RegExp(
+    regexp=r'url\(%(w)s(%(string2)s)%(w)s\)' % grammar,
+    expand=r'\g<string2>',
+)
+uri_string2_out = RegExp(
+    regexp=r'(.*)$',
+    expand='url(\'\\1\')',
+)
+uri_url_in = RegExp(
+    regexp=r'url\(%(w)s%(url)s%(w)s\)' % grammar,
+    expand=r'\g<url>',
+)
+uri_url_out = RegExp(
+    regexp=r'(.*)$',
+    expand='url(\\1)',
+)
+
 uri = Or(rules=[
     And(rules=[
-        RegExp(
-            regexp=r'url\(%(w)s(%(string1)s)%(w)s\)' % grammar,
-            expand=r'\g<string1>',
-        ),
-        Uri(),
-        RegExp(regexp=r'(.*)$', expand='url(\"\\1\")', ),
+        uri_string1_in, uri_base, uri_string1_out,
     ]),
     And(rules=[
-        RegExp(
-            regexp=r'url\(%(w)s(%(string2)s)%(w)s\)' % grammar,
-            expand=r'\g<string2>',
-        ),
-        Uri(),
-        RegExp(regexp=r'(.*)$', expand='url(\'\\1\')', ),
+        uri_string2_in, uri_base, uri_string2_out,
     ]),
     And(rules=[
-        RegExp(
-            regexp=r'url\(%(w)s%(url)s%(w)s\)' % grammar,
-            expand=r'\g<url>',
-        ),
-        Uri(),
-        RegExp(regexp=r'(.*)$', expand='url(\\1)', ),
+        uri_url_in, uri_base, uri_url_out,
+    ]),
+])
+
+uri_image = Or(rules=[
+    And(rules=[
+        uri_string1_in, uri_image, uri_string1_out,
+    ]),
+    And(rules=[
+        uri_string2_in, uri_image, uri_string2_out,
+    ]),
+    And(rules=[
+        uri_url_in, uri_image, uri_url_out,
     ]),
 ])

@@ -267,7 +267,7 @@ class RegExp(String):
         and to return result of validation.
 
         Example of validation:
-            regexp: r'([+-]?\d*),(?P<a>\d*)$'
+            regexp: r'([-+]?\d*),(?P<a>\d*)$'
             expand: r'\g<a>;\1'
             value: '-12,34'
             result: '34;-12'
@@ -301,7 +301,7 @@ class Uri(RegExp):
     def __init__(self, allow_sites=None, allow_schemes=[
             'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
             'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
-        ], local_sites=[], local_schemes=['http', ], **kwargs):
+        ], local_sites=[], local_schemes=['http', ], is_image=False, **kwargs):
         """
         ``allow_sites`` is list of allowed sites or is None to allow all sites.
 
@@ -318,6 +318,10 @@ class Uri(RegExp):
         
         ``local_schemes`` is list of schemes that can be removed.
         Only uris with such scheme will be cut.
+        
+        ``is_image`` indicate that this url must be as image.
+        This class not support such validation,
+        but this attribute can be used by signals.
         """
         super(Uri, self).__init__(
             regexp=r'^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?',
@@ -328,6 +332,7 @@ class Uri(RegExp):
         if self.local_sites is None:
             self.local_sites = []
         self.local_schemes = self.lower_list(local_schemes)
+        self.is_image = is_image
 
     def prepare(self, value, path):
         """

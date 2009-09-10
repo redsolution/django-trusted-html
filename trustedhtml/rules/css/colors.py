@@ -6,7 +6,7 @@ http://www.w3.org/TR/1998/REC-CSS2-19980512/colors.html
 from trustedhtml.classes import List, Or, Sequence, Complex
 
 from trustedhtml.rules.css.consts import inherit, transparent, none
-from trustedhtml.rules.css.syndata import length, percentage, color, uri
+from trustedhtml.rules.css.syndata import length, percentage, color, uri_image
 
 color = Or(rules=[
     color, inherit,
@@ -18,7 +18,7 @@ background_color = Or(rules=[
 
 
 background_image = Or(rules=[
-    uri, none, inherit,
+    uri_image, none, inherit,
 ])
 
 

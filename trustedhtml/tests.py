@@ -53,7 +53,7 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('  @@@-12@ '), '-12')
         
     def test_regexp_expand(self):
-        rule = RegExp(regexp=r'([+-]?\d*),(?P<a>\d*)$', expand=r'\g<a>;\1')
+        rule = RegExp(regexp=r'([-+]?\d*),(?P<a>\d*)$', expand=r'\g<a>;\1')
         self.assertEqual(rule.validate('-12,34'), '34;-12')
         self.assertRaises(IncorrectException, rule.validate, '-12,34a')
         
