@@ -1,7 +1,9 @@
 """
 """
-#import consts
+import grammar
 import types
 import values
-import tags
-import html
+import attributes
+import elements
+
+full = Html(rules=elements.elements)

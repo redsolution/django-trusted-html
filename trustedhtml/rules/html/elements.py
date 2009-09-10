@@ -3,6 +3,10 @@ Index of Elements
 http://www.w3.org/TR/REC-html40/index/elements.html
 """
 
+from trustedhtml.classes import Element
+
+from trustedhtml.rules.html.attributes import attributes
+
 elements = {}
 
 elements['a'] = Element(rules=attributes['a'])
@@ -20,16 +24,16 @@ elements['address'] = Element(rules=attributes['address'])
 elements['applet'] = Element(rules=attributes['applet'])
 # Java applet; Deprecated
 
-elements['area'] = Element(empty=True, rules=attributes['area'])
+elements['area'] = Element(empty_tag=True, rules=attributes['area'])
 # client-side image map area
 
 elements['b'] = Element(rules=attributes['b'])
 # bold text style
 
-elements['base'] = Element(empty=True, rules=attributes['base'])
+elements['base'] = Element(empty_tag=True, rules=attributes['base'])
 # document base URI
 
-elements['basefont'] = Element(empty=True, rules=attributes['basefont'])
+elements['basefont'] = Element(empty_tag=True, rules=attributes['basefont'])
 # base font size; Deprecated
 
 elements['bdo'] = Element(rules=attributes['bdo'])
@@ -44,7 +48,7 @@ elements['blockquote'] = Element(rules=attributes['blockquote'])
 elements['body'] = Element(optional_start=True, optional_end=True, rules=attributes['body'])
 # document body
 
-elements['br'] = Element(empty=True, rules=attributes['br'])
+elements['br'] = Element(empty_tag=True, rules=attributes['br'])
 # forced line break
 
 elements['button'] = Element(rules=attributes['button'])
@@ -62,7 +66,7 @@ elements['cite'] = Element(rules=attributes['cite'])
 elements['code'] = Element(rules=attributes['code'])
 # computer code fragment
 
-elements['col'] = Element(empty=True, rules=attributes['col'])
+elements['col'] = Element(empty_tag=True, rules=attributes['col'])
 # table column
 
 elements['colgroup'] = Element(optional_end=True, rules=attributes['colgroup'])
@@ -101,7 +105,7 @@ elements['font'] = Element(rules=attributes['font'])
 elements['form'] = Element(rules=attributes['form'])
 # interactive form
 
-elements['frame'] = Element(empty=True, rules=attributes['frame'])
+elements['frame'] = Element(empty_tag=True, rules=attributes['frame'])
 # subwindow
 
 elements['frameset'] = Element(rules=attributes['frameset'])
@@ -128,7 +132,7 @@ elements['h6'] = Element(rules=attributes['h6'])
 elements['head'] = Element(optional_start=True, optional_end=True, rules=attributes['head'])
 # document head
 
-elements['hr'] = Element(empty=True, rules=attributes['hr'])
+elements['hr'] = Element(empty_tag=True, rules=attributes['hr'])
 # horizontal rule
 
 elements['html'] = Element(optional_start=True, optional_end=True, rules=attributes['html'])
@@ -140,16 +144,16 @@ elements['i'] = Element(rules=attributes['i'])
 elements['iframe'] = Element(rules=attributes['iframe'])
 # inline subwindow
 
-elements['img'] = Element(empty=True, rules=attributes['img'])
+elements['img'] = Element(empty_tag=True, rules=attributes['img'])
 # Embedded image
 
-elements['input'] = Element(empty=True, rules=attributes['input'])
+elements['input'] = Element(empty_tag=True, rules=attributes['input'])
 # form control
 
 elements['ins'] = Element(rules=attributes['ins'])
 # inserted text
 
-elements['isindex'] = Element(empty=True, rules=attributes['isindex'])
+elements['isindex'] = Element(empty_tag=True, rules=attributes['isindex'])
 # single line prompt; Deprecated
 
 elements['kbd'] = Element(rules=attributes['kbd'])
@@ -164,7 +168,7 @@ elements['legend'] = Element(rules=attributes['legend'])
 elements['li'] = Element(optional_end=True, rules=attributes['li'])
 # list item
 
-elements['link'] = Element(empty=True, rules=attributes['link'])
+elements['link'] = Element(empty_tag=True, rules=attributes['link'])
 # a media-independent link
 
 elements['map'] = Element(rules=attributes['map'])
@@ -173,7 +177,7 @@ elements['map'] = Element(rules=attributes['map'])
 elements['menu'] = Element(rules=attributes['menu'])
 # menu list; Deprecated
 
-elements['meta'] = Element(empty=True, rules=attributes['meta'])
+elements['meta'] = Element(empty_tag=True, rules=attributes['meta'])
 # generic metainformation
 
 elements['noframes'] = Element(rules=attributes['noframes'])
@@ -197,7 +201,7 @@ elements['option'] = Element(optional_end=True, rules=attributes['option'])
 elements['p'] = Element(optional_end=True, rules=attributes['p'])
 # paragraph
 
-elements['param'] = Element(empty=True, rules=attributes['param'])
+elements['param'] = Element(empty_tag=True, rules=attributes['param'])
 # named property value
 
 elements['pre'] = Element(rules=attributes['pre'])
@@ -277,4 +281,3 @@ elements['ul'] = Element(rules=attributes['ul'])
 
 elements['var'] = Element(rules=attributes['var'])
 # instance of a variable or program argument
-

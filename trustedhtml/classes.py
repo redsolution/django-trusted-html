@@ -583,17 +583,12 @@ class Validator(object):
     by corresponding rules.
     """
 
-    def __init__(self, rules, equivalents={}, **kwargs):
+    def __init__(self, rules,  **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
-        
-        ``equivalents`` is dictionary in witch key is name of property
-        specified in ``rules`` and value is list of properties` names
-        (or tag attribute) that must be validated by the same rule.  
         """
         self.rules = rules
-        self.equivalents = equivalents
 
     def check(self, values, path):
         """
@@ -618,17 +613,15 @@ class Validator(object):
             return []
         correct = {}
         values = dict(values)
-        for base_name, rule in self.rules.iteritems():
-            names = [base_name] + self.equivalents.get(base_name, [])
-            for name in names:
+        for name, rule in self.rules.iteritems():
+            try:
                 try:
-                    try:
-                        value = values[name]
-                    except IndexError:
-                        raise EmptyException(self, None)
-                    correct[name] = rule.validate(value, path)
-                except (EmptyException, IncorrectException):
-                    pass
+                    value = values[name]
+                except IndexError:
+                    raise EmptyException(self, None)
+                correct[name] = rule.validate(value, path)
+            except (EmptyException, IncorrectException):
+                pass
         # Order values is source ordering. New values will be appended.
         order = [attr for attr, value in values]
         append = [attr for attr, value in correct.iteritems() if attr not in order]
@@ -646,18 +639,14 @@ class Style(Sequence, Validator):
     Validation will return joined only valid pairs.
     """
 
-    def __init__(self, rules, equivalents={}, **kwargs):
+    def __init__(self, rules, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
-        
-        ``equivalents`` is dictionary in witch key is name of property
-        specified in ``rules`` and value is list of properties` names
-        (or tag attribute) that must be validated by the same rule.  
         """
         Sequence.__init__(self, rule=None, regexp=r'\s*;\s*',
             join_string='; ', append_string=';', **kwargs)
-        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        Validator.__init__(self, rules=rules, **kwargs)
         
     def prepare(self, value, patj):
         """Do it."""
@@ -682,7 +671,7 @@ class Style(Sequence, Validator):
             for property_name, property_value in properties]
 
 
-class Attributes(Rule, Validator):
+class Element(Rule, Validator):
     """
     Rule suppose that value is correct if ``value`` is LIST OF PAIRS
     (attribute_name, attribute_value) and each attribute_name
@@ -690,20 +679,33 @@ class Attributes(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
 
-    def __init__(self, rules={}, equivalents={}, allow_empty=False, 
-        default=None, root_tag=False, get_content=False, **kwargs):
+    def __init__(self, rules={}, allow_empty=False,
+        optional_start=False, optional_end=False, empty_tag=False, 
+        root_tag=False, save_content=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
         
-        ``equivalents`` is dictionary in witch key is name of property
-        specified in ``rules`` and value is list of properties` names
-        (or tag attribute) that must be validated by the same rule.  
+        ``optional_start`` start of this element is optional.
+
+        ``optional_end`` end of this element is optional.
+        
+        ``empty_tag`` tag must be empty.
+        
+        ``root_tag`` tag can be in the root of document.
+        
+        ``save_content`` whether content of incorrect tag must be saved
+        to parent tag. 
         """
-        Rule.__init__(self, allow_empty=allow_empty, default=default, **kwargs)
-        Validator.__init__(self, rules=rules, equivalents=equivalents, **kwargs)
+        if self.empty_tag:
+            allow_empty = True
+        Rule.__init__(self, allow_empty=allow_empty, **kwargs)
+        Validator.__init__(self, rules=rules, **kwargs)
+        self.optional_start = optional_start
+        self.optional_end = optional_end
+        self.empty_tag = empty_tag
         self.root_tag = root_tag
-        self.get_content = get_content
+        self.save_content = save_content
         
     def prepare(self, value, path):
         """Do it."""
@@ -754,15 +756,10 @@ class Html(String):
         (re.compile('<!-([^-])'), lambda match: '<!--' + match.group(1))
     ]
 
-    def __init__(self, rules, equivalents={},
-        fix_number=2, prepare_number=2, **kwargs):
+    def __init__(self, rules, fix_number=2, prepare_number=2, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
-        
-        ``equivalents`` is dictionary in witch key is name of property
-        specified in ``rules`` and value is list of properties` names
-        (or tag attribute) that must be validated by the same rule.  
         
         ``fix_number`` specified number of maximum attempts to fix value.
 
@@ -770,7 +767,6 @@ class Html(String):
         """
         super(Html, self).__init__(**kwargs)
         self.rules = rules
-        self.equivalents = equivalents
         self.fix_number = fix_number
         self.prepare_number = prepare_number
         self.empty_tags = []
@@ -779,14 +775,10 @@ class Html(String):
         for name, rule in self.rules.iteritems():
             if rule.allow_empty or rule.default is not None:
                 self.empty_tags.append(name)
-                self.empty_tags.extend(self.equivalents.get(name, []))
             if rule.default is not None:
                 self.nbsp_tags.append(name)
-                self.nbsp_tags.extend(self.equivalents.get(name, []))
             if getattr(rule, 'root_tag', False):
                 self.root_tags.append(name)
-                self.root_tags.extend(self.equivalents.get(name, []))
-                
                 
 
     def remove_spaces(self, value):
@@ -826,7 +818,7 @@ class Html(String):
                     rule.validate(soup.contents[index].attrs, path)
                 except TrustedException:
                     element = soup.contents[index].extract()
-                    if rule is not None and getattr(rule, 'get_content', False):
+                    if rule is not None and getattr(rule, 'save_content', False):
                         for content in element.contents:
                             soup.insert(index, content)
                     continue

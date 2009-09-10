@@ -33,37 +33,37 @@ SGML_CHARACTER_ENTITIES={
     'frac12': 189,
     'frac34': 190,
     'iquest': 191,
-    'agrave': 192,
-    'aacute': 193,
-    'acirc': 194,
-    'atilde': 195,
-    'auml': 196,
-    'aring': 197,
-    'aelig': 198,
-    'ccedil': 199,
-    'egrave': 200,
-    'eacute': 201,
-    'ecirc': 202,
-    'euml': 203,
-    'igrave': 204,
-    'iacute': 205,
-    'icirc': 206,
-    'iuml': 207,
-    'eth': 208,
-    'ntilde': 209,
-    'ograve': 210,
-    'oacute': 211,
-    'ocirc': 212,
-    'otilde': 213,
-    'ouml': 214,
+    'Agrave': 192,
+    'Aacute': 193,
+    'Acirc': 194,
+    'Atilde': 195,
+    'Auml': 196,
+    'Aring': 197,
+    'AElig': 198,
+    'Ccedil': 199,
+    'Egrave': 200,
+    'Eacute': 201,
+    'Ecirc': 202,
+    'Euml': 203,
+    'Igrave': 204,
+    'Iacute': 205,
+    'Icirc': 206,
+    'Iuml': 207,
+    'ETH': 208,
+    'Ntilde': 209,
+    'Ograve': 210,
+    'Oacute': 211,
+    'Ocirc': 212,
+    'Otilde': 213,
+    'Ouml': 214,
     'times': 215,
-    'oslash': 216,
-    'ugrave': 217,
-    'uacute': 218,
-    'ucirc': 219,
-    'uuml': 220,
-    'yacute': 221,
-    'thorn': 222,
+    'Oslash': 216,
+    'Ugrave': 217,
+    'Uacute': 218,
+    'Ucirc': 219,
+    'Uuml': 220,
+    'Yacute': 221,
+    'THORN': 222,
     'szlig': 223,
     'agrave': 224,
     'aacute': 225,
@@ -97,23 +97,23 @@ SGML_CHARACTER_ENTITIES={
     'yacute': 253,
     'thorn': 254,
     'yuml': 255,
-    # latin extended-b
+    # Latin Extended-B
     'fnof': 402,
-    # c0 controls and basic latin
+    # C0 Controls and Basic Latin
     'quot': 34,
     'amp': 38,
     'lt': 60,
     'gt': 62,
-    # latin extended-a
-    'oelig': 338,
+    # Latin Extended-A
+    'OElig': 338,
     'oelig': 339,
-    'scaron': 352,
+    'Scaron': 352,
     'scaron': 353,
-    'yuml': 376,
-    # spacing modifier letters
+    'Yuml': 376,
+    # Spacing Modifier Letters
     'circ': 710,
     'tilde': 732,
-    # general punctuation
+    # General Punctuation
     'ensp': 8194,
     'emsp': 8195,
     'thinsp': 8201,
@@ -130,7 +130,7 @@ SGML_CHARACTER_ENTITIES={
     'rdquo': 8221,
     'bdquo': 8222,
     'dagger': 8224,
-    'dagger': 8225,
+    'Dagger': 8225,
     'permil': 8240,
     'lsaquo': 8249,
     'rsaquo': 8250,
@@ -152,32 +152,32 @@ SGML_CHARACTER_ENTITIES={
     'thetasym': 977,
     'upsih': 978,
     'piv': 982,
-    # general punctuation
+    # General Punctuation
     'bull': 8226,
     'hellip': 8230,
     'prime': 8242,
-    'prime': 8243,
+    'Prime': 8243,
     'oline': 8254,
     'frasl': 8260,
-    # letterlike symbols
+    # Letterlike Symbols
     'weierp': 8472,
     'image': 8465,
     'real': 8476,
     'trade': 8482,
     'alefsym': 8501,
-    # arrows
+    # Arrows
     'larr': 8592,
     'uarr': 8593,
     'rarr': 8594,
     'darr': 8595,
     'harr': 8596,
     'crarr': 8629,
-    'larr': 8656,
-    'uarr': 8657,
-    'rarr': 8658,
-    'darr': 8659,
-    'harr': 8660,
-    # mathematical operators
+    'lArr': 8656,
+    'uArr': 8657,
+    'rArr': 8658,
+    'dArr': 8659,
+    'hArr': 8660,
+    # Mathematical Operators
     'forall': 8704,
     'part': 8706,
     'exist': 8707,
@@ -216,16 +216,16 @@ SGML_CHARACTER_ENTITIES={
     'otimes': 8855,
     'perp': 8869,
     'sdot': 8901,
-    # miscellaneous technical
+    # Miscellaneous Technical
     'lceil': 8968,
     'rceil': 8969,
     'lfloor': 8970,
     'rfloor': 8971,
     'lang': 9001,
     'rang': 9002,
-    # geometric shapes
+    # Geometric Shapes
     'loz': 9674,
-    # miscellaneous symbols
+    # Miscellaneous Symbols
     'spades': 9824,
     'clubs': 9827,
     'hearts': 9829,
@@ -282,7 +282,7 @@ def get_uri(value):
 STYLE_COMMENT_RE = re.compile(r'\/\*[^*]*\*+([^/][^*]*\*+)*\/')
 STYLE_COMMENT_REPL = ''
 
-STYLE_CHARACTER_RE = re.compile(r'(?P<string>\\(?P<hex>[0-9a-f]s{1,6})[ \t\r\n\f]?)')
+STYLE_CHARACTER_RE = re.compile(r'(?P<string>\\(?P<hex>[0-9a-fA-F]s{1,6})[ \t\r\n\f]?)')
 def STYLE_CHARACTER_REPL(match):
     """Replace character entity with character"""
     dict = match.groupdict()

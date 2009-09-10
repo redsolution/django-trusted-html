@@ -1,5 +1,5 @@
 """
-Index of Attributes
+Values for Index of Attributes
 http://www.w3.org/TR/REC-html40/index/attributes.html
 
 Attributes for different elements can have different validation mechanism.

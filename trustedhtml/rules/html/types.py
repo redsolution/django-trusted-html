@@ -3,10 +3,10 @@ Basic HTML data types
 http://www.w3.org/TR/REC-html40/types.html
 """
 
+from trustedhtml.classes import String, RegExp, Uri, No
+
 from trustedhtml.rules.html.grammar import grammar
 from trustedhtml.rules import css
-
-from trustedhtml.classes import String, RegExp, Uri, No
 
 cdata = String()
 idref = name = RegExp(regexp=r'(%(name)s)$' % grammar)
@@ -63,7 +63,7 @@ media_descs = Sequence(regexp=r'\s*,\s*', join_string=',', rule=
     RegExp(regexp=r'(%(media-desc)s)' % grammar), # Yes without $ in the end
 )
 
-style_sheet = Style(rules=css.index, 
+style_sheet = Style(rules=css.values, 
 #    allowed_value=List(values='inherit'),
 )
 
