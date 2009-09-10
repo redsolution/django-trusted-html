@@ -5,275 +5,276 @@ http://www.w3.org/TR/REC-html40/index/elements.html
 
 elements = {}
 
-elements['a'] = Element()
+elements['a'] = Element(rules=attributes['a'])
 # anchor
 
-elements['abbr'] = Element()
+elements['abbr'] = Element(rules=attributes['abbr'])
 # abbreviated form (e.g., WWW, HTTP, etc.)
 
-elements['acronym'] = Element()
+elements['acronym'] = Element(rules=attributes['acronym'])
 # 
 
-elements['address'] = Element()
+elements['address'] = Element(rules=attributes['address'])
 # information on author
 
-elements['applet'] = Element(deprecated=True, )
-# Java applet
+elements['applet'] = Element(rules=attributes['applet'])
+# Java applet; Deprecated
 
-elements['area'] = Element(empty=True, )
+elements['area'] = Element(empty=True, rules=attributes['area'])
 # client-side image map area
 
-elements['b'] = Element()
+elements['b'] = Element(rules=attributes['b'])
 # bold text style
 
-elements['base'] = Element(empty=True, )
+elements['base'] = Element(empty=True, rules=attributes['base'])
 # document base URI
 
-elements['basefont'] = Element(empty=True, deprecated=True, )
-# base font size
+elements['basefont'] = Element(empty=True, rules=attributes['basefont'])
+# base font size; Deprecated
 
-elements['bdo'] = Element()
+elements['bdo'] = Element(rules=attributes['bdo'])
 # I18N BiDi over-ride
 
-elements['big'] = Element()
+elements['big'] = Element(rules=attributes['big'])
 # large text style
 
-elements['blockquote'] = Element()
+elements['blockquote'] = Element(rules=attributes['blockquote'])
 # long quotation
 
-elements['body'] = Element(optional_start=True, optional_end=True, )
+elements['body'] = Element(optional_start=True, optional_end=True, rules=attributes['body'])
 # document body
 
-elements['br'] = Element(empty=True, )
+elements['br'] = Element(empty=True, rules=attributes['br'])
 # forced line break
 
-elements['button'] = Element()
+elements['button'] = Element(rules=attributes['button'])
 # push button
 
-elements['caption'] = Element()
+elements['caption'] = Element(rules=attributes['caption'])
 # table caption
 
-elements['center'] = Element(deprecated=True, )
-# shorthand for DIV align=center
+elements['center'] = Element(rules=attributes['center'])
+# shorthand for DIV align=center; Deprecated
 
-elements['cite'] = Element()
+elements['cite'] = Element(rules=attributes['cite'])
 # citation
 
-elements['code'] = Element()
+elements['code'] = Element(rules=attributes['code'])
 # computer code fragment
 
-elements['col'] = Element(empty=True, )
+elements['col'] = Element(empty=True, rules=attributes['col'])
 # table column
 
-elements['colgroup'] = Element(optional_end=True, )
+elements['colgroup'] = Element(optional_end=True, rules=attributes['colgroup'])
 # table column group
 
-elements['dd'] = Element(optional_end=True, )
+elements['dd'] = Element(optional_end=True, rules=attributes['dd'])
 # definition description
 
-elements['del'] = Element()
+elements['del'] = Element(rules=attributes['del'])
 # deleted text
 
-elements['dfn'] = Element()
+elements['dfn'] = Element(rules=attributes['dfn'])
 # instance definition
 
-elements['dir'] = Element(deprecated=True, )
-# directory list
+elements['dir'] = Element(rules=attributes['dir'])
+# directory list; Deprecated
 
-elements['div'] = Element()
+elements['div'] = Element(rules=attributes['div'])
 # generic language/style container
 
-elements['dl'] = Element()
+elements['dl'] = Element(rules=attributes['dl'])
 # definition list
 
-elements['dt'] = Element(optional_end=True, )
+elements['dt'] = Element(optional_end=True, rules=attributes['dt'])
 # definition term
 
-elements['em'] = Element()
+elements['em'] = Element(rules=attributes['em'])
 # emphasis
 
-elements['fieldset'] = Element()
+elements['fieldset'] = Element(rules=attributes['fieldset'])
 # form control group
 
-elements['font'] = Element(deprecated=True, )
-# local change to font
+elements['font'] = Element(rules=attributes['font'])
+# local change to font; Deprecated
 
-elements['form'] = Element()
+elements['form'] = Element(rules=attributes['form'])
 # interactive form
 
-elements['frame'] = Element(empty=True, )
-# subwindow, Frameset DTD, 
+elements['frame'] = Element(empty=True, rules=attributes['frame'])
+# subwindow
 
-elements['frameset'] = Element()
-# window subdivision, Frameset DTD, 
+elements['frameset'] = Element(rules=attributes['frameset'])
+# window subdivision
 
-elements['h1'] = Element()
+elements['h1'] = Element(rules=attributes['h1'])
 # heading
 
-elements['h2'] = Element()
+elements['h2'] = Element(rules=attributes['h2'])
 # heading
 
-elements['h3'] = Element()
+elements['h3'] = Element(rules=attributes['h3'])
 # heading
 
-elements['h4'] = Element()
+elements['h4'] = Element(rules=attributes['h4'])
 # heading
 
-elements['h5'] = Element()
+elements['h5'] = Element(rules=attributes['h5'])
 # heading
 
-elements['h6'] = Element()
+elements['h6'] = Element(rules=attributes['h6'])
 # heading
 
-elements['head'] = Element(optional_start=True, optional_end=True, )
+elements['head'] = Element(optional_start=True, optional_end=True, rules=attributes['head'])
 # document head
 
-elements['hr'] = Element(empty=True, )
+elements['hr'] = Element(empty=True, rules=attributes['hr'])
 # horizontal rule
 
-elements['html'] = Element(optional_start=True, optional_end=True, )
+elements['html'] = Element(optional_start=True, optional_end=True, rules=attributes['html'])
 # document root element
 
-elements['i'] = Element()
+elements['i'] = Element(rules=attributes['i'])
 # italic text style
 
-elements['iframe'] = Element()
+elements['iframe'] = Element(rules=attributes['iframe'])
 # inline subwindow
 
-elements['img'] = Element(empty=True, )
+elements['img'] = Element(empty=True, rules=attributes['img'])
 # Embedded image
 
-elements['input'] = Element(empty=True, )
+elements['input'] = Element(empty=True, rules=attributes['input'])
 # form control
 
-elements['ins'] = Element()
+elements['ins'] = Element(rules=attributes['ins'])
 # inserted text
 
-elements['isindex'] = Element(empty=True, deprecated=True, )
-# single line prompt
+elements['isindex'] = Element(empty=True, rules=attributes['isindex'])
+# single line prompt; Deprecated
 
-elements['kbd'] = Element()
+elements['kbd'] = Element(rules=attributes['kbd'])
 # text to be entered by the user
 
-elements['label'] = Element()
+elements['label'] = Element(rules=attributes['label'])
 # form field label text
 
-elements['legend'] = Element()
+elements['legend'] = Element(rules=attributes['legend'])
 # fieldset legend
 
-elements['li'] = Element(optional_end=True, )
+elements['li'] = Element(optional_end=True, rules=attributes['li'])
 # list item
 
-elements['link'] = Element(empty=True, )
+elements['link'] = Element(empty=True, rules=attributes['link'])
 # a media-independent link
 
-elements['map'] = Element()
+elements['map'] = Element(rules=attributes['map'])
 # client-side image map
 
-elements['menu'] = Element(deprecated=True, )
-# menu list
+elements['menu'] = Element(rules=attributes['menu'])
+# menu list; Deprecated
 
-elements['meta'] = Element(empty=True, )
+elements['meta'] = Element(empty=True, rules=attributes['meta'])
 # generic metainformation
 
-elements['noframes'] = Element()
-# alternate content container for non frame-based rendering, Frameset DTD, 
+elements['noframes'] = Element(rules=attributes['noframes'])
+# alternate content container for non frame-based rendering
 
-elements['noscript'] = Element()
+elements['noscript'] = Element(rules=attributes['noscript'])
 # alternate content container for non script-based rendering
 
-elements['object'] = Element()
+elements['object'] = Element(rules=attributes['object'])
 # generic embedded object
 
-elements['ol'] = Element()
+elements['ol'] = Element(rules=attributes['ol'])
 # ordered list
 
-elements['optgroup'] = Element()
+elements['optgroup'] = Element(rules=attributes['optgroup'])
 # option group
 
-elements['option'] = Element(optional_end=True, )
+elements['option'] = Element(optional_end=True, rules=attributes['option'])
 # selectable choice
 
-elements['p'] = Element(optional_end=True, )
+elements['p'] = Element(optional_end=True, rules=attributes['p'])
 # paragraph
 
-elements['param'] = Element(empty=True, )
+elements['param'] = Element(empty=True, rules=attributes['param'])
 # named property value
 
-elements['pre'] = Element()
+elements['pre'] = Element(rules=attributes['pre'])
 # preformatted text
 
-elements['q'] = Element()
+elements['q'] = Element(rules=attributes['q'])
 # short inline quotation
 
-elements['s'] = Element(deprecated=True, )
-# strike-through text style
+elements['s'] = Element(rules=attributes['s'])
+# strike-through text style; Deprecated
 
-elements['samp'] = Element()
+elements['samp'] = Element(rules=attributes['samp'])
 # sample program output, scripts, etc.
 
-elements['script'] = Element()
+elements['script'] = Element(rules=attributes['script'])
 # script statements
 
-elements['select'] = Element()
+elements['select'] = Element(rules=attributes['select'])
 # option selector
 
-elements['small'] = Element()
+elements['small'] = Element(rules=attributes['small'])
 # small text style
 
-elements['span'] = Element()
+elements['span'] = Element(rules=attributes['span'])
 # generic language/style container
 
-elements['strike'] = Element(deprecated=True, )
-# strike-through text
+elements['strike'] = Element(rules=attributes['strike'])
+# strike-through text; Deprecated
 
-elements['strong'] = Element()
+elements['strong'] = Element(rules=attributes['strong'])
 # strong emphasis
 
-elements['style'] = Element()
+elements['style'] = Element(rules=attributes['style'])
 # style info
 
-elements['sub'] = Element()
+elements['sub'] = Element(rules=attributes['sub'])
 # subscript
 
-elements['sup'] = Element()
+elements['sup'] = Element(rules=attributes['sup'])
 # superscript
 
-elements['table'] = Element()
+elements['table'] = Element(rules=attributes['table'])
 # 
 
-elements['tbody'] = Element(optional_start=True, optional_end=True, )
+elements['tbody'] = Element(optional_start=True, optional_end=True, rules=attributes['tbody'])
 # table body
 
-elements['td'] = Element(optional_end=True, )
+elements['td'] = Element(optional_end=True, rules=attributes['td'])
 # table data cell
 
-elements['textarea'] = Element()
+elements['textarea'] = Element(rules=attributes['textarea'])
 # multi-line text field
 
-elements['tfoot'] = Element(optional_end=True, )
+elements['tfoot'] = Element(optional_end=True, rules=attributes['tfoot'])
 # table footer
 
-elements['th'] = Element(optional_end=True, )
+elements['th'] = Element(optional_end=True, rules=attributes['th'])
 # table header cell
 
-elements['thead'] = Element(optional_end=True, )
+elements['thead'] = Element(optional_end=True, rules=attributes['thead'])
 # table header
 
-elements['title'] = Element()
+elements['title'] = Element(rules=attributes['title'])
 # document title
 
-elements['tr'] = Element(optional_end=True, )
+elements['tr'] = Element(optional_end=True, rules=attributes['tr'])
 # table row
 
-elements['tt'] = Element()
+elements['tt'] = Element(rules=attributes['tt'])
 # teletype or monospaced text style
 
-elements['u'] = Element(deprecated=True, )
-# underlined text style
+elements['u'] = Element(rules=attributes['u'])
+# underlined text style; Deprecated
 
-elements['ul'] = Element()
+elements['ul'] = Element(rules=attributes['ul'])
 # unordered list
 
-elements['var'] = Element()
+elements['var'] = Element(rules=attributes['var'])
 # instance of a variable or program argument
+
