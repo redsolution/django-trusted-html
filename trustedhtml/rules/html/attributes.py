@@ -13,567 +13,568 @@ In such case we will assign same values to the same attributes.
 We do it to parse descriptions and generate ``map.py``.
 """
 
-attributes['abbr'] = %Text;
+attributes = {}
+
+attributes['abbr'] = text
 # abbreviation for header cell (TD, TH) 
 
-attributes['accept-charset'] = %Charsets;
+attributes['accept-charset'] = charsets
 # list of supported charsets (FORM) 
 
-attributes['accept'] = %ContentTypes;
+attributes['accept'] = content_types
 # list of MIME types for file upload (FORM, INPUT) 
 
-attributes['accesskey'] = %Character;
+attributes['accesskey'] = character
 # accessibility key character (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA) 
 
-attributes['action'] = %URI;#REQUIRED
+attributes['action'] = uri_required
 # server-side form handler (FORM) 
 
-attributes['align'] = %CAlign;
+attributes['align:c'] = RegExp(regexp=r'(top|bottom|left|right)$')
 # relative to table (CAPTION) ; deprecated
 
-attributes['align'] = %IAlign;
+attributes['align:i'] = RegExp(regexp=r'(top|middle|bottom|left|right)$')
 # vertical or horizontal alignment (APPLET, IFRAME, IMG, INPUT, OBJECT) ; deprecated
 
-attributes['align'] = %LAlign;
+attributes['align:l'] = RegExp(regexp=r'(top|bottom|left|right)$')
 # relative to fieldset (LEGEND) ; deprecated
 
-attributes['align'] = %TAlign;
+attributes['align:t'] = RegExp(regexp=r'(left|center|right)$')
 # table position relative to window (TABLE) ; deprecated
 
-attributes['align'] = RegExp(regexp=r'(left | center | right)')
+attributes['align:h'] = RegExp(regexp=r'(left|center|right)$')
 #  (HR) ; deprecated
 
-attributes['align'] = RegExp(regexp=r'(left | center | right | justify)')
+attributes['align:d'] = RegExp(regexp=r'(left|center|right|justify)$')
 # align, text alignment (DIV, H1, H2, H3, H4, H5, H6, P) ; deprecated
 
-attributes['align'] = RegExp(regexp=r'(left | center | right | justify | char)')
+attributes['align'] = RegExp(regexp=r'(left|center|right|justify|char)$')
 #  (COL, COLGROUP, TBODY, TD, TFOOT, TH, THEAD, TR) 
 
-attributes['alink'] = %Color;
+attributes['alink'] = color
 # color of selected links (BODY) ; deprecated
 
-attributes['alt'] = %Text;
+attributes['alt'] = text
 # short description (APPLET) ; deprecated
 
-attributes['alt'] = %Text;#REQUIRED
+attributes['alt:r'] = text_required
 # short description (AREA, IMG) 
 
-attributes['alt'] = CDATA
+attributes['alt'] = text
 # short description (INPUT) 
 
-attributes['archive'] = CDATA
+attributes['archive:a'] = Sequence(rule=uri, regexp=r'\s*,\s*', join_string=',')
 # comma-separated archive list (APPLET) ; deprecated
 
-attributes['archive'] = CDATA
+attributes['archive'] = Sequence(rule=uri, regexp=r'\s+', join_string=' ')
 # space-separated list of URIs (OBJECT) 
 
-attributes['axis'] = CDATA
+attributes['axis'] = idrefs_comma
 # comma-separated list of related headers (TD, TH) 
 
-attributes['background'] = %URI;
+attributes['background'] = uri_image
 # texture tile for document background (BODY) ; deprecated
 
-attributes['bgcolor'] = %Color;
+attributes['bgcolor'] = color
 # background color for cells (TABLE) ; deprecated
 
-attributes['bgcolor'] = %Color;
+attributes['bgcolor'] = color
 # background color for row (TR) ; deprecated
 
-attributes['bgcolor'] = %Color;
+attributes['bgcolor'] = color
 # cell background color (TD, TH) ; deprecated
 
-attributes['bgcolor'] = %Color;
+attributes['bgcolor'] = color
 # document background color (BODY) ; deprecated
 
-attributes['border'] = %Pixels;
+attributes['border'] = pixels
 # controls frame width around table (TABLE) 
 
-attributes['border'] = %Pixels;
+attributes['border'] = pixels
 # link border width (IMG, OBJECT) ; deprecated
 
-attributes['cellpadding'] = %Length;
+attributes['cellpadding'] = length
 # spacing within cells (TABLE) 
 
-attributes['cellspacing'] = %Length;
+attributes['cellspacing'] = length
 # spacing between cells (TABLE) 
 
-attributes['char'] = %Character;
+attributes['char'] = character
 # alignment char, e.g. char=':' (COL, COLGROUP, TBODY, TD, TFOOT, TH, THEAD, TR) 
 
-attributes['charoff'] = %Length;
+attributes['charoff'] = length
 # offset for alignment char (COL, COLGROUP, TBODY, TD, TFOOT, TH, THEAD, TR) 
 
-attributes['charset'] = %Charset;
+attributes['charset'] = charset
 # char encoding of linked resource (A, LINK, SCRIPT) 
 
-attributes['checked'] = RegExp(regexp=r'(checked)')
+attributes['checked'] = RegExp(regexp=r'(checked)$')
 # for radio buttons and check boxes (INPUT) 
 
-attributes['cite'] = %URI;
+attributes['cite'] = uri
 # URI for source document or msg (BLOCKQUOTE, Q) 
 
-attributes['cite'] = %URI;
+attributes['cite'] = uri
 # info on reason for change (DEL, INS) 
 
-attributes['class'] = CDATA
+attributes['class'] = idrefs
 # space-separated list of classes (All elements but BASE, BASEFONT, HEAD, HTML, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['classid'] = %URI;
+attributes['classid'] = uri
 # identifies an implementation (OBJECT) 
 
-attributes['clear'] = RegExp(regexp=r'(left | all | right | none)')none
+attributes['clear'] = RegExp(regexp=r'(left|all|right|none)$')
 # control of text flow (BR) ; deprecated
 
-attributes['code'] = CDATA
+attributes['code'] = text
 # applet class file (APPLET) ; deprecated
 
-attributes['codebase'] = %URI;
+attributes['codebase'] = uri
 # base URI for classid, data, archive (OBJECT) 
 
-attributes['codebase'] = %URI;
+attributes['codebase'] = uri
 # optional base URI for applet (APPLET) ; deprecated
 
-attributes['codetype'] = %ContentType;
+attributes['codetype'] = content_type
 # content type for code (OBJECT) 
 
-attributes['color'] = %Color;
+attributes['color'] = color
 # text color (BASEFONT, FONT) ; deprecated
 
-attributes['cols'] = %MultiLengths;
+attributes['cols'] = multi_lengths
 # list of lengths, default: 100% (1 col) (FRAMESET) 
 
-attributes['cols'] = NUMBER#REQUIRED
+attributes['cols'] = number_required
 #  (TEXTAREA) 
 
-attributes['colspan'] = NUMBER1
+attributes['colspan'] = number
 # number of cols spanned by cell (TD, TH) 
 
-attributes['compact'] = RegExp(regexp=r'(compact)')
+attributes['compact'] = RegExp(regexp=r'(compact)$')
 # reduced interitem spacing (DIR, DL, MENU, OL, UL) ; deprecated
 
-attributes['content'] = CDATA#REQUIRED
+attributes['content'] = text_required
 # associated information (META) 
 
-attributes['coords'] = %Coords;
+attributes['coords'] = coords # Fix: The number and order of values depends on the shape being defined.
 # comma-separated list of lengths (AREA) 
 
-attributes['coords'] = %Coords;
+attributes['coords'] = coords
 # for use with client-side image maps (A) 
 
-attributes['data'] = %URI;
+attributes['data'] = uri
 # reference to object's data (OBJECT) 
 
-attributes['datetime'] = %Datetime;
+attributes['datetime'] = datetime
 # date and time of change (DEL, INS) 
 
-attributes['declare'] = RegExp(regexp=r'(declare)')
+attributes['declare'] = RegExp(regexp=r'(declare)$')
 # declare but don't instantiate flag (OBJECT) 
 
-attributes['defer'] = RegExp(regexp=r'(defer)')
+attributes['defer'] = RegExp(regexp=r'(defer)$')
 # UA may defer execution of script (SCRIPT) 
 
-attributes['dir'] = RegExp(regexp=r'(ltr | rtl)')
+attributes['dir'] = RegExp(regexp=r'(ltr|rtl)$')
 # direction for weak/neutral text (All elements but APPLET, BASE, BASEFONT, BDO, BR, FRAME, FRAMESET, IFRAME, PARAM, SCRIPT) 
 
-attributes['dir'] = RegExp(regexp=r'(ltr | rtl)')#REQUIRED
+attributes['dir:r'] = RegExp(regexp=r'(ltr|rtl)$', required=True)
 # directionality (BDO) 
 
-attributes['disabled'] = RegExp(regexp=r'(disabled)')
+attributes['disabled'] = RegExp(regexp=r'(disabled)$')
 # unavailable in this context (BUTTON, INPUT, OPTGROUP, OPTION, SELECT, TEXTAREA) 
 
-attributes['enctype'] = %ContentType;application/x-www- form-urlencoded
+attributes['enctype'] = content_type
 #  (FORM) 
 
-attributes['face'] = CDATA
+attributes['face'] = idrefs_comma
 # comma-separated list of font names (BASEFONT, FONT) ; deprecated
 
-attributes['for'] = IDREF
+attributes['for'] = idref
 # matches field ID value (LABEL) 
 
-attributes['frame'] = %TFrame;
+attributes['frame'] = RegExp(regexp=r'(void|above|below|hsides|lhs|rhs|vsides|box|border)$')
 # which parts of frame to render (TABLE) 
 
-attributes['frameborder'] = RegExp(regexp=r'(1 | 0)')1
+attributes['frameborder'] = RegExp(regexp=r'(1|0)$')
 # request frame borders? (FRAME, IFRAME) 
 
-attributes['headers'] = IDREFS
+attributes['headers'] = idrefs
 # list of id's for header cells (TD, TH) 
 
-attributes['height'] = %Length;
+attributes['height'] = length
 # frame height (IFRAME) 
 
-attributes['height'] = %Length;
+attributes['height'] = length
 # height for cell (TD, TH) ; deprecated
 
-attributes['height'] = %Length;
+attributes['height'] = length
 # override height (IMG, OBJECT) 
 
-attributes['height'] = %Length;#REQUIRED
+attributes['height:r'] = length_required
 # initial height (APPLET) ; deprecated
 
-attributes['href'] = %URI;
+attributes['href'] = uri
 # URI for linked resource (A, AREA, LINK) 
 
-attributes['href'] = %URI;
+attributes['href'] = uri
 # URI that acts as base URI (BASE) 
 
-attributes['hreflang'] = %LanguageCode;
+attributes['hreflang'] = language_code # Fix: may only be used when href is specified.
 # language code (A, LINK) 
 
-attributes['hspace'] = %Pixels;
+attributes['hspace'] = pixels
 # horizontal gutter (APPLET, IMG, OBJECT) ; deprecated
 
-attributes['http-equiv'] = NAME
+attributes['http-equiv'] = name
 # HTTP response header name (META) 
 
-attributes['id'] = ID
+attributes['id'] = name
 # document-wide unique id (All elements but BASE, HEAD, HTML, META, SCRIPT, STYLE, TITLE) 
 
-attributes['ismap'] = RegExp(regexp=r'(ismap)')
+attributes['ismap'] = RegExp(regexp=r'(ismap)$') # Fix: In the case of IMG, the IMG must be inside an A element and the boolean attribute ismap ([CI]) must be set. 
 # use server-side image map (IMG, INPUT) 
 
-attributes['label'] = %Text;
+attributes['label'] = text
 # for use in hierarchical menus (OPTION) 
 
-attributes['label'] = %Text;#REQUIRED
+attributes['label:r'] = text_required
 # for use in hierarchical menus (OPTGROUP) 
 
-attributes['lang'] = %LanguageCode;
+attributes['lang'] = language_code
 # language code (All elements but APPLET, BASE, BASEFONT, BR, FRAME, FRAMESET, IFRAME, PARAM, SCRIPT) 
 
-attributes['language'] = CDATA
+attributes['language'] = text
 # predefined script language name (SCRIPT) ; deprecated
 
-attributes['link'] = %Color;
+attributes['link'] = color
 # color of links (BODY) ; deprecated
 
-attributes['longdesc'] = %URI;
+attributes['longdesc'] = uri
 # link to long description (complements alt) (IMG) 
 
-attributes['longdesc'] = %URI;
+attributes['longdesc'] = uri
 # link to long description (complements title) (FRAME, IFRAME) 
 
-attributes['marginheight'] = %Pixels;
+attributes['marginheight'] = pixels
 # margin height in pixels (FRAME, IFRAME) 
 
-attributes['marginwidth'] = %Pixels;
+attributes['marginwidth'] = pixels
 # margin widths in pixels (FRAME, IFRAME) 
 
-attributes['maxlength'] = NUMBER
+attributes['maxlength'] = number
 # max chars for text fields (INPUT) 
 
-attributes['media'] = %MediaDesc;
+attributes['media'] = media_descs
 # designed for use with these media (STYLE) 
 
-attributes['media'] = %MediaDesc;
+attributes['media'] = media_descs
 # for rendering on these media (LINK) 
 
-attributes['method'] = RegExp(regexp=r'(GET | POST)')GET
+attributes['method'] = RegExp(regexp=r'(GET|POST)$')
 # HTTP method used to submit the form (FORM) 
 
-attributes['multiple'] = RegExp(regexp=r'(multiple)')
+attributes['multiple'] = RegExp(regexp=r'(multiple)$')
 # default is single selection (SELECT) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 #  (BUTTON, TEXTAREA) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # allows applets to find each other (APPLET) ; deprecated
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # field name (SELECT) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # name of form for scripting (FORM) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # name of frame for targetting (FRAME, IFRAME) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # name of image for scripting (IMG) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # named link end (A) 
 
-attributes['name'] = CDATA
+attributes['name'] = name
 # submit as part of form (INPUT, OBJECT) 
 
-attributes['name'] = CDATA#REQUIRED
+attributes['name:r'] = name_required
 # for reference by usemap (MAP) 
 
-attributes['name'] = CDATA#REQUIRED
+attributes['name:r'] = name_required
 # property name (PARAM) 
 
-attributes['name'] = NAME
+attributes['name'] = name
 # metainformation name (META) 
 
-attributes['nohref'] = RegExp(regexp=r'(nohref)')
+attributes['nohref'] = RegExp(regexp=r'(nohref)$')
 # this region has no action (AREA) 
 
-attributes['noresize'] = RegExp(regexp=r'(noresize)')
+attributes['noresize'] = RegExp(regexp=r'(noresize)$')
 # allow users to resize frames? (FRAME) 
 
-attributes['noshade'] = RegExp(regexp=r'(noshade)')
+attributes['noshade'] = RegExp(regexp=r'(noshade)$')
 #  (HR) ; deprecated
 
-attributes['nowrap'] = RegExp(regexp=r'(nowrap)')
+attributes['nowrap'] = RegExp(regexp=r'(nowrap)$')
 # suppress word wrap (TD, TH) ; deprecated
 
-attributes['object'] = CDATA
+attributes['object'] = name
 # serialized applet file (APPLET) ; deprecated
 
-attributes['onblur'] = %Script;
+attributes['onblur'] = script
 # the element lost the focus (A, AREA, BUTTON, INPUT, LABEL, SELECT, TEXTAREA) 
 
-attributes['onchange'] = %Script;
+attributes['onchange'] = script
 # the element value was changed (INPUT, SELECT, TEXTAREA) 
 
-attributes['onclick'] = %Script;
+attributes['onclick'] = script
 # a pointer button was clicked (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['ondblclick'] = %Script;
+attributes['ondblclick'] = script
 # a pointer button was double clicked (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onfocus'] = %Script;
+attributes['onfocus'] = script
 # the element got the focus (A, AREA, BUTTON, INPUT, LABEL, SELECT, TEXTAREA) 
 
-attributes['onkeydown'] = %Script;
+attributes['onkeydown'] = script
 # a key was pressed down (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onkeypress'] = %Script;
+attributes['onkeypress'] = script
 # a key was pressed and released (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onkeyup'] = %Script;
+attributes['onkeyup'] = script
 # a key was released (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onload'] = %Script;
+attributes['onload'] = script
 # all the frames have been loaded (FRAMESET) 
 
-attributes['onload'] = %Script;
+attributes['onload'] = script
 # the document has been loaded (BODY) 
 
-attributes['onmousedown'] = %Script;
+attributes['onmousedown'] = script
 # a pointer button was pressed down (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onmousemove'] = %Script;
+attributes['onmousemove'] = script
 # a pointer was moved within (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onmouseout'] = %Script;
+attributes['onmouseout'] = script
 # a pointer was moved away (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onmouseover'] = %Script;
+attributes['onmouseover'] = script
 # a pointer was moved onto (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onmouseup'] = %Script;
+attributes['onmouseup'] = script
 # a pointer button was released (All elements but APPLET, BASE, BASEFONT, BDO, BR, FONT, FRAME, FRAMESET, HEAD, HTML, IFRAME, ISINDEX, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['onreset'] = %Script;
+attributes['onreset'] = script
 # the form was reset (FORM) 
 
-attributes['onselect'] = %Script;
+attributes['onselect'] = script
 # some text was selected (INPUT, TEXTAREA) 
 
-attributes['onsubmit'] = %Script;
+attributes['onsubmit'] = script
 # the form was submitted (FORM) 
 
-attributes['onunload'] = %Script;
+attributes['onunload'] = script
 # all the frames have been removed (FRAMESET) 
 
-attributes['onunload'] = %Script;
+attributes['onunload'] = script
 # the document has been removed (BODY) 
 
-attributes['profile'] = %URI;
+attributes['profile'] = uris
 # named dictionary of meta info (HEAD) 
 
-attributes['prompt'] = %Text;
+attributes['prompt'] = text
 # prompt message (ISINDEX) ; deprecated
 
-attributes['readonly'] = RegExp(regexp=r'(readonly)')
+attributes['readonly'] = RegExp(regexp=r'(readonly)$')
 #  (TEXTAREA) 
 
-attributes['readonly'] = RegExp(regexp=r'(readonly)')
+attributes['readonly'] = RegExp(regexp=r'(readonly)$')
 # for text and passwd (INPUT) 
 
-attributes['rel'] = %LinkTypes;
+attributes['rel'] = link_types
 # forward link types (A, LINK) 
 
-attributes['rev'] = %LinkTypes;
+attributes['rev'] = link_types
 # reverse link types (A, LINK) 
 
-attributes['rows'] = %MultiLengths;
+attributes['rows'] = multi_lengths
 # list of lengths, default: 100% (1 row) (FRAMESET) 
 
-attributes['rows'] = NUMBER#REQUIRED
+attributes['rows'] = number_required
 #  (TEXTAREA) 
 
-attributes['rowspan'] = NUMBER1
+attributes['rowspan'] = number
 # number of rows spanned by cell (TD, TH) 
 
-attributes['rules'] = %TRules;
+attributes['rules'] = RegExp(regexp=r'(none|groups|rows|cols|all)$')
 # rulings between rows and cols (TABLE) 
 
-attributes['scheme'] = CDATA
+attributes['scheme'] = name
 # select form of content (META) 
 
-attributes['scope'] = %Scope;
+attributes['scope'] = RegExp(regexp=r'(row|col|rowgroup|colgroup)$')
 # scope covered by header cells (TD, TH) 
 
-attributes['scrolling'] = RegExp(regexp=r'(yes | no | auto)')auto
+attributes['scrolling'] = RegExp(regexp=r'(yes|no|auto)$')
 # scrollbar or none (FRAME, IFRAME) 
 
-attributes['selected'] = RegExp(regexp=r'(selected)')
+attributes['selected'] = RegExp(regexp=r'(selected)$')
 #  (OPTION) 
 
-attributes['shape'] = %Shape;rect
+attributes['shape'] = RegExp(regexp=r'(default|rect|circle|poly)$')
 # controls interpretation of coords (AREA) 
 
-attributes['shape'] = %Shape;rect
+attributes['shape'] = RegExp(regexp=r'(default|rect|circle|poly)$')
 # for use with client-side image maps (A) 
 
-attributes['size'] = %Pixels;
+attributes['size:h'] = pixels
 #  (HR) ; deprecated
 
-attributes['size'] = CDATA
+attributes['size:f'] = RegExp(regexp=r'([-+]?[1-7])$')
 # [+|-]nn e.g. size=+1, size=4 (FONT) ; deprecated
 
-attributes['size'] = CDATA
+attributes['size'] = number
 # specific to each type of field (INPUT) 
 
-attributes['size'] = CDATA#REQUIRED
+attributes['size:b'] = RegExp(regexp=r'([-+]?[1-7])$', required=True)
 # base font size for FONT elements (BASEFONT) ; deprecated
 
-attributes['size'] = NUMBER
+attributes['size'] = number
 # rows visible (SELECT) 
 
-attributes['span'] = NUMBER1
+attributes['span'] = positive_int
 # COL attributes affect N columns (COL) 
 
-attributes['span'] = NUMBER1
+attributes['span'] = positive_int
 # default number of columns in group (COLGROUP) 
 
-attributes['src'] = %URI;
+attributes['src'] = uri
 # URI for an external script (SCRIPT) 
 
-attributes['src'] = %URI;
+attributes['src:i'] = uri_image
 # for fields with images (INPUT) 
 
-attributes['src'] = %URI;
+attributes['src'] = uri
 # source of frame content (FRAME, IFRAME) 
 
-attributes['src'] = %URI;#REQUIRED
+attributes['src:r'] = uri_image_required
 # URI of image to embed (IMG) 
 
-attributes['standby'] = %Text;
+attributes['standby'] = text
 # message to show while loading (OBJECT) 
 
-attributes['start'] = NUMBER
+attributes['start'] = number
 # starting sequence number (OL) ; deprecated
 
-attributes['style'] = %StyleSheet;
+attributes['style'] = style_sheet
 # associated style info (All elements but BASE, BASEFONT, HEAD, HTML, META, PARAM, SCRIPT, STYLE, TITLE) 
 
-attributes['summary'] = %Text;
+attributes['summary'] = text
 # purpose/structure for speech output (TABLE) 
 
-attributes['tabindex'] = NUMBER
+attributes['tabindex'] = number
 # position in tabbing order (A, AREA, BUTTON, INPUT, OBJECT, SELECT, TEXTAREA) 
 
-attributes['target'] = %FrameTarget;
+attributes['target'] = frame_target
 # render in this frame (A, AREA, BASE, FORM, LINK) 
 
-attributes['text'] = %Color;
+attributes['text'] = color
 # document text color (BODY) ; deprecated
 
-attributes['title'] = %Text;
+attributes['title'] = text
 # advisory title (All elements but BASE, BASEFONT, HEAD, HTML, META, PARAM, SCRIPT, TITLE) 
 
-attributes['type'] = %ContentType;
+attributes['type'] = content_type
 # advisory content type (A, LINK) 
 
-attributes['type'] = %ContentType;
+attributes['type'] = content_type
 # content type for data (OBJECT) 
 
-attributes['type'] = %ContentType;
+attributes['type'] = content_type # Fix: only in the case where valuetype is set to "ref".
 # content type for value when valuetype=ref (PARAM) 
 
-attributes['type'] = %ContentType;#REQUIRED
+attributes['type:r'] = content_type_required
 # content type of script language (SCRIPT) 
 
-attributes['type'] = %ContentType;#REQUIRED
+attributes['type:r'] = content_type_required
 # content type of style language (STYLE) 
 
-attributes['type'] = %InputType;TEXT
+attributes['type:i'] = RegExp(regexp=r'(text|password|checkbox|radio|submit|reset|file|hidden|image|button)$')
 # what kind of widget is needed (INPUT) 
 
-attributes['type'] = %LIStyle;
+attributes['type:l'] = RegExp(regexp=r'(1|a|A|i|I|disc|square|circle)$')
 # list item style (LI) ; deprecated
 
-attributes['type'] = %OLStyle;
+attributes['type:o'] = RegExp(regexp=r'(1|a|A|i|I)$')
 # numbering style (OL) ; deprecated
 
-attributes['type'] = %ULStyle;
+attributes['type:u'] = RegExp(regexp=r'(disc|square|circle)$')
 # bullet style (UL) ; deprecated
 
-attributes['type'] = RegExp(regexp=r'(button | submit | reset)')submit
+attributes['type'] = RegExp(regexp=r'(button|submit|reset)$')
 # for use as form button (BUTTON) 
 
-attributes['usemap'] = %URI;
+attributes['usemap'] = uri
 # use client-side image map (IMG, INPUT, OBJECT) 
 
-attributes['valign'] = RegExp(regexp=r'(top | middle | bottom | baseline)')
+attributes['valign'] = RegExp(regexp=r'(top|middle|bottom|baseline)$')
 # vertical alignment in cells (COL, COLGROUP, TBODY, TD, TFOOT, TH, THEAD, TR) 
 
-attributes['value'] = CDATA
+attributes['value'] = text # Fix: It is optional except when the type attribute has the value "radio" or "checkbox".
 # Specify for radio buttons and checkboxes (INPUT) 
 
-attributes['value'] = CDATA
+attributes['value'] = text
 # defaults to element content (OPTION) 
 
-attributes['value'] = CDATA
+attributes['value'] = text
 # property value (PARAM) 
 
-attributes['value'] = CDATA
+attributes['value'] = text
 # sent to server when submitted (BUTTON) 
 
-attributes['value'] = NUMBER
+attributes['value:l'] = number
 # reset sequence number (LI) ; deprecated
 
-attributes['valuetype'] = RegExp(regexp=r'(DATA | REF | OBJECT)')DATA
+attributes['valuetype'] = RegExp(regexp=r'(data|ref|object)$')
 # How to interpret value (PARAM) 
 
-attributes['version'] = CDATA%HTML.Version;
+attributes['version'] = uri
 # Constant (HTML) ; deprecated
 
-attributes['vlink'] = %Color;
+attributes['vlink'] = color
 # color of visited links (BODY) ; deprecated
 
-attributes['vspace'] = %Pixels;
+attributes['vspace'] = pixels
 # vertical gutter (APPLET, IMG, OBJECT) ; deprecated
 
-attributes['width'] = %Length;
+attributes['width'] = length
 #  (HR) ; deprecated
 
-attributes['width'] = %Length;
+attributes['width'] = length
 # frame width (IFRAME) 
 
-attributes['width'] = %Length;
+attributes['width'] = length
 # override width (IMG, OBJECT) 
 
-attributes['width'] = %Length;
+attributes['width'] = length
 # table width (TABLE) 
 
-attributes['width'] = %Length;
+attributes['width'] = length
 # width for cell (TD, TH) ; deprecated
 
-attributes['width'] = %Length;#REQUIRED
+attributes['width:r'] = length_required
 # initial width (APPLET) ; deprecated
 
-attributes['width'] = %MultiLength;
+attributes['width:c'] = multi_length
 # column width specification (COL) 
 
-attributes['width'] = %MultiLength;
+attributes['width:c'] = multi_length
 # default width for enclosed COLs (COLGROUP) 
 
-attributes['width'] = NUMBER
+attributes['width:p'] = number
 #  (PRE) ; deprecated
-
