@@ -2,7 +2,7 @@
 
 import re
 import copy
-from beautifulsoup import BeautifulSoup, NavigableString, Tag
+from beautifulsoup import BeautifulSoup, NavigableString, Tag, buildTagMap
 from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
@@ -10,6 +10,11 @@ from signals import rule_done, rule_exception
 from utils import get_cdata, get_uri, get_style
 
 BeautifulSoup.QUOTE_TAGS = {}
+BeautifulSoup.SELF_CLOSING_TAGS = buildTagMap(None, [
+    'area', 'base', 'basefont', 'br', 'col', 'frame', 'hr',
+    'img', 'input', 'isindex', 'link', 'meta', 'param',
+    # I don`t what is: 'spacer',
+])
 
 class TrustedException(ValueError):
     """
@@ -969,7 +974,6 @@ class Html(String):
         soup = self.collapse(soup)
         soup = self.collapse_root(soup)
         soup = self.wrap(soup)
-#        plain = self.get_plain_text(soup)
         return unicode(soup)
 
     def core(self, value, path):

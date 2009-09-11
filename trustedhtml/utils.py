@@ -303,3 +303,18 @@ def get_style(value):
     value = STYLE_COMMENT_RE.sub(STYLE_COMMENT_REPL, value)
 #    value = STYLE_CHARACTER_RE.sub(STYLE_CHARACTER_REPL, value)
     return value
+
+def get_dict(source, leave=None, remove=None, append={}):
+    """
+    Return dictionary
+    """
+    result = {}
+    for name, value in source.iteritems():
+        if leave is not None and name not in leave:
+            continue
+        if remove is not None and name in remove:
+            continue
+        result[name] = value
+    for name, value in append.iteritems():
+        result[name] = value
+    return result

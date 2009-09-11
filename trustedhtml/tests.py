@@ -364,6 +364,12 @@ Y<B attr='foo'>y1</b>,<b>y2</B><B Foo='bar'>y3</b><B Foob='bar'>y4</b>
 Z<html>foo<!bar</html>text
 </p>'''
 
+def replace(value):
+    value = value.replace('\n', ' ')
+    value = value.replace('\r', ' ')
+    value = value.replace('</p>', '</p>\n')
+    return value
+
 tiny_omg = u"""
 <p><strong>q</strong><em>w</em><span style="text-decoration: underline;">e</span>r<span style="text-decoration: line-through;">t</span><sub>y</sub><sup>u</sup></p>
 <ul>
@@ -468,3 +474,97 @@ tiny_omg = u"""
 <h5>5</h5>
 <h6>&clubs; 01.08.2008 &lt;img src="javascript:alert(1);"&gt; 16:27:31</h6>
 """
+
+tinymce=u"""
+<p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>
+<p><a name="ANC"></a>a</p>
+<ul>
+<li>b
+<ul>
+<li>A</li>
+<li>B</li>
+<li>C</li>
+</ul>
+</li>
+<li>c</li>
+<li>d</li>
+</ul>
+<ol>
+<li>1<ol>
+<li>!</li>
+<li>@</li>
+<li>#</li>
+</ol></li>
+<li>2</li>
+<li>3</li>
+</ol><address>H</address>
+<pre>J</pre>
+<h1>1</h1>
+<h2>2</h2>
+<h3>3</h3>
+<h4>4</h4>
+<h5>5</h5>
+<h6>6</h6>
+<p><a href="http://ya.ru">Z</a>X<a href="/news" target="_blank">C</a>V<a href="#ANC">B</a>NM<img title="sb" src="/media/img/search.jpg" alt="Search button" width="30" height="30" />&lt;</p>
+<p><img id="I1" style="border: 1px solid black; margin: 2px 3px; float: right;" src="/media/img/logo.png" alt="" width="94" height="94" /></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>And:</p>
+<p>
+<object width="100" height="100" data="http://www.youtube.com/watch?v=rAy8JbMitog" type="application/x-shockwave-flash">
+<param name="src" value="http://www.youtube.com/watch?v=rAy8JbMitog" />
+</object>
+</p>
+<p>Options:</p>
+<p>
+<object width="425" height="350" data="http://www.youtube.com/v/rAy8JbMitog" type="application/x-shockwave-flash">
+<param name="loop" value="false" />
+<param name="src" value="http://www.youtube.com/v/rAy8JbMitog" />
+<param name="align" value="right" />
+<param name="bgcolor" value="#a1f074" />
+<param name="vspace" value="10" />
+<param name="hspace" value="30" />
+</object>
+</p>
+<p>&nbsp;</p>
+<p>&amp;&euro;&delta;&nbsp;&Theta;</p>
+<blockquote>
+<p>asdas</p>
+</blockquote>
+<p><del>b</del><ins>c</ins>d<del>e</del>f</p>
+<table border="0">
+<tbody>
+<tr>
+<td>qq</td>
+<td colspan="2">
+<p>wwweeee</p>
+</td>
+</tr>
+<tr>
+<td>aaaa</td>
+<td>ss</td>
+<td>ddd</td>
+</tr>
+</tbody>
+</table>
+<table style="border-color: #37c5c7; border-width: 2px; height: 200px; background-color: #bacbb8; width: 100%;" border="2" cellspacing="3" cellpadding="2" frame="hsides" rules="rows">
+<caption></caption>
+<tbody>
+<tr style="background-image: url(/media/img/content-corner.gif);" align="right">
+<td>ad</td>
+<td>qw</td>
+<td>er</td>
+</tr>
+<tr>
+<td></td>
+<td style="background-color: #a2a1c4;" colspan="2" rowspan="2" align="center" valign="top">big</td>
+</tr>
+<tr>
+<td>zx</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;</p>
+<p>русский end</p>
+"""        

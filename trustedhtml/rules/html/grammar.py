@@ -15,7 +15,7 @@ grammar['multi-length'] = r'(%(number)s|%(percentage)s|%(number)s\*|\*)' % gramm
 
 grammar['color'] = r'(#%(h)s{6}|black|green|silver|lime|gray|olive|white|yellow|maroon|navy|red|blue|purple|teal|fuchsia|aqua)' % grammar
 
-grammar['content-type'] = r'(text/html|image/(jpeg|png|gif)|audio/mpeg|video/mpeg|application/x-www-form-urlencoded|multipart/form-data)' % grammar
+grammar['content-type'] = r'(text/html|image/(jpeg|png|gif)|audio/mpeg|video/mpeg|application/(x-www-form-urlencoded|x-shockwave-flash)|multipart/form-data)' % grammar
 # Must be disabled: 'text/javascript', 'text/css', 
 # Full list of types:
 # http://www.iana.org/assignments/media-types/
