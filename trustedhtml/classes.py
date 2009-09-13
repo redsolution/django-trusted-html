@@ -709,32 +709,29 @@ class Element(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
 
-    def __init__(self, rules={}, allow_empty=True,
-        optional_start=False, optional_end=False, empty_tag=False, 
-        root_tag=False, save_content=True, **kwargs):
+    def __init__(self, rules={}, contents=[], allow_empty=False,
+        optional_start=False, optional_end=False, save_content=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
         
+        ``contents`` list of elements allowed inside this one.
+        List contains strings with names or True to allow text content.
+
         ``optional_start`` start of this element is optional.
 
         ``optional_end`` end of this element is optional.
         
-        ``empty_tag`` tag must be empty.
-        
-        ``root_tag`` tag can be in the root of document.
-        
         ``save_content`` whether content of incorrect tag must be saved
         to parent tag. 
         """
-        if empty_tag:
+        if contents is None:
             allow_empty = True
         Rule.__init__(self, allow_empty=allow_empty, **kwargs)
         Validator.__init__(self, rules=rules, **kwargs)
         self.optional_start = optional_start
         self.optional_end = optional_end
-        self.empty_tag = empty_tag
-        self.root_tag = root_tag
+        self.contents = contents
         self.save_content = save_content
         
     def preprocess(self, value, path):
@@ -793,7 +790,7 @@ class Html(String):
     
     BEAUTIFUL_SOUP = BeautifulSoup()
 
-    def __init__(self, rules, fix_number=2, prepare_number=2, **kwargs):
+    def __init__(self, rules, fix_number=2, prepare_number=2, root_tags=[], **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -801,6 +798,8 @@ class Html(String):
         ``fix_number`` specified number of maximum attempts to fix value.
 
         ``prepare_number`` specified number of maximum attempts to prepare value.
+
+        ``root_tags`` list of tags that can be in the root of document.
         """
         super(Html, self).__init__(**kwargs)
         self.rules = rules
@@ -808,14 +807,12 @@ class Html(String):
         self.prepare_number = prepare_number
         self.empty_tags = []
         self.nbsp_tags = []
-        self.root_tags = []
+        self.root_tags = root_tags
         for name, rule in self.rules.iteritems():
             if rule.allow_empty or rule.default is not None:
                 self.empty_tags.append(name)
             if rule.default is not None:
                 self.nbsp_tags.append(name)
-            if getattr(rule, 'root_tag', False):
-                self.root_tags.append(name)
         if self.DEFAULT_ROOT_TAG not in self.root_tags:
             self.root_tags.append(self.DEFAULT_ROOT_TAG)
 
@@ -857,7 +854,7 @@ class Html(String):
                     tag.attrs = rule.validate(tag.attrs, path)
                 except TrustedException:
                     element = soup.contents[index].extract()
-                    if rule is not None and getattr(rule, 'save_content', False):
+                    if rule is None or getattr(rule, 'save_content', True):
                         for content in element.contents:
                             soup.insert(index, content)
                     continue

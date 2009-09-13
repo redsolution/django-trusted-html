@@ -275,6 +275,9 @@ class Html(unittest.TestCase):
         pass
     
     def test_values(self):
+        self.assertEqual(rules.html.values.values['type'].validate('text/html'), 'text/html')
+        self.assertEqual(rules.html.values.values['type'].validate('application/x-shockwave-Flash'), 'application/x-shockwave-Flash')
+        self.assertRaises(IncorrectException, rules.html.values.values['type'].validate, 'application/x-shockwave-FFlash')
 #        values['charset'],
 #        values['coords'],
 #        values['rel'],
@@ -282,7 +285,6 @@ class Html(unittest.TestCase):
 #        values['shape'],
 #        values['tabindex'],
 #        values['target'],
-#        values['type'],
 #        values['shape'],
 #        values['width~c'],
 #        values['accept'],
@@ -307,19 +309,32 @@ class Html(unittest.TestCase):
         pass
 
     def test_custom(self):
-        lst = rules.html.attributes.disabled + rules.css.attributes.for_table + \
-            rules.css.custom.for_image + rules.css.custom.for_table_and_image + \
-            rules.css.custom.allowed
-        append = []
-        remove = [name for name in rules.css.values.values.iterkeys()]
-        for item in lst:
-            self.assertFalse(item in append)
-            append.append(item)
+        remove = [name for name in rules.html.attributes.attributes.iterkeys()]
+        for item in rules.html.contents.contents.iterkeys():
             self.assertTrue(item in remove)
             remove.remove(item)
         self.assertFalse(remove)
+
+        remove = [name for name in rules.html.attributes.attributes.iterkeys()]
+        for item in rules.html.elements.elements.iterkeys():
+            self.assertTrue(item in remove)
+            remove.remove(item)
+        self.assertFalse(remove)
+
+        lst = rules.html.custom.docement_elements + rules.html.custom.frame_elements + \
+            rules.html.custom.form_elements + rules.html.custom.remove_elements + \
+            rules.html.custom.remove_elements_with_content + \
+            rules.html.custom.simple_elements + rules.html.custom.rare_elements 
+        append = []
+        remove = [name for name in rules.html.attributes.attributes.iterkeys()]
+        for item in lst:
+            self.assertFalse(item in append, repr(item))
+            append.append(item)
+            self.assertTrue(item in remove, repr(item))
+            remove.remove(item)
+        self.assertFalse(remove)
     
-    def test_html(self):
+    def test_full(self):
         self.assertEqual(rules.html.full.validate(
             '<p>test</p>'),
             '<p>test</p>')
@@ -331,7 +346,7 @@ class Html(unittest.TestCase):
             '<p>test</p>')
         self.assertEqual(rules.html.full.validate(
             '<p>t<foo>es</foo>t</p>'),
-            '<p>tt</p>')
+            '<p>test</p>')
         self.assertEqual(rules.html.full.validate(
             '<p>   t   <span>   e   </span>   <span>   s   </span>   t   </p>'), 
             '<p> t <span> e </span> <span> s </span> t </p>')
@@ -345,8 +360,16 @@ class Html(unittest.TestCase):
             ' te<span> </span> <span> </span> st '), 
             '<p>te st</p>')
         self.assertEqual(rules.html.full.validate(
-            '<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>'),
+            '<img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" />'),
             '<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>')
+        self.assertEqual(rules.html.full.validate(tinymce_in), tinymce_full)
+
+    def test_simple(self):
+        self.assertEqual(rules.html.simple.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
+        self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
+#        open('in.txt', 'w').write(get_lined(tinymce_in).encode('utf-8'))
+#        open('full.txt', 'w').write(get_lined(rules.html.full.validate(tinymce_in)).encode('utf-8'))
+        
 
     def tearDown(self):
         pass
@@ -380,6 +403,19 @@ def get_html(html):
 </body>
 </html>
 """ % html
+
+GET_LINED_REMOVE_RE = re.compile('[\n\r\t]')
+GET_LINED_REMOVE_REPL = ' '
+
+GET_LINED_ADD_RE = re.compile('(<[a-zA-Z]+)')
+def GET_LINED_ADD_REPL(match):
+    return '\n%s' % match.group(0)
+
+def get_lined(value):
+    value = GET_LINED_REMOVE_RE.sub(GET_LINED_REMOVE_REPL, value)
+    value = GET_LINED_ADD_RE.sub(GET_LINED_ADD_REPL, value)
+    return value
+
 
 magic_hack_37 = '<p>-<i\0mg src="1.jpg">' + r'''
 0&#x26x26&#38#38+&#x26;x26;&#38;#38;
@@ -422,13 +458,7 @@ Y<B attr='foo'>y1</b>,<b>y2</B><B Foo='bar'>y3</b><B Foob='bar'>y4</b>
 Z<html>foo<!bar</html>text
 </p>'''
 
-def replace(value):
-    value = value.replace('\n', ' ')
-    value = value.replace('\r', ' ')
-    value = value.replace('</p>', '</p>\n')
-    return value
-
-tinymce=u"""
+tinymce_in=u"""
 <p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>
 <p><a name="ANC"></a>a</p>
 <ul>
@@ -536,11 +566,83 @@ JJ
 <td style="background-color: #a2a1c4;" colspan="2" rowspan="2" align="center" valign="top">big</td>
 </tr>
 <tr>
-<td>zx</td>
+<td style="background-color: #c2a1a4; border-left: 2px solid red">zx</td>
 </tr>
 </tbody>
 </table>
-<p>&nbsp;</p>
 <p>&lt;img src="javascript:alert(1);"&gt;</p>
+text
 <p>русский<br />end</p>
 """        
+
+tinymce_full = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
+decoration: underline;">y</span>u<span style="text-decoration: line-\
+through;">i</span>o<span style="text-decoration: line-through;"><span \
+style="text-decoration: underline;"><em><strong>p</strong></em></span></\
+span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;&apos;</p><p><a name="ANC"></\
+a>a</p><ul> <li>b <ul> <li>A</li> <li>B</li> <li>C</li> </ul> </li> <li>\
+c</li> <li>d</li> </ul><ol> <li>1<ol> <li>!</li> <li>@</li> <li>#</li> \
+</ol></li> <li>2</li> <li>3</li> </ol><address>H</address><pre> J JJJJ JJ \
+</pre><h1>1</h1><h2>2</h2><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6><p><a \
+href="http://ya.ru">Z</a>X<a href="/news" target="_blank">C</a>V<a href="\
+#ANC">B</a>NM<img title="sb" src="/media/img/search.jpg" alt="Search button" \
+width="30" height="30" />&lt;</p><p><img id="I1" style="border: 1px solid \
+black; margin: 2px 3px; float: right;" src="/media/img/logo.png" alt="" \
+width="94" height="94" /></p><p>And</p><p>this:</p><p> <object width="100" \
+height="100" data="http://www.youtube.com/watch?v=rAy8JbMitog" type="\
+application/x-shockwave-flash"> <param name="src" value="http://www.youtube.\
+com/watch?v=rAy8JbMitog" /> </object> </p><p>Options:</p><p> <object width="\
+425" height="350" data="http://www.youtube.com/v/rAy8JbMitog" type="\
+application/x-shockwave-flash"> <param name="loop" value="false" /> <param \
+name="src" value="http://www.youtube.com/v/rAy8JbMitog" /> <param name="\
+align" value="right" /> <param name="bgcolor" value="#a1f074" /> <param \
+name="vspace" value="10" /> <param name="hspace" value="30" /> </object> \
+</p><p>&amp;\u20ac\u03b4\xa0\u0398</p><blockquote> <p>asdas</p> </blockquote>\
+<p><del>b</del><ins>c</ins>d<del>e</del>f</p><table border="0"> <tbody> <tr> \
+<td>qq</td> <td colspan="2"> <p>wwweeee</p> </td> </tr> <tr> <td>aaaa</td> \
+<td>ss</td> <td>ddd</td> </tr> </tbody> </table><table style="border-color: \
+#37c5c7; border-width: 2px; height: 200px; background-color: #bacbb8; width: \
+100%;" border="2" cellspacing="3" cellpadding="2" frame="hsides" rules="\
+rows"> <caption></caption> <tbody> <tr style="background-image: url(/media/\
+img/content-corner.gif);" align="right"> <td>ad</td> <td>qw</td> <td> <table \
+style="height: 100px;" width="40" frame="lhs" rules="cols" align="left" \
+summary="asd"> <caption></caption> <tbody> <tr> <td>dd</td> <td>fd</td> \
+</tr> <tr> <td>fdf</td> <td>fd</td> </tr> </tbody> </table> </td> </tr> \
+<tr> <td></td> <td style="background-color: #a2a1c4;" colspan="2" rowspan="\
+2" align="center" valign="top">big</td> </tr> <tr> <td style="background-\
+color: #c2a1a4; border-left: 2px solid red;">zx</td> </tr> </tbody> </table\
+><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
+p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'
+
+tinymce_simple = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
+decoration: underline;">y</span>u<span style="text-decoration: line-through\
+;">i</span>o<span style="text-decoration: line-through;"><span style="text-\
+decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</\
+sub>d<sup>f</sup>g&amp;hjkl;&apos;</p><p><a name="ANC"></a>a</p><ul> <li>b <\
+ul> <li>A</li> <li>B</li> <li>C</li> </ul> </li> <li>c</li> <li>d</li> </ul><\
+ol> <li>1<ol> <li>!</li> <li>@</li> <li>#</li> </ol></li> <li>2</li> <li>3</\
+li> </ol><address>H</address><pre> J JJJJ JJ </pre><h1>1</h1><h2>2</h2><h3>3</\
+h3><h4>4</h4><h5>5</h5><h6>6</h6><p><a href="http://ya.ru">Z</a>X<a href="/\
+news" target="_blank">C</a>V<a href="#ANC">B</a>NM<img title="sb" src="/media\
+/img/search.jpg" alt="Search button" width="30" height="30" />&lt;</p><p><img \
+id="I1" style="float: right;" src="/media/img/logo.png" alt="" width="94" \
+height="94" /></p><p>And</p><p>this:</p><p> <object width="100" height="100" \
+data="http://www.youtube.com/watch?v=rAy8JbMitog" type="application/x-\
+shockwave-flash"> <param name="src" value="http://www.youtube.com/watch?v=\
+rAy8JbMitog" /> </object> </p><p>Options:</p><p> <object width="425" height="\
+350" data="http://www.youtube.com/v/rAy8JbMitog" type="application/x-\
+shockwave-flash"> <param name="loop" value="false" /> <param name="src" \
+value="http://www.youtube.com/v/rAy8JbMitog" /> <param name="align" value="\
+right" /> <param name="bgcolor" value="#a1f074" /> <param name="vspace" \
+value="10" /> <param name="hspace" value="30" /> </object> </p><p>&amp;\
+\u20ac\u03b4\xa0\u0398</p><blockquote> <p>asdas</p> </blockquote><p><del>b</\
+del><ins>c</ins>d<del>e</del>f</p><table> <tbody> <tr> <td>qq</td> <td \
+colspan="2"> <p>wwweeee</p> </td> </tr> <tr> <td>aaaa</td> <td>ss</td> <td>\
+ddd</td> </tr> </tbody> </table><table style=""> <caption></caption> <tbody> \
+<tr style="" align="right"> <td>ad</td> <td>qw</td> <td> <table style="" \
+summary="asd"> <caption></caption> <tbody> <tr> <td>dd</td> <td>fd</td> </\
+tr> <tr> <td>fdf</td> <td>fd</td> </tr> </tbody> </table> </td> </tr> <tr> <\
+td style="" colspan="2" rowspan="2" align="center" valign="top">big</td> </\
+tr> <tr> <td style="border-left: 2px solid red;">zx</td> </tr> </tbody> </\
+table><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
+p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'

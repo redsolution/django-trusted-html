@@ -6,6 +6,7 @@ http://www.w3.org/TR/REC-html40/index/elements.html
 from trustedhtml.classes import Element
 
 from trustedhtml.rules.html.attributes import attributes
+from trustedhtml.rules.html.contents import contents
 
 elements = {}
 
@@ -29,7 +30,7 @@ elements['applet'] = Element(allow_empty=True,
     rules=attributes['applet'], contents=contents['applet'])
 # Java applet; Deprecated
 
-elements['area'] = Element(empty_tag=True,
+elements['area'] = Element(
     rules=attributes['area'], contents=contents['area'])
 # client-side image map area
 
@@ -37,11 +38,11 @@ elements['b'] = Element(
     rules=attributes['b'], contents=contents['b'])
 # bold text style
 
-elements['base'] = Element(empty_tag=True,
+elements['base'] = Element(
     rules=attributes['base'], contents=contents['base'])
 # document base URI
 
-elements['basefont'] = Element(empty_tag=True,
+elements['basefont'] = Element(
     rules=attributes['basefont'], contents=contents['basefont'])
 # base font size; Deprecated
 
@@ -61,7 +62,7 @@ elements['body'] = Element(allow_empty=True, optional_start=True, optional_end=T
     rules=attributes['body'], contents=contents['body'])
 # document body
 
-elements['br'] = Element(empty_tag=True,
+elements['br'] = Element(
     rules=attributes['br'], contents=contents['br'])
 # forced line break
 
@@ -85,7 +86,7 @@ elements['code'] = Element(
     rules=attributes['code'], contents=contents['code'])
 # computer code fragment
 
-elements['col'] = Element(empty_tag=True,
+elements['col'] = Element(
     rules=attributes['col'], contents=contents['col'])
 # table column
 
@@ -137,7 +138,7 @@ elements['form'] = Element(
     rules=attributes['form'], contents=contents['form'])
 # interactive form
 
-elements['frame'] = Element(empty_tag=True,
+elements['frame'] = Element(
     rules=attributes['frame'], contents=contents['frame'])
 # subwindow
 
@@ -173,7 +174,7 @@ elements['head'] = Element(optional_start=True, optional_end=True,
     rules=attributes['head'], contents=contents['head'])
 # document head
 
-elements['hr'] = Element(empty_tag=True,
+elements['hr'] = Element(
     rules=attributes['hr'], contents=contents['hr'])
 # horizontal rule
 
@@ -189,11 +190,11 @@ elements['iframe'] = Element(allow_empty=True,
     rules=attributes['iframe'], contents=contents['iframe'])
 # inline subwindow
 
-elements['img'] = Element(empty_tag=True,
+elements['img'] = Element(
     rules=attributes['img'], contents=contents['img'])
 # Embedded image
 
-elements['input'] = Element(empty_tag=True,
+elements['input'] = Element(
     rules=attributes['input'], contents=contents['input'])
 # form control
 
@@ -201,7 +202,7 @@ elements['ins'] = Element(
     rules=attributes['ins'], contents=contents['ins'])
 # inserted text
 
-elements['isindex'] = Element(empty_tag=True,
+elements['isindex'] = Element(
     rules=attributes['isindex'], contents=contents['isindex'])
 # single line prompt; Deprecated
 
@@ -221,7 +222,7 @@ elements['li'] = Element(optional_end=True,
     rules=attributes['li'], contents=contents['li'])
 # list item
 
-elements['link'] = Element(empty_tag=True,
+elements['link'] = Element(
     rules=attributes['link'], contents=contents['link'])
 # a media-independent link
 
@@ -233,7 +234,7 @@ elements['menu'] = Element(
     rules=attributes['menu'], contents=contents['menu'])
 # menu list; Deprecated
 
-elements['meta'] = Element(empty_tag=True,
+elements['meta'] = Element(
     rules=attributes['meta'], contents=contents['meta'])
 # generic metainformation
 
@@ -265,7 +266,7 @@ elements['p'] = Element(optional_end=True,
     rules=attributes['p'], contents=contents['p'])
 # paragraph
 
-elements['param'] = Element(empty_tag=True,
+elements['param'] = Element(
     rules=attributes['param'], contents=contents['param'])
 # named property value
 

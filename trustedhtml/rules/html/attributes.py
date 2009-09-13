@@ -281,7 +281,7 @@ attributes['button'] = {
     'style': values['style'],
     'tabindex': values['tabindex'],
     'title': values['title'],
-    'type': values['type'],
+    'type': values['type~b'],
     'value': values['value'],
 }
 

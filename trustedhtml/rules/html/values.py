@@ -15,12 +15,13 @@ We do it to parse descriptions and generate ``map.py``.
 
 from trustedhtml.classes import RegExp, Sequence
 
-from trustedhtml.rules.html.types import name, name_required, idrefs, idrefs_comma, number,\
-    number_required, positive_number, text, text_required, uri, uri_required,\
-    uri_image, uri_image_required, uris, color, pixels, length, multi_length,\
+from trustedhtml.rules.html.types import name, name_required, idrefs,\
+    idrefs_comma, number, number_required, positive_number, text,\
+    text_required, text_default, uri, uri_required, uri_image,\
+    uri_image_required, uris, color, pixels, length, multi_length,\
     multi_lengths, length_required, coords, content_type, content_types,\
     content_type_required, language_code, charset, charsets, character,\
-    datetime, link_types, media_descs, style_sheet, frame_target, script 
+    datetime, link_types, media_descs, style_sheet, frame_target, script
 
 values = {}
 
@@ -534,7 +535,7 @@ values['type~o'] = RegExp(regexp=r'(1|a|A|i|I)$')
 values['type~u'] = RegExp(regexp=r'(disc|square|circle)$')
 # bullet style (UL); deprecated
 
-values['type'] = RegExp(regexp=r'(button|submit|reset)$')
+values['type~b'] = RegExp(regexp=r'(button|submit|reset)$')
 # for use as form button (BUTTON)
 
 values['usemap'] = uri

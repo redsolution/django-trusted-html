@@ -21,7 +21,7 @@ import custom
 from trustedhtml.classes import Style
 
 full = Style(rules=values.values)
-custom_common = Style(rules=custom.common)
-custom_tables = Style(rules=custom.tables)
-custom_images = Style(rules=custom.images)
+common = Style(rules=custom.common)
+tables = Style(rules=custom.tables)
+images = Style(rules=custom.images)
 #    allowed_value=List(values='inherit'),
