@@ -9,275 +9,366 @@ from trustedhtml.rules.html.attributes import attributes
 
 elements = {}
 
-elements['a'] = Element(allow_empty=True, rules=attributes['a'])
+elements['a'] = Element(allow_empty=True,
+    rules=attributes['a'], contents=contents['a'])
 # anchor
 
-elements['abbr'] = Element(rules=attributes['abbr'])
+elements['abbr'] = Element(
+    rules=attributes['abbr'], contents=contents['abbr'])
 # abbreviated form (e.g., WWW, HTTP, etc.)
 
-elements['acronym'] = Element(rules=attributes['acronym'])
-# 
+elements['acronym'] = Element(
+    rules=attributes['acronym'], contents=contents['acronym'])
+#
 
-elements['address'] = Element(rules=attributes['address'])
+elements['address'] = Element(
+    rules=attributes['address'], contents=contents['address'])
 # information on author
 
-elements['applet'] = Element(allow_empty=True, rules=attributes['applet'])
+elements['applet'] = Element(allow_empty=True,
+    rules=attributes['applet'], contents=contents['applet'])
 # Java applet; Deprecated
 
-elements['area'] = Element(empty_tag=True, rules=attributes['area'])
+elements['area'] = Element(empty_tag=True,
+    rules=attributes['area'], contents=contents['area'])
 # client-side image map area
 
-elements['b'] = Element(rules=attributes['b'])
+elements['b'] = Element(
+    rules=attributes['b'], contents=contents['b'])
 # bold text style
 
-elements['base'] = Element(empty_tag=True, rules=attributes['base'])
+elements['base'] = Element(empty_tag=True,
+    rules=attributes['base'], contents=contents['base'])
 # document base URI
 
-elements['basefont'] = Element(empty_tag=True, rules=attributes['basefont'])
+elements['basefont'] = Element(empty_tag=True,
+    rules=attributes['basefont'], contents=contents['basefont'])
 # base font size; Deprecated
 
-elements['bdo'] = Element(rules=attributes['bdo'])
+elements['bdo'] = Element(
+    rules=attributes['bdo'], contents=contents['bdo'])
 # I18N BiDi over-ride
 
-elements['big'] = Element(rules=attributes['big'])
+elements['big'] = Element(
+    rules=attributes['big'], contents=contents['big'])
 # large text style
 
-elements['blockquote'] = Element(rules=attributes['blockquote'])
+elements['blockquote'] = Element(
+    rules=attributes['blockquote'], contents=contents['blockquote'])
 # long quotation
 
-elements['body'] = Element(allow_empty=True, optional_start=True, optional_end=True, rules=attributes['body'])
+elements['body'] = Element(allow_empty=True, optional_start=True, optional_end=True,
+    rules=attributes['body'], contents=contents['body'])
 # document body
 
-elements['br'] = Element(empty_tag=True, rules=attributes['br'])
+elements['br'] = Element(empty_tag=True,
+    rules=attributes['br'], contents=contents['br'])
 # forced line break
 
-elements['button'] = Element(allow_empty=True, rules=attributes['button'])
+elements['button'] = Element(allow_empty=True,
+    rules=attributes['button'], contents=contents['button'])
 # push button
 
-elements['caption'] = Element(allow_empty=True, rules=attributes['caption'])
+elements['caption'] = Element(allow_empty=True,
+    rules=attributes['caption'], contents=contents['caption'])
 # table caption
 
-elements['center'] = Element(rules=attributes['center'])
+elements['center'] = Element(
+    rules=attributes['center'], contents=contents['center'])
 # shorthand for DIV align=center; Deprecated
 
-elements['cite'] = Element(rules=attributes['cite'])
+elements['cite'] = Element(
+    rules=attributes['cite'], contents=contents['cite'])
 # citation
 
-elements['code'] = Element(rules=attributes['code'])
+elements['code'] = Element(
+    rules=attributes['code'], contents=contents['code'])
 # computer code fragment
 
-elements['col'] = Element(empty_tag=True, rules=attributes['col'])
+elements['col'] = Element(empty_tag=True,
+    rules=attributes['col'], contents=contents['col'])
 # table column
 
-elements['colgroup'] = Element(optional_end=True, rules=attributes['colgroup'])
+elements['colgroup'] = Element(optional_end=True,
+    rules=attributes['colgroup'], contents=contents['colgroup'])
 # table column group
 
-elements['dd'] = Element(optional_end=True, rules=attributes['dd'])
+elements['dd'] = Element(optional_end=True,
+    rules=attributes['dd'], contents=contents['dd'])
 # definition description
 
-elements['del'] = Element(rules=attributes['del'])
+elements['del'] = Element(
+    rules=attributes['del'], contents=contents['del'])
 # deleted text
 
-elements['dfn'] = Element(rules=attributes['dfn'])
+elements['dfn'] = Element(
+    rules=attributes['dfn'], contents=contents['dfn'])
 # instance definition
 
-elements['dir'] = Element(rules=attributes['dir'])
+elements['dir'] = Element(
+    rules=attributes['dir'], contents=contents['dir'])
 # directory list; Deprecated
 
-elements['div'] = Element(rules=attributes['div'])
+elements['div'] = Element(
+    rules=attributes['div'], contents=contents['div'])
 # generic language/style container
 
-elements['dl'] = Element(rules=attributes['dl'])
+elements['dl'] = Element(
+    rules=attributes['dl'], contents=contents['dl'])
 # definition list
 
-elements['dt'] = Element(optional_end=True, rules=attributes['dt'])
+elements['dt'] = Element(optional_end=True,
+    rules=attributes['dt'], contents=contents['dt'])
 # definition term
 
-elements['em'] = Element(rules=attributes['em'])
+elements['em'] = Element(
+    rules=attributes['em'], contents=contents['em'])
 # emphasis
 
-elements['fieldset'] = Element(rules=attributes['fieldset'])
+elements['fieldset'] = Element(
+    rules=attributes['fieldset'], contents=contents['fieldset'])
 # form control group
 
-elements['font'] = Element(rules=attributes['font'])
+elements['font'] = Element(
+    rules=attributes['font'], contents=contents['font'])
 # local change to font; Deprecated
 
-elements['form'] = Element(rules=attributes['form'])
+elements['form'] = Element(
+    rules=attributes['form'], contents=contents['form'])
 # interactive form
 
-elements['frame'] = Element(empty_tag=True, rules=attributes['frame'])
+elements['frame'] = Element(empty_tag=True,
+    rules=attributes['frame'], contents=contents['frame'])
 # subwindow
 
-elements['frameset'] = Element(rules=attributes['frameset'])
+elements['frameset'] = Element(
+    rules=attributes['frameset'], contents=contents['frameset'])
 # window subdivision
 
-elements['h1'] = Element(rules=attributes['h1'])
+elements['h1'] = Element(
+    rules=attributes['h1'], contents=contents['h1'])
 # heading
 
-elements['h2'] = Element(rules=attributes['h2'])
+elements['h2'] = Element(
+    rules=attributes['h2'], contents=contents['h2'])
 # heading
 
-elements['h3'] = Element(rules=attributes['h3'])
+elements['h3'] = Element(
+    rules=attributes['h3'], contents=contents['h3'])
 # heading
 
-elements['h4'] = Element(rules=attributes['h4'])
+elements['h4'] = Element(
+    rules=attributes['h4'], contents=contents['h4'])
 # heading
 
-elements['h5'] = Element(rules=attributes['h5'])
+elements['h5'] = Element(
+    rules=attributes['h5'], contents=contents['h5'])
 # heading
 
-elements['h6'] = Element(rules=attributes['h6'])
+elements['h6'] = Element(
+    rules=attributes['h6'], contents=contents['h6'])
 # heading
 
-elements['head'] = Element(optional_start=True, optional_end=True, rules=attributes['head'])
+elements['head'] = Element(optional_start=True, optional_end=True,
+    rules=attributes['head'], contents=contents['head'])
 # document head
 
-elements['hr'] = Element(empty_tag=True, rules=attributes['hr'])
+elements['hr'] = Element(empty_tag=True,
+    rules=attributes['hr'], contents=contents['hr'])
 # horizontal rule
 
-elements['html'] = Element(optional_start=True, optional_end=True, rules=attributes['html'])
+elements['html'] = Element(optional_start=True, optional_end=True,
+    rules=attributes['html'], contents=contents['html'])
 # document root element
 
-elements['i'] = Element(rules=attributes['i'])
+elements['i'] = Element(
+    rules=attributes['i'], contents=contents['i'])
 # italic text style
 
-elements['iframe'] = Element(allow_empty=True, rules=attributes['iframe'])
+elements['iframe'] = Element(allow_empty=True,
+    rules=attributes['iframe'], contents=contents['iframe'])
 # inline subwindow
 
-elements['img'] = Element(empty_tag=True, rules=attributes['img'])
+elements['img'] = Element(empty_tag=True,
+    rules=attributes['img'], contents=contents['img'])
 # Embedded image
 
-elements['input'] = Element(empty_tag=True, rules=attributes['input'])
+elements['input'] = Element(empty_tag=True,
+    rules=attributes['input'], contents=contents['input'])
 # form control
 
-elements['ins'] = Element(rules=attributes['ins'])
+elements['ins'] = Element(
+    rules=attributes['ins'], contents=contents['ins'])
 # inserted text
 
-elements['isindex'] = Element(empty_tag=True, rules=attributes['isindex'])
+elements['isindex'] = Element(empty_tag=True,
+    rules=attributes['isindex'], contents=contents['isindex'])
 # single line prompt; Deprecated
 
-elements['kbd'] = Element(rules=attributes['kbd'])
+elements['kbd'] = Element(
+    rules=attributes['kbd'], contents=contents['kbd'])
 # text to be entered by the user
 
-elements['label'] = Element(rules=attributes['label'])
+elements['label'] = Element(
+    rules=attributes['label'], contents=contents['label'])
 # form field label text
 
-elements['legend'] = Element(rules=attributes['legend'])
+elements['legend'] = Element(
+    rules=attributes['legend'], contents=contents['legend'])
 # fieldset legend
 
-elements['li'] = Element(optional_end=True, rules=attributes['li'])
+elements['li'] = Element(optional_end=True,
+    rules=attributes['li'], contents=contents['li'])
 # list item
 
-elements['link'] = Element(empty_tag=True, rules=attributes['link'])
+elements['link'] = Element(empty_tag=True,
+    rules=attributes['link'], contents=contents['link'])
 # a media-independent link
 
-elements['map'] = Element(rules=attributes['map'])
+elements['map'] = Element(
+    rules=attributes['map'], contents=contents['map'])
 # client-side image map
 
-elements['menu'] = Element(rules=attributes['menu'])
+elements['menu'] = Element(
+    rules=attributes['menu'], contents=contents['menu'])
 # menu list; Deprecated
 
-elements['meta'] = Element(empty_tag=True, rules=attributes['meta'])
+elements['meta'] = Element(empty_tag=True,
+    rules=attributes['meta'], contents=contents['meta'])
 # generic metainformation
 
-elements['noframes'] = Element(rules=attributes['noframes'])
+elements['noframes'] = Element(
+    rules=attributes['noframes'], contents=contents['noframes'])
 # alternate content container for non frame-based rendering
 
-elements['noscript'] = Element(rules=attributes['noscript'])
+elements['noscript'] = Element(
+    rules=attributes['noscript'], contents=contents['noscript'])
 # alternate content container for non script-based rendering
 
-elements['object'] = Element(allow_empty=True, rules=attributes['object'])
+elements['object'] = Element(allow_empty=True,
+    rules=attributes['object'], contents=contents['object'])
 # generic embedded object
 
-elements['ol'] = Element(rules=attributes['ol'])
+elements['ol'] = Element(
+    rules=attributes['ol'], contents=contents['ol'])
 # ordered list
 
-elements['optgroup'] = Element(allow_empty=True, rules=attributes['optgroup'])
+elements['optgroup'] = Element(allow_empty=True,
+    rules=attributes['optgroup'], contents=contents['optgroup'])
 # option group
 
-elements['option'] = Element(optional_end=True, rules=attributes['option'])
+elements['option'] = Element(optional_end=True,
+    rules=attributes['option'], contents=contents['option'])
 # selectable choice
 
-elements['p'] = Element(optional_end=True, rules=attributes['p'])
+elements['p'] = Element(optional_end=True,
+    rules=attributes['p'], contents=contents['p'])
 # paragraph
 
-elements['param'] = Element(empty_tag=True, rules=attributes['param'])
+elements['param'] = Element(empty_tag=True,
+    rules=attributes['param'], contents=contents['param'])
 # named property value
 
-elements['pre'] = Element(rules=attributes['pre'])
+elements['pre'] = Element(
+    rules=attributes['pre'], contents=contents['pre'])
 # preformatted text
 
-elements['q'] = Element(rules=attributes['q'])
+elements['q'] = Element(
+    rules=attributes['q'], contents=contents['q'])
 # short inline quotation
 
-elements['s'] = Element(rules=attributes['s'])
+elements['s'] = Element(
+    rules=attributes['s'], contents=contents['s'])
 # strike-through text style; Deprecated
 
-elements['samp'] = Element(rules=attributes['samp'])
+elements['samp'] = Element(
+    rules=attributes['samp'], contents=contents['samp'])
 # sample program output, scripts, etc.
 
-elements['script'] = Element(rules=attributes['script'])
+elements['script'] = Element(
+    rules=attributes['script'], contents=contents['script'])
 # script statements
 
-elements['select'] = Element(rules=attributes['select'])
+elements['select'] = Element(
+    rules=attributes['select'], contents=contents['select'])
 # option selector
 
-elements['small'] = Element(rules=attributes['small'])
+elements['small'] = Element(
+    rules=attributes['small'], contents=contents['small'])
 # small text style
 
-elements['span'] = Element(rules=attributes['span'])
+elements['span'] = Element(
+    rules=attributes['span'], contents=contents['span'])
 # generic language/style container
 
-elements['strike'] = Element(rules=attributes['strike'])
+elements['strike'] = Element(
+    rules=attributes['strike'], contents=contents['strike'])
 # strike-through text; Deprecated
 
-elements['strong'] = Element(rules=attributes['strong'])
+elements['strong'] = Element(
+    rules=attributes['strong'], contents=contents['strong'])
 # strong emphasis
 
-elements['style'] = Element(rules=attributes['style'])
+elements['style'] = Element(
+    rules=attributes['style'], contents=contents['style'])
 # style info
 
-elements['sub'] = Element(rules=attributes['sub'])
+elements['sub'] = Element(
+    rules=attributes['sub'], contents=contents['sub'])
 # subscript
 
-elements['sup'] = Element(rules=attributes['sup'])
+elements['sup'] = Element(
+    rules=attributes['sup'], contents=contents['sup'])
 # superscript
 
-elements['table'] = Element(rules=attributes['table'])
-# 
+elements['table'] = Element(
+    rules=attributes['table'], contents=contents['table'])
+#
 
-elements['tbody'] = Element(optional_start=True, optional_end=True, rules=attributes['tbody'])
+elements['tbody'] = Element(optional_start=True, optional_end=True,
+    rules=attributes['tbody'], contents=contents['tbody'])
 # table body
 
-elements['td'] = Element(default='&nbsp;', optional_end=True, rules=attributes['td'])
+elements['td'] = Element(default='&nbsp;', optional_end=True,
+    rules=attributes['td'], contents=contents['td'])
 # table data cell
 
-elements['textarea'] = Element(allow_empty=True, rules=attributes['textarea'])
+elements['textarea'] = Element(allow_empty=True,
+    rules=attributes['textarea'], contents=contents['textarea'])
 # multi-line text field
 
-elements['tfoot'] = Element(optional_end=True, rules=attributes['tfoot'])
+elements['tfoot'] = Element(optional_end=True,
+    rules=attributes['tfoot'], contents=contents['tfoot'])
 # table footer
 
-elements['th'] = Element(default='&nbsp;', optional_end=True, rules=attributes['th'])
+elements['th'] = Element(default='&nbsp;', optional_end=True,
+    rules=attributes['th'], contents=contents['th'])
 # table header cell
 
-elements['thead'] = Element(optional_end=True, rules=attributes['thead'])
+elements['thead'] = Element(optional_end=True,
+    rules=attributes['thead'], contents=contents['thead'])
 # table header
 
-elements['title'] = Element(rules=attributes['title'])
+elements['title'] = Element(
+    rules=attributes['title'], contents=contents['title'])
 # document title
 
-elements['tr'] = Element(optional_end=True, rules=attributes['tr'])
+elements['tr'] = Element(optional_end=True,
+    rules=attributes['tr'], contents=contents['tr'])
 # table row
 
-elements['tt'] = Element(rules=attributes['tt'])
+elements['tt'] = Element(
+    rules=attributes['tt'], contents=contents['tt'])
 # teletype or monospaced text style
 
-elements['u'] = Element(rules=attributes['u'])
+elements['u'] = Element(
+    rules=attributes['u'], contents=contents['u'])
 # underlined text style; Deprecated
 
-elements['ul'] = Element(rules=attributes['ul'])
+elements['ul'] = Element(
+    rules=attributes['ul'], contents=contents['ul'])
 # unordered list
 
-elements['var'] = Element(rules=attributes['var'])
+elements['var'] = Element(
+    rules=attributes['var'], contents=contents['var'])
 # instance of a variable or program argument
