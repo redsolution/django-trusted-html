@@ -251,6 +251,19 @@ class Css(unittest.TestCase):
             'background:#FDFEFF url(/media/img/header.gif) repeat-x scroll center;'
             'height:auto; margin:0; padding:2; ppading: 2px; width:auto;'),
             'background: #FDFEFF url(/media/img/header.gif) repeat-x scroll center; height: auto; margin: 0; width: auto;')
+        
+    def test_custom(self):
+        lst = rules.css.custom.disabled + rules.css.custom.for_table + \
+            rules.css.custom.for_image + rules.css.custom.for_table_and_image + \
+            rules.css.custom.allowed
+        append = []
+        remove = [name for name in rules.css.values.values.iterkeys()]
+        for item in lst:
+            self.assertFalse(item in append)
+            append.append(item)
+            self.assertTrue(item in remove)
+            remove.remove(item)
+        self.assertFalse(remove)
 
     def tearDown(self):
         pass
@@ -260,6 +273,51 @@ class Html(unittest.TestCase):
 
     def setUp(self):
         pass
+    
+    def test_values(self):
+#        values['charset'],
+#        values['coords'],
+#        values['rel'],
+#        values['rev'],
+#        values['shape'],
+#        values['tabindex'],
+#        values['target'],
+#        values['type'],
+#        values['shape'],
+#        values['width~c'],
+#        values['accept'],
+#        values['accept-charset'],
+#        values['enctype'],
+#        values['method'],
+#        values['frameborder'],
+#        values['marginheight'],
+#        values['marginwidth'],
+#        values['scrolling'],
+#        values['cols'],
+#        values['rows'],
+#        values['profile'],
+#        values['version'],
+#        values['longdesc'],
+#        values['for'],
+#        values['media'],
+#        values['archive'],
+#        values['axis'],
+#        values['headers'],
+#        values['scope'],
+        pass
+
+    def test_custom(self):
+        lst = rules.html.attributes.disabled + rules.css.attributes.for_table + \
+            rules.css.custom.for_image + rules.css.custom.for_table_and_image + \
+            rules.css.custom.allowed
+        append = []
+        remove = [name for name in rules.css.values.values.iterkeys()]
+        for item in lst:
+            self.assertFalse(item in append)
+            append.append(item)
+            self.assertTrue(item in remove)
+            remove.remove(item)
+        self.assertFalse(remove)
     
     def test_html(self):
         self.assertEqual(rules.html.full.validate(
@@ -370,111 +428,6 @@ def replace(value):
     value = value.replace('</p>', '</p>\n')
     return value
 
-tiny_omg = u"""
-<p><strong>q</strong><em>w</em><span style="text-decoration: underline;">e</span>r<span style="text-decoration: line-through;">t</span><sub>y</sub><sup>u</sup></p>
-<ul>
-<li>io</li>
-</ul>
-<ol>
-<li>p[</li>
-</ol>
-<blockquote>
-<blockquote><ol>
-<li>]as</li>
-</ol></blockquote>
-</blockquote>
-<ol>
-<li>dfgh</li>
-</ol>
-<blockquote>
-<p>jk</p>
-</blockquote>
-<p><a href="http://127.0.0.1:8000/editor/2/">zxc</a>v</p>
-<p>b<a name="asdsa"></a>vnm1<a name="as"></a>2345sd</p>
-<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>
-<p>fs</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>fdf</p>
-<table style="height: 50px;" border="3" cellspacing="2" cellpadding="1" width="100" frame="box" rules="cols" align="left" summary="asd">
-<caption></caption> 
-<tbody>
-<tr>
-<td>dd</td>
-<td>fd</td>
-</tr>
-<tr>
-<td omg='1'>fdf</td>
-<td>fd</td>
-</tr>
-</tbody>
-</table>
-<p>df</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>n</p>
-<table border="0" cellpadding="1">
-<tbody>
-<tr>
-<td>122</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr>
-<td>&nbsp;</td>
-<td>3434</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr>
-<td colspan="2">&nbsp;</td>
-<td>567</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>89</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr>
-<td>&nbsp;</td>
-<td rowspan="2">&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>00</td>
-<td>&nbsp;</td>
-</tr>
-<tr>
-<td><img title="Невинность" src="media/js/tiny_mce/plugins/emotions/img/smiley-innocent.gif" border="0" alt="Невинность" /></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>ads</td>
-</tr>
-</tbody>
-</table>
-<p>n</p>
-<address>a</address>
-<pre>f<br /></pre>
-<h1>1<br /></h1>
-<h2>2</h2>
-<h3>3</h3>
-<h4>4</h4>
-<h5>5</h5>
-<h6>&clubs; 01.08.2008 &lt;img src="javascript:alert(1);"&gt; 16:27:31</h6>
-"""
-
 tinymce=u"""
 <p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>
 <p><a name="ANC"></a>a</p>
@@ -498,7 +451,11 @@ tinymce=u"""
 <li>2</li>
 <li>3</li>
 </ol><address>H</address>
-<pre>J</pre>
+<pre>
+J
+JJJJ
+JJ
+</pre>
 <h1>1</h1>
 <h2>2</h2>
 <h3>3</h3>
@@ -510,7 +467,11 @@ tinymce=u"""
 <p>&nbsp;</p>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
-<p>And:</p>
+<p>And</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>this:</p>
+<p>&nbsp;</p>
 <p>
 <object width="100" height="100" data="http://www.youtube.com/watch?v=rAy8JbMitog" type="application/x-shockwave-flash">
 <param name="src" value="http://www.youtube.com/watch?v=rAy8JbMitog" />
@@ -554,7 +515,21 @@ tinymce=u"""
 <tr style="background-image: url(/media/img/content-corner.gif);" align="right">
 <td>ad</td>
 <td>qw</td>
-<td>er</td>
+<td>
+<table style="height: 100px;" width="40" frame="lhs" rules="cols" align="left" summary="asd" hack='on'>
+<caption></caption> 
+<tbody>
+<tr>
+<td>dd</td>
+<td>fd</td>
+</tr>
+<tr>
+<td>fdf</td>
+<td>fd</td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr>
 <td></td>
@@ -566,5 +541,6 @@ tinymce=u"""
 </tbody>
 </table>
 <p>&nbsp;</p>
-<p>русский end</p>
+<p>&lt;img src="javascript:alert(1);"&gt;</p>
+<p>русский<br />end</p>
 """        

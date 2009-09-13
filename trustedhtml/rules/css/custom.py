@@ -145,3 +145,54 @@ replace = {
 common = get_dict(source=values, leave=allowed, append=replace)
 tables = get_dict(source=values, leave=allowed + for_table + for_table_and_image, append=replace)
 images = get_dict(source=values, leave=allowed + for_image + for_table_and_image, append=replace)
+
+
+#style_div = Style(rules={
+#    'display': List(values=[
+#        'none'], invalid=True),
+#})
+#
+#style_span = Style(rules={
+#    'text-decoration': List(values=[
+#        'underline', 'line-through', 
+#    ]),
+#})
+#
+#style_td = Style(rules={
+#    'border': border_complex,
+#    'border-width': border_width,
+#    'border-style': border_style,
+#    'border-color': color,
+#    
+#    'margin': indent,
+#    'padding': indent,
+#
+#    'margin-top': size,
+#    'padding-top': size,
+#
+#    'width': size,
+#    'height': size,
+#
+#    'white-space': List(values=[
+#        'pre', 'nowrap', 'normal', 
+#    ]),
+#}, equivalents = {
+#    'border': [
+#        'border-top', 'border-bottom', 'border-left', 'border-right'
+#    ],
+#    'border-width': [
+#        'border-top-width', 'border-bottom-width', 'border-left-width', 'border-right-width',
+#    ],
+#    'border-style': [
+#        'border-top-style', 'border-bottom-style', 'border-left-style', 'border-right-style',
+#    ],
+#    'border-color': [
+#        'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color',
+#    ],
+#    'margin-top': [
+#        'margin-bottom', 'margin-left', 'margin-right',
+#    ],
+#    'padding-top': [
+#        'padding-bottom', 'padding-left', 'padding-right',
+#    ],
+#})

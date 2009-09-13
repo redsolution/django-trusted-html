@@ -66,8 +66,11 @@ values['alink'] = color
 values['alt'] = text
 # short description (APPLET); deprecated
 
-values['alt~r'] = text_required # Fix: default = ''
+values['alt~r'] = text_required
 # short description (AREA, IMG)
+
+values['alt~i'] = text_default
+# Fix for IMG, that often has no alt attribute.
 
 values['alt'] = text
 # short description (INPUT)
@@ -225,6 +228,9 @@ values['height~r'] = length_required
 values['href'] = uri
 # URI for linked resource (A, AREA, LINK)
 
+values['href~r'] = uri_required
+# Used by href version of tag A
+
 values['href'] = uri
 # URI that acts as base URI (BASE)
 
@@ -303,8 +309,11 @@ values['name'] = name
 values['name'] = name
 # name of image for scripting (IMG)
 
-values['name'] = name # Fix: required=True
+values['name'] = name
 # named link end (A)
+
+values['name~r'] = name_required
+# Used by anchor version of tag A
 
 values['name'] = name
 # submit as part of form (INPUT, OBJECT)
@@ -423,7 +432,7 @@ values['rowspan'] = number
 values['rules'] = RegExp(regexp=r'(none|groups|rows|cols|all)$')
 # rulings between rows and cols (TABLE)
 
-values['scheme'] = name
+values['scheme'] = text
 # select form of content (META)
 
 values['scope'] = RegExp(regexp=r'(row|col|rowgroup|colgroup)$')

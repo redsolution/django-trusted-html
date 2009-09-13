@@ -20,6 +20,7 @@ positive_number = RegExp(regexp=r'(%(positive-number)s)$' % grammar)
 
 text = String()
 text_required = String(required=True)
+text_default = String(default='')
 uri = Uri()
 uri_required = Uri(required=True)
 uri_image = Uri(is_image=True)

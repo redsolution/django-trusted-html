@@ -847,7 +847,7 @@ attributes['iframe'] = {
 
 attributes['img'] = {
     'align': values['align~i'],
-    'alt': values['alt~r'],
+    'alt': values['alt~i'],
     'border': values['border'],
     'class': values['class'],
     'dir': values['dir'],
