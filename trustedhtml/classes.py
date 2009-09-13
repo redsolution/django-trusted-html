@@ -709,7 +709,7 @@ class Element(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
 
-    def __init__(self, rules={}, allow_empty=False,
+    def __init__(self, rules={}, allow_empty=True,
         optional_start=False, optional_end=False, empty_tag=False, 
         root_tag=False, save_content=True, **kwargs):
         """

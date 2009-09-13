@@ -9,7 +9,7 @@ from trustedhtml.rules.html.attributes import attributes
 
 elements = {}
 
-elements['a'] = Element(rules=attributes['a'])
+elements['a'] = Element(allow_empty=True, rules=attributes['a'])
 # anchor
 
 elements['abbr'] = Element(rules=attributes['abbr'])
@@ -21,7 +21,7 @@ elements['acronym'] = Element(rules=attributes['acronym'])
 elements['address'] = Element(rules=attributes['address'])
 # information on author
 
-elements['applet'] = Element(rules=attributes['applet'])
+elements['applet'] = Element(allow_empty=True, rules=attributes['applet'])
 # Java applet; Deprecated
 
 elements['area'] = Element(empty_tag=True, rules=attributes['area'])
@@ -45,16 +45,16 @@ elements['big'] = Element(rules=attributes['big'])
 elements['blockquote'] = Element(rules=attributes['blockquote'])
 # long quotation
 
-elements['body'] = Element(optional_start=True, optional_end=True, rules=attributes['body'])
+elements['body'] = Element(allow_empty=True, optional_start=True, optional_end=True, rules=attributes['body'])
 # document body
 
 elements['br'] = Element(empty_tag=True, rules=attributes['br'])
 # forced line break
 
-elements['button'] = Element(rules=attributes['button'])
+elements['button'] = Element(allow_empty=True, rules=attributes['button'])
 # push button
 
-elements['caption'] = Element(rules=attributes['caption'])
+elements['caption'] = Element(allow_empty=True, rules=attributes['caption'])
 # table caption
 
 elements['center'] = Element(rules=attributes['center'])
@@ -141,7 +141,7 @@ elements['html'] = Element(optional_start=True, optional_end=True, rules=attribu
 elements['i'] = Element(rules=attributes['i'])
 # italic text style
 
-elements['iframe'] = Element(rules=attributes['iframe'])
+elements['iframe'] = Element(allow_empty=True, rules=attributes['iframe'])
 # inline subwindow
 
 elements['img'] = Element(empty_tag=True, rules=attributes['img'])
@@ -186,13 +186,13 @@ elements['noframes'] = Element(rules=attributes['noframes'])
 elements['noscript'] = Element(rules=attributes['noscript'])
 # alternate content container for non script-based rendering
 
-elements['object'] = Element(rules=attributes['object'])
+elements['object'] = Element(allow_empty=True, rules=attributes['object'])
 # generic embedded object
 
 elements['ol'] = Element(rules=attributes['ol'])
 # ordered list
 
-elements['optgroup'] = Element(rules=attributes['optgroup'])
+elements['optgroup'] = Element(allow_empty=True, rules=attributes['optgroup'])
 # option group
 
 elements['option'] = Element(optional_end=True, rules=attributes['option'])
@@ -249,16 +249,16 @@ elements['table'] = Element(rules=attributes['table'])
 elements['tbody'] = Element(optional_start=True, optional_end=True, rules=attributes['tbody'])
 # table body
 
-elements['td'] = Element(optional_end=True, rules=attributes['td'])
+elements['td'] = Element(default='&nbsp;', optional_end=True, rules=attributes['td'])
 # table data cell
 
-elements['textarea'] = Element(rules=attributes['textarea'])
+elements['textarea'] = Element(allow_empty=True, rules=attributes['textarea'])
 # multi-line text field
 
 elements['tfoot'] = Element(optional_end=True, rules=attributes['tfoot'])
 # table footer
 
-elements['th'] = Element(optional_end=True, rules=attributes['th'])
+elements['th'] = Element(default='&nbsp;', optional_end=True, rules=attributes['th'])
 # table header cell
 
 elements['thead'] = Element(optional_end=True, rules=attributes['thead'])
