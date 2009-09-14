@@ -15,8 +15,9 @@ class Log(models.Model):
     rule = models.TextField()
 
 def log(sender, rule, value, source, **kwargs):
-    Log.objects.create(valid='exception' not in kwargs, source=source,
-        result=value, sender=unicode(sender), rule=unicode(rule.__dict__))
+    if source != value:
+        Log.objects.create(valid='exception' not in kwargs, source=source,
+            result=value, sender=unicode(sender), rule=unicode(rule.__dict__))
     return value
 
 if getattr(settings, 'TRUSTEDHTML_ENABLE_LOG', False):
