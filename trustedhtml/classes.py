@@ -38,19 +38,20 @@ class IncorrectException(TrustedException):
     """
     pass
  
-class RequiredException(TrustedException):
-    """
-    Raised when value is empty and ``required`` flag is True.
-    
-    This exception means that hole item must be removed.
-    """
-    pass
- 
 class InvalidException(TrustedException):
     """
     Raised when value pass check and invalid flag is True.
     
+    This exception means that hole item must be removed.
+    """
+    pass
+    
+class ElementException(TrustedException):
+    """
+    Raised when value fail check and tag_exception flag is True.
+    
     This exception means that hole TAG must be removed.
+    This exception will raise throw all rules to element-rule.
     """
     pass
     
@@ -60,33 +61,30 @@ class Rule(object):
     All rules inherit it and overwrite ``core`` or ``__init__`` functions.
     """
 
-    def __init__(self, required=False, default=None, allow_empty=True,
-        invalid=False, data=None):
+    def __init__(self, allow_empty=True, default=None, invalid=False, 
+        element_exception=False, data=None):
         """
         Sets behaviour for the rule:
 
-        ``required`` if True than value is required.
-        Example: attribute "src" for tag "img".
+        ``allow_empty`` if False than value can`t be empty.
+        For example: attribute "width" for tag "img".
 
-        ``default`` if is not None and validation fail than will return this one.
-        Example: attribute "alt" for tag "img". 
-
-        ``allow_empty`` if True than value can be empty.
-        Example: attribute "width" for tag "img".
+        ``default`` if it is not None and validation fail than will return this one.
+        For example: attribute "alt" for tag "img". 
 
         ``invalid`` if True than result of validation will be inverted.
-        Also this mean that hole TAG must be removed if such rule succeed.
-        Example: "none" value for "display" style property
-        (we want to remove such tag).
+        So if validation will pass than InvalidException will be raised.
+        It if validation will fail than source value will be returned as correct value.
+        
+        ``element_exception`` if True and validation will failed than
+        hole TAG must be removed.
 
         ``data`` any extended data, usually used by signals.
         """
-        self.required = required
-        if default is not None:
-            default = unicode(default)
-        self.default = default
         self.allow_empty = allow_empty
+        self.default = default
         self.invalid = invalid
+        self.element_exception = element_exception
         self.data = data
 
 
@@ -109,15 +107,19 @@ class Rule(object):
                 value = self.preprocess(value, path)
                 value = self.core(value, path)
                 value = self.postprocess(value, path)
+                if self.invalid:
+                    raise InvalidException(self, value)
+            except ElementException, exception:
+                raise exception
             except TrustedException, exception:
-                if self.default is None:
-                    if self.required:
-                        raise RequiredException(*exception.args)
-                    else:
-                        raise exception
-                value = self.default
-            if self.invalid:
-                raise InvalidException(self, value)
+                if self.element_exception:
+                    raise ElementException(*exception.args)
+                if self.default is not None:
+                    value = self.default
+                elif self.invalid and exception is not InvalidException:
+                    value = source
+                else:
+                    raise exception
 
             results = rule_done.send(sender=self.__class__, rule=self,
                 path=path, value=value, source=source)
@@ -197,6 +199,8 @@ class String(Rule):
         Just specified functions to do it.
         """
         super(String, self).__init__(**kwargs)
+        if self.default is not None:
+            self.default = unicode(self.default)
         self.case_sensitive = case_sensitive
         self.strip = strip
 
@@ -423,7 +427,7 @@ class No(Rule):
     
     def core(self, value, path):
         """Do it."""
-        raise IncorrectException
+        raise IncorrectException(self, value)
 
 
 class And(Rule):
@@ -455,7 +459,7 @@ class Or(Rule):
     Rule suppose that value is correct if there is correct rule in ``rules`` list.
     Validation will return first correct value returned by specified ``rules``.
     If validation for all ``rules`` will fail than raise last exception.
-    If rule raise InvalidException it will be immediately raised.
+    If rule raise ElementException it will be immediately raised.
     """
     
     def __init__(self, rules, **kwargs):
@@ -473,7 +477,7 @@ class Or(Rule):
         for rule in self.rules:
             try:
                 return rule.validate(value, path)
-            except InvalidException, exception:
+            except ElementException, exception:
                 raise exception
             except TrustedException, exception:
                 last = exception
@@ -563,7 +567,7 @@ class Complex(Sequence):
     Validation will return joined parts of value.
     """
 
-    def __init__(self, rules, **kwargs):
+    def __init__(self, rules, allow_empty=False, **kwargs):
         """
         ``rules`` is list of rules for validation.
         """
@@ -586,7 +590,7 @@ class Complex(Sequence):
 
         ``rule_index`` is index in ``rules`` list to be processed.
         
-        Return correct list of parts of value or raise IncorrectException or InvalidException.
+        Return correct list of parts of value or raise IncorrectException or ElementException.
         """
         if value_index >= len(values):
             return values
@@ -597,7 +601,7 @@ class Complex(Sequence):
             result = self.complex(values, path, value_index + 1, rule_index + 1)
             result[value_index] = value
             return result
-        except InvalidException, exception:
+        except ElementException, exception:
             raise exception
         except TrustedException:
             return self.complex(values, path, value_index, rule_index + 1)
@@ -627,13 +631,7 @@ class Validator(object):
         First element of this list will be first rule.
         
         Return list of correct values depending on rules.
-        Or raise exceptions:
-
-        ``RequiredException`` means that list of values not corresponding
-        to rules and instance that contains it must be removed.
-
-        ``InvalidException`` means that list of values not corresponding
-        to rules and TAG that contains it must be removed.
+        Or raise exceptions.
         """
         if not self.rules:
             return []
@@ -645,12 +643,11 @@ class Validator(object):
         for name, rule in self.rules.iteritems():
             try:
                 name = name.lower()
-                try:
-                    value = source[name]
-                except KeyError:
-                    raise EmptyException(self, None)
+                value = source.get(name, None)
                 correct[name] = rule.validate(value, path)
-            except (EmptyException, IncorrectException):
+            except ElementException, exception:
+                raise exception
+            except TrustedException:
                 pass
         # Order values is source ordering. New values will be appended.
         order = [name.lower() for name, value in values]
@@ -693,10 +690,7 @@ class Style(Sequence, Validator):
             property_name = value[:value.find(':')].strip()
             property_value = value[value.find(':')+1:].strip()
             properties.append((property_name, property_value))
-        try:
-            properties = self.check(properties, path)
-        except RequiredException, exception:
-            raise IncorrectException(*exception.args)
+        properties = self.check(properties, path)
         return ['%s: %s' % (property_name, property_value)
             for property_name, property_value in properties]
 
@@ -750,7 +744,7 @@ class Element(Rule, Validator):
         """Do it."""
         try:
             return self.check(value, path)
-        except (RequiredException, InvalidException), exception:
+        except ElementException, exception:
             raise IncorrectException(*exception.args)
 
 
@@ -986,11 +980,11 @@ class Html(String):
                 if source == value:
                     break
             else:
-                raise InvalidException(self, 'Too much attempts to prepare value')
+                raise IncorrectException(self, 'Too much attempts to prepare value')
             source = value
             value = self.fix(value, path)
             if source == value:
                 break
         else:
-            raise InvalidException(self, 'Too much attempts to fix value')
+            raise IncorrectException(self, 'Too much attempts to fix value')
         return value

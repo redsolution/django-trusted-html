@@ -510,7 +510,7 @@ normal = get_elements(simple_elements + rare_elements)
 #values['dir'] = RegExp(regexp=r'(ltr|rtl)$')
 ## direction for weak/neutral text (All elements but APPLET, BASE, BASEFONT, BDO, BR, FRAME, FRAMESET, IFRAME, PARAM, SCRIPT)
 #
-#values['dir~r'] = RegExp(regexp=r'(ltr|rtl)$', required=True)
+#values['dir~r'] = RegExp(regexp=r'(ltr|rtl)$', element_exception=True)
 ## directionality (BDO)
 #
 #values['disabled'] = RegExp(regexp=r'(disabled)$')

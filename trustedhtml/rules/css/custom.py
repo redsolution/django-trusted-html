@@ -145,5 +145,5 @@ images = get_dict(source=values, leave=allowed + for_image, append=replace)
 
 #style_div = Style(rules={
 #    'display': List(values=[
-#        'none'], invalid=True),
+#        'none'], invalid=True, element_exception=True),
 #})

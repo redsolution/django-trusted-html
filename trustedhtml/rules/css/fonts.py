@@ -10,7 +10,7 @@ from trustedhtml.rules.css.grammar import grammar
 from trustedhtml.rules.css.syndata import positive_number, positive_length, positive_percentage
 
 family_name = RegExp(regexp=
-    r'(([!#$%%&(-~]|\\%(nl)s|%(nonascii)s|%(escape)s)*|%(string1)s|%(string2)s)$' % grammar
+    r'(([!#$%%&(-~]|\\%(nl)s|%(nonascii)s|%(escape)s)*|%(string1)s|%(string2)s)$' % grammar,
 )
 
 generic_family = List(values=[

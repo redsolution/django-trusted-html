@@ -9,22 +9,23 @@ from trustedhtml.rules.html.grammar import grammar
 from trustedhtml.rules import css
 
 idref = name = RegExp(regexp=r'(%(name)s)$' % grammar)
-name_required = RegExp(regexp=r'(%(name)s)$' % grammar, required=True)
+name_required = RegExp(regexp=r'(%(name)s)$' % grammar, element_exception=True)
 
 idrefs = RegExp(regexp=r'(%(name)s(%(w)s%(name)s)*)$' % grammar)
 idrefs_comma = RegExp(regexp=r'(%(name)s(%(w)s,%(w)s%(name)s)*)$' % grammar)
 
 number = RegExp(regexp=r'(%(number)s)$' % grammar)
-number_required = RegExp(regexp=r'(%(number)s)$' % grammar, required=True)
+number_required = RegExp(regexp=r'(%(number)s)$' % grammar, element_exception=True)
 positive_number = RegExp(regexp=r'(%(positive-number)s)$' % grammar)
 
+
 text = String()
-text_required = String(required=True)
+text_required = String(element_exception=True)
 text_default = String(default='')
 uri = Uri()
-uri_required = Uri(required=True)
+uri_required = Uri(element_exception=True)
 uri_image = Uri(is_image=True)
-uri_image_required = Uri(is_image=True, required=True)
+uri_image_required = Uri(is_image=True, element_exception=True)
 uris = Sequence(rule=Uri())
 
 color = RegExp(regexp=r'(%(color)s)$' % grammar)
@@ -41,13 +42,13 @@ length = RegExp(regexp=r'(%(length)s)$' % grammar)
 multi_length = RegExp(regexp=r'(%(multi-length)s)$' % grammar)
 multi_lengths = RegExp(regexp=r'(%(multi-length)s(%(w)s,%(w)s%(multi-length)s)*)$' % grammar)
 
-length_required = RegExp(regexp=r'(%(length)s)$' % grammar, required=True)
+length_required = RegExp(regexp=r'(%(length)s)$' % grammar, element_exception=True)
 
 coords = RegExp(regexp=r'(%(length)s(%(w)s,%(w)s%(length)s)(%(w)s,%(w)s%(length)s)+)$' % grammar)
 
 content_type = RegExp(regexp=r'(%(content-type)s)$' % grammar)
 content_types = RegExp(regexp=r'(%(content-type)s(%(w)s,%(w)s%(content-type)s)*)$' % grammar)
-content_type_required = RegExp(regexp=r'(%(content-type)s)$' % grammar, required=True)
+content_type_required = RegExp(regexp=r'(%(content-type)s)$' % grammar, element_exception=True)
 
 language_code = RegExp(regexp=r'(%(language-code)s)$' % grammar)
 

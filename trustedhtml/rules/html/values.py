@@ -190,7 +190,7 @@ values['defer'] = RegExp(regexp=r'(defer)$')
 values['dir'] = RegExp(regexp=r'(ltr|rtl)$')
 # direction for weak/neutral text (All elements but APPLET, BASE, BASEFONT, BDO, BR, FRAME, FRAMESET, IFRAME, PARAM, SCRIPT)
 
-values['dir~r'] = RegExp(regexp=r'(ltr|rtl)$', required=True)
+values['dir~r'] = RegExp(regexp=r'(ltr|rtl)$', element_exception=True)
 # directionality (BDO)
 
 values['disabled'] = RegExp(regexp=r'(disabled)$')
@@ -460,7 +460,7 @@ values['size~f'] = RegExp(regexp=r'([-+]?[1-7])$')
 values['size'] = number
 # specific to each type of field (INPUT)
 
-values['size~b'] = RegExp(regexp=r'([-+]?[1-7])$', required=True)
+values['size~b'] = RegExp(regexp=r'([-+]?[1-7])$', element_exception=True)
 # base font size for FONT elements (BASEFONT); deprecated
 
 values['size'] = number

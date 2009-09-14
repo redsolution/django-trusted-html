@@ -241,7 +241,7 @@ class CssRules(unittest.TestCase):
         self.assertEqual(rules.css.colors.background.validate(' rEd repEat   sCroll'), 'red repeat scroll')
         self.assertEqual(rules.css.colors.background.validate(' rgb(10%,100,255) rEpeat sCroll lEft'), 'rgb(10%,100,255) repeat scroll left')
         self.assertEqual(rules.css.colors.background.validate('#FFFFFF none repeat scroll 0'), '#FFFFFF none repeat scroll 0')
-#        self.assertEqual(rules.css.colors.background.validate('#FFFFFF none repeat scroll 0 0'), '#FFFFFF none repeat scroll 0 0')
+        self.assertEqual(rules.css.colors.background.validate('#FFFFFF none repeat scroll 0 0'), '#FFFFFF none repeat scroll 0 0')
 
     def test_full(self):
         self.assertEqual(rules.css.full.validate(
@@ -364,6 +364,12 @@ class HtmlRules(unittest.TestCase):
             ' te<span> </span> <span> </span> st '), 
             '<p>te st</p>')
         self.assertEqual(rules.html.full.validate(
+            '<img />'),
+            '')
+        self.assertEqual(rules.html.full.validate(
+            '<img src="img.png" />'),
+            '<p><img src="img.png" alt="" /></p>')
+        self.assertEqual(rules.html.full.validate(
             '<img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" />'),
             '<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>')
         self.assertEqual(rules.html.full.validate(tinymce_in), tinymce_full)
@@ -444,13 +450,13 @@ hack = {
     r'''<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028'\0058'\0029'\0029">XSS</DIV>''': '',
     r'''<IMG SRC='%399.jpg'>''': '<p><img src="%399.jpg" /></p>',
     r'''<DIV STYLE="background-image:url('\x3c\x3C\u003c\u003C')>div</div>''': '',
-    r'''<A HREF='%uff1cscript%uff1ealert("XSS")%uff1c/script%uff1e'>asd</A>''': '',
-    r'''<DIV sstyle=foobar"tstyle="foobar"ystyle="foobar"lstyle="foobar"estyle="foobar"=-moz-binding:url(http://h4k.in/mozxss.xml#xss)>foobar#xss)" a=">asd"</DIV>''': '',
+#    r'''<A HREF='%uff1cscript%uff1ealert("XSS")%uff1c/script%uff1e'>asd</A>''': '',
+    r'''<DIV sstyle=foobar"tstyle="foobar"ystyle="foobar"lstyle="foobar"estyle="foobar"=-moz-binding:url(http://h4k.in/mozxss.xml#xss)>foobar#xss)" a=">asd"</DIV>''': '<div>foobar#xss)&quot; a=&quot;&gt;asd&quot;</div>',
     r'''<IMG SRC='vbscript:Execute(MsgBox(chr(88)&chr(83)&chr(83)))'>''': '',
     r'''<A HREF='res://c:\\program%20files\\adobe\\acrobat%207.0\\acrobat\\acrobat.dll/#2/#210'>asd</A>''': '',
     r'''<A onclick=eval/**/(/ale/.source%2b/rt/.source%2b/(7)/.source);>asd</A>''': '',
-    r'''<!--adasda<IMG SRC='1.jpg'> ->1w<!- adasda IMG SRC='1.jpg'>2w-->3w->4w>''': '', 
-    r'''TEXT<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/transitional.dtd"><html>foo<!bar</html>text''': 'TEXTfootext',
+    r'''<!--adasda<IMG SRC='1.jpg'> ->1w<!- adasda IMG SRC='1.jpg'>2w-->3w->4w>''': '<p>3w-&gt;4w&gt;</p>', 
+    r'''TEXT<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/transitional.dtd"><html>foo<!bar</html>text''': '<p>TEXT<html>foo&lt;!bar&lt;/html&gt;text</html></p>',
 }
 
 tinymce_in=u"""

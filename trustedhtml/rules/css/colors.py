@@ -70,7 +70,7 @@ background_position_y = Or(rules=[
 background_position = Or(rules=[
     Complex(rules=[
         background_position_x, 
-        background_position_y
+        background_position_y,
     ]),
     inherit,
 ])
@@ -82,7 +82,8 @@ background = Or(rules=[
         background_image,
         background_repeat,
         background_attachment,
-        background_position,
+        background_position_x, 
+        background_position_y,
     ]),
     inherit,
 ])
