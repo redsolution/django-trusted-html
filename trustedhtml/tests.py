@@ -254,8 +254,7 @@ class Css(unittest.TestCase):
         
     def test_custom(self):
         lst = rules.css.custom.disabled + rules.css.custom.for_table + \
-            rules.css.custom.for_image + rules.css.custom.for_table_and_image + \
-            rules.css.custom.allowed
+            rules.css.custom.for_image + rules.css.custom.allowed
         append = []
         remove = [name for name in rules.css.values.values.iterkeys()]
         for item in lst:
@@ -368,12 +367,15 @@ class Html(unittest.TestCase):
         self.assertEqual(rules.html.full.validate(
             '<a href="/search?text=ask&amp;page=2">HTML</a>'),
             '<p><a href="/search?text=ask&amp;page=2">HTML</a></p>')
+        self.assertEqual(rules.html.full.validate(
+            '<p> </p><p>&nbsp;</p><p> </p><p>   &nbsp;   &nbsp; a&nbsp;&nbsp;  &nbsp; </p><p> </p>'),
+            u'<p>\xa0a\xa0</p>')
 
     def test_simple(self):
         self.assertEqual(rules.html.simple.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
-        self.assertEqual(rules.html.simple.validate(
-            '<form><p>t<select><option>e</option></select></p><p>s</p><form><p>t</p>'),
-            '<p>tes</p><p>t</p>')
+#        self.assertEqual(rules.html.simple.validate(
+#            '<form><p>t<select><option>e</option></select></p><p>s</p><select><option>t</option></select></form><p>.</p>'),
+#            '<p>te</p><p>s</p><p>t</p><p>.</p>')
         self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
 
     def tearDown(self):

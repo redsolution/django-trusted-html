@@ -196,15 +196,15 @@ remove_attributes_for_element = {}
 remove_attributes_for_element['body'] = [
     # It will break text align:
     'align',
-    # Deprecated, will break view
+    # Deprecated, it will break view
     'alink',
-    # Deprecated, will break view
+    # Deprecated, it will break view
     'background',
-    # Deprecated, will break view
+    # Deprecated, it will break view
     'link',
-    # Deprecated, will break view
+    # Deprecated, it will break view
     'text',
-    # Deprecated, will break view
+    # Deprecated, it will break view
     'vlink',
 ]
 
@@ -219,10 +219,12 @@ remove_attributes_for_element['body'] = [
 #]
 
 remove_attributes_for_element['col'] = [
+    # It will break view
     'width',
 ]
 
 remove_attributes_for_element['colgroup'] = [
+    # It will break view
     'width',
 ]
 
