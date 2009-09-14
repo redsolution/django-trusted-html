@@ -10,7 +10,7 @@ from trustedhtml.rules.html.contents import contents
 
 elements = {}
 
-elements['a'] = Element(allow_empty=True,
+elements['a'] = Element(empty_element=True,
     rules=attributes['a'], contents=contents['a'])
 # anchor
 
@@ -26,7 +26,7 @@ elements['address'] = Element(
     rules=attributes['address'], contents=contents['address'])
 # information on author
 
-elements['applet'] = Element(allow_empty=True,
+elements['applet'] = Element(empty_element=True,
     rules=attributes['applet'], contents=contents['applet'])
 # Java applet; Deprecated
 
@@ -58,7 +58,7 @@ elements['blockquote'] = Element(
     rules=attributes['blockquote'], contents=contents['blockquote'])
 # long quotation
 
-elements['body'] = Element(allow_empty=True, optional_start=True, optional_end=True,
+elements['body'] = Element(empty_element=True, optional_start=True, optional_end=True,
     rules=attributes['body'], contents=contents['body'])
 # document body
 
@@ -66,11 +66,11 @@ elements['br'] = Element(
     rules=attributes['br'], contents=contents['br'])
 # forced line break
 
-elements['button'] = Element(allow_empty=True,
+elements['button'] = Element(empty_element=True,
     rules=attributes['button'], contents=contents['button'])
 # push button
 
-elements['caption'] = Element(allow_empty=True,
+elements['caption'] = Element(empty_element=True,
     rules=attributes['caption'], contents=contents['caption'])
 # table caption
 
@@ -186,7 +186,7 @@ elements['i'] = Element(
     rules=attributes['i'], contents=contents['i'])
 # italic text style
 
-elements['iframe'] = Element(allow_empty=True,
+elements['iframe'] = Element(empty_element=True,
     rules=attributes['iframe'], contents=contents['iframe'])
 # inline subwindow
 
@@ -246,7 +246,7 @@ elements['noscript'] = Element(
     rules=attributes['noscript'], contents=contents['noscript'])
 # alternate content container for non script-based rendering
 
-elements['object'] = Element(allow_empty=True,
+elements['object'] = Element(empty_element=True,
     rules=attributes['object'], contents=contents['object'])
 # generic embedded object
 
@@ -254,7 +254,7 @@ elements['ol'] = Element(
     rules=attributes['ol'], contents=contents['ol'])
 # ordered list
 
-elements['optgroup'] = Element(allow_empty=True,
+elements['optgroup'] = Element(empty_element=True,
     rules=attributes['optgroup'], contents=contents['optgroup'])
 # option group
 
@@ -286,7 +286,7 @@ elements['samp'] = Element(
     rules=attributes['samp'], contents=contents['samp'])
 # sample program output, scripts, etc.
 
-elements['script'] = Element(invalid=True, save_content=False,
+elements['script'] = Element(remove_element=True, save_content=False,
     rules=attributes['script'], contents=contents['script'])
 # script statements
 
@@ -310,7 +310,7 @@ elements['strong'] = Element(
     rules=attributes['strong'], contents=contents['strong'])
 # strong emphasis
 
-elements['style'] = Element(invalid=True, save_content=False,
+elements['style'] = Element(remove_element=True, save_content=False,
     rules=attributes['style'], contents=contents['style'])
 # style info
 
@@ -334,7 +334,7 @@ elements['td'] = Element(default='&nbsp;', optional_end=True,
     rules=attributes['td'], contents=contents['td'])
 # table data cell
 
-elements['textarea'] = Element(allow_empty=True,
+elements['textarea'] = Element(empty_element=True,
     rules=attributes['textarea'], contents=contents['textarea'])
 # multi-line text field
 

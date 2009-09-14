@@ -421,27 +421,27 @@ def get_elements(leave):
         replace.update(replace_attributes_for_all)
         replace.update(replace_attributes_for_element.get(name, {}))
         rules = get_dict(attributes[name], remove=remove, append=replace)
-        element = Element(rules=rules, allow_empty=value.allow_empty,
+        element = Element(rules=rules, empty_element=value.empty_element,
             optional_start=value.optional_start, optional_end=value.optional_end,
             contents=value.contents, save_content=value.save_content)
         result[name] = element
     for name in remove_elements_with_content:
-        element = Element(invalid=True, save_content=False)
+        element = Element(remove_element=True, save_content=False)
         result[name] = element
     return result
     
 simple = get_elements(simple_elements)
 normal = get_elements(simple_elements + rare_elements)
 
-# Fix: anchors (in this order, because of allow_empty)
+# Fix: anchors (in this order, because of empty_element)
 #replace_elements['a'] = Or(rules=[
-#    Elements(allow_empty=True, rules=get_dict(
+#    Elements(empty_element=True, rules=get_dict(
 #        source=elements,
 #        replace={
 #            'name': values['name~r'],
 #        })
 #    ),
-#    Elements(allow_empty=False, rules=get_dict(
+#    Elements(empty_element=False, rules=get_dict(
 #        source=elements,
 #        replace={
 #            'href': values['href~r'],

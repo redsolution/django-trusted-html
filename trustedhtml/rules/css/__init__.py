@@ -20,8 +20,8 @@ import custom
 
 from trustedhtml.classes import Style
 
-full = Style(allow_empty=False, rules=values.values)
-common = Style(allow_empty=False, rules=custom.common)
-tables = Style(allow_empty=False, rules=custom.tables)
-images = Style(allow_empty=False, rules=custom.images)
+full = Style(rules=values.values)
+common = Style(rules=custom.common)
+tables = Style(rules=custom.tables)
+images = Style(rules=custom.images)
 #    allowed_value=List(values='inherit'),

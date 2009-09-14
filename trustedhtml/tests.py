@@ -20,7 +20,7 @@ class Classes(unittest.TestCase):
 
     def test_string(self):
         string = String()
-        self.assertEqual(string.validate(''), '')
+        self.assertRaises(EmptyException, string.validate, '')
         self.assertEqual(string.validate('qwe'), 'qwe')
         self.assertEqual(string.validate('  qw e '), 'qw e')
         
@@ -111,7 +111,7 @@ class Classes(unittest.TestCase):
             List(values=['a', 'aB', ]),
             RegExp(regexp=r'([-+]?\d{1,7})$'),
         ])
-        self.assertRaises(IncorrectException, rule.validate, '')
+        self.assertRaises(EmptyException, rule.validate, '')
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertEqual(rule.validate('  -12 '), '-12')
         self.assertEqual(rule.validate('  Ab '), 'aB')
@@ -119,7 +119,7 @@ class Classes(unittest.TestCase):
     def test_or_empty(self):
         rule = Or(rules=[
             List(values=['a', 'aB', ]),
-            RegExp(regexp=r'([-+]?\d{1,7})$', allow_empty=False),
+            RegExp(regexp=r'([-+]?\d{1,7})$'),
         ])
         self.assertRaises(EmptyException, rule.validate, '')
         self.assertRaises(IncorrectException, rule.validate, '-')
@@ -131,7 +131,7 @@ class Classes(unittest.TestCase):
             RegExp(regexp=r'!*(\w{2})$'),
             List(values=['a', 'aB', 'Cd', ]),
         ])
-        self.assertRaises(IncorrectException, rule.validate, '')
+        self.assertRaises(EmptyException, rule.validate, '')
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertRaises(IncorrectException, rule.validate, 'a')
         self.assertEqual(rule.validate('  Ab '), 'aB')
@@ -220,7 +220,7 @@ class CssRules(unittest.TestCase):
         self.assertRaises(IncorrectException, rules.css.box.border.validate, ' 2px Solid Black 2px')
         self.assertRaises(IncorrectException, rules.css.box.border.validate, ' 2px 2px Solid Black')
         self.assertRaises(IncorrectException, rules.css.box.border.validate, ' 2px Solid Black Black')
-        self.assertRaises(IncorrectException, rules.css.box.border.validate, '')
+        self.assertRaises(EmptyException, rules.css.box.border.validate, '')
 
     def test_background_position(self):
         self.assertEqual(rules.css.colors.background_position.validate(' lEft  toP '), 'left top')
@@ -235,7 +235,7 @@ class CssRules(unittest.TestCase):
         self.assertEqual(rules.css.colors.background_position.validate(' 34em  '), '34em')
         self.assertEqual(rules.css.colors.background_position.validate(' lEft  '), 'left')
         self.assertEqual(rules.css.colors.background_position.validate(' toP  '), 'top')
-        self.assertRaises(IncorrectException, rules.css.colors.background_position.validate, '')
+        self.assertRaises(EmptyException, rules.css.colors.background_position.validate, '')
 
     def test_background(self):
         self.assertEqual(rules.css.colors.background.validate(' rEd repEat   sCroll'), 'red repeat scroll')
@@ -386,6 +386,84 @@ class HtmlRules(unittest.TestCase):
             '<form><p>t<select><option>e</option></select></p><p>s</p><select><option>t</option></select></form><p>.</p>'),
             '<p>te</p><p>s</p><p>t</p><p>.</p>')
         self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
+        
+    def test_hack(self):
+        self.assertEqual(rules.html.full.validate(r'''<SCRIPT>alert("XSS")</SCRIPT>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate('''<i\0mg src="1.jpg">'''),
+            r'<p><img src="1.jpg" alt="" /></p>')
+        self.assertEqual(rules.html.full.validate(r'''&#x26x26&#38#38+&#x26;x26;&#38;#38;'''),
+            r'<p>&amp;x26&amp;#38+&amp;x26;&amp;#38;</p>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC='&#106&#0000097asdasd'>'''),
+            r'<p><img src="jaasdasd" alt="" /></p>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC="javascript:alert('XSS');">'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC=JaVaScRiPt:alert('XSS')>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<IMG """><SCRIPT>alert("XSS")</SCRIPT>">'''),
+            r'<p>&quot;&gt;</p>')
+        self.assertEqual(rules.html.full.validate(r'''<img src=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<img src=&#0000106&#x61&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>'''),
+            r'''<p><img src="javascriptalert('XSS')" alt="" /></p>''')
+        self.assertEqual(rules.html.full.validate(r'''<A href="&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29">a</A>'''),
+            r'<p><a>a</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<A href=%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%27%58%53%53%27%29>a</A>'''),
+            r'<p><a href="%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%27%58%53%53%27%29">a</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC="jav   ascript:alert('XSS');">'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<SCRIPT/XSS SRC="http://ha.ckers.org/xss.js"></SCRIPT>'''),
+            r'<p>/ha.ckers.org/xss.js&quot;&gt;</p>')
+        self.assertEqual(rules.html.full.validate(r'''<SCRIPT SRC=http://ha.ckers.org/xss.js?<B></SCRIPT>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<SCRIPT SRC=//ha.ckers.org/.j></SCRIPT>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC="javascript:alert('XSS')" <IMG SRC="1.jpg">'''),
+            r'<p><img src="1.jpg" alt="" /></p>')
+        self.assertEqual(rules.html.full.validate(r'''<BODY ONLOAD=alert('XSS')>BODY</BODY>'''),
+            r'<p><body>BODY</body></p>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC='vbscript:msgbox("XSS")'>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<img style="xss:expr/*XSS*/ession(alert('XSS'))">'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<!--[if gte IE 4]><SCRIPT>alert('XSS');</SCRIPT><![endif]-->'''),
+            r'')
+        self.assertEqual(rules.html.full.validate('''<A HREF="h\ntt\0p://6&#9;6.000146.0x7.147/">XSS</A>'''),
+            r'<p><a>XSS</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG STYLE="exp/*<A STYLE='no\xss:noxss("*//*");xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))'>a</a>'''),
+            r'<p><a>a</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<A HREF="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</A>'''),
+            r'<p><a href="http://%77%77%77%2e%67%6f%6f%67%6c%65%2e%63%6f%6d">XSS</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'))">div</div>'''),
+            r'<div>div</div>')
+        self.assertEqual(rules.html.full.validate(r'''<DIV STYLE="background:#fff url(\0031.jpg);">NOXSS</div>'''),
+            r'<div style="background: #fff url(\0031.jpg);">NOXSS</div>')
+        self.assertEqual(rules.html.full.validate(r'''<DIV STYLE="background-image:url(javascript\3aalert(1))">XSS</DIV>'''),
+            r'<div>XSS</div>')
+        self.assertEqual(rules.html.full.validate(r'''<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028'\0058'\0029'\0029">XSS</DIV>'''),
+            r'<div>XSS</div>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC='%399.jpg'>'''),
+            r'<p><img src="%399.jpg" alt="" /></p>')
+        self.assertEqual(rules.html.full.validate(r'''<DIV STYLE="background-image:url('\x3c\x3C\u003c\u003C')>div</div>'''),
+            r'<div>div</div>')
+#        self.assertEqual(rules.html.full.validate(r'''<A HREF='%uff1cscript%uff1ealert("XSS")%uff1c/script%uff1e'>asd</A>'''),
+#            r'')
+        self.assertEqual(rules.html.full.validate(r'''<DIV sstyle=foobar"tstyle="foobar"ystyle="foobar"lstyle="foobar"estyle="foobar"=-moz-binding:url(http://h4k.in/mozxss.xml#xss)>foobar#xss)" a=">asd"</DIV>'''),
+            r'<div>foobar#xss)&quot; a=&quot;&gt;asd&quot;</div>')
+        self.assertEqual(rules.html.full.validate(r'''<IMG SRC='vbscript:Execute(MsgBox(chr(88)&chr(83)&chr(83)))'>'''),
+            r'')
+        self.assertEqual(rules.html.full.validate(r'''<A HREF='res://c:\\program%20files\\adobe\\acrobat%207.0\\acrobat\\acrobat.dll/#2/#210'>asd</A>'''),
+            r'<p><a>asd</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<A onclick=eval/**/(/ale/.source%2b/rt/.source%2b/(7)/.source);>asd</A>'''),
+            r'<p><a>asd</a></p>')
+        self.assertEqual(rules.html.full.validate(r'''<!--adasda<IMG SRC='1.jpg'> ->1w<!- adasda IMG SRC='1.jpg'>2w-->3w->4w>'''),
+            r'<p>3w-&gt;4w&gt;</p>')
+        self.assertEqual(rules.html.full.validate(r'''TEXT<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/transitional.dtd"><html>foo<!bar</html>text'''),
+            r'<p>TEXT<html>foo&lt;!bar&lt;/html&gt;text</html></p>')
 
     def tearDown(self):
         pass
@@ -419,45 +497,6 @@ def get_html(html):
 </body>
 </html>
 """ % html
-
-hack = {
-    '''<i\0mg src="1.jpg">''': '',
-    r'''&#x26x26&#38#38+&#x26;x26;&#38;#38;''': '',
-    r'''<IMG SRC='&#106&#0000097asdasd'>''': '',
-    r'''<IMG SRC="javascript:alert('XSS');">''': '',
-    r'''<IMG SRC=JaVaScRiPt:alert('XSS')>''': '',
-    r'''<IMG """><SCRIPT>alert("XSS")</SCRIPT>">''': '',
-    r'''<img src=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>''': '',
-    r'''<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>''': '',
-    r'''<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>''': '',
-    r'''<A href="&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29">a</A>''': '',
-    r'''<A href=%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%27%58%53%53%27%29>a</A>''': '',
-    r'''<IMG SRC="jav   ascript:alert('XSS');">''': '',
-    r'''<SCRIPT/XSS SRC="http://ha.ckers.org/xss.js"></SCRIPT>''': '',
-    r'''<SCRIPT SRC=http://ha.ckers.org/xss.js?<B></SCRIPT>''': '',
-    r'''<SCRIPT SRC=//ha.ckers.org/.j></SCRIPT>''': '',
-    r'''<IMG SRC="javascript:alert('XSS')" <IMG SRC="1.jpg">''': '',
-    r'''<BODY ONLOAD=alert('XSS')>BODY</BODY>''': '<p><body>BODY</body></p>',
-    r'''<IMG SRC='vbscript:msgbox("XSS")'>''': '',
-    r'''<img style="xss:expr/*XSS*/ession(alert('XSS'))">''': '',
-    r'''<!--[if gte IE 4]><SCRIPT>alert('XSS');</SCRIPT><![endif]-->''': '',
-    '''<A HREF="h\ntt\0p://6&#9;6.000146.0x7.147/">XSS</A>''': '',
-    r'''<IMG STYLE="exp/*<A STYLE='no\xss:noxss("*//*");xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))'>a</a>''': '',
-    r'''<A HREF="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</A>''': '',
-    r'''<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'))">div</div>''': '',
-    r'''<DIV STYLE="background:#fff url(\0031.jpg);">NOXSS</div>''': '',
-    r'''<DIV STYLE="background-image:url(javascript\3aalert(1))">XSS</DIV>''': '',
-    r'''<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028'\0058'\0029'\0029">XSS</DIV>''': '',
-    r'''<IMG SRC='%399.jpg'>''': '<p><img src="%399.jpg" /></p>',
-    r'''<DIV STYLE="background-image:url('\x3c\x3C\u003c\u003C')>div</div>''': '',
-#    r'''<A HREF='%uff1cscript%uff1ealert("XSS")%uff1c/script%uff1e'>asd</A>''': '',
-    r'''<DIV sstyle=foobar"tstyle="foobar"ystyle="foobar"lstyle="foobar"estyle="foobar"=-moz-binding:url(http://h4k.in/mozxss.xml#xss)>foobar#xss)" a=">asd"</DIV>''': '<div>foobar#xss)&quot; a=&quot;&gt;asd&quot;</div>',
-    r'''<IMG SRC='vbscript:Execute(MsgBox(chr(88)&chr(83)&chr(83)))'>''': '',
-    r'''<A HREF='res://c:\\program%20files\\adobe\\acrobat%207.0\\acrobat\\acrobat.dll/#2/#210'>asd</A>''': '',
-    r'''<A onclick=eval/**/(/ale/.source%2b/rt/.source%2b/(7)/.source);>asd</A>''': '',
-    r'''<!--adasda<IMG SRC='1.jpg'> ->1w<!- adasda IMG SRC='1.jpg'>2w-->3w->4w>''': '<p>3w-&gt;4w&gt;</p>', 
-    r'''TEXT<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/transitional.dtd"><html>foo<!bar</html>text''': '<p>TEXT<html>foo&lt;!bar&lt;/html&gt;text</html></p>',
-}
 
 tinymce_in=u"""
 <p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>
@@ -647,3 +686,4 @@ td colspan="2" rowspan="2" align="center" valign="top">big</td> </\
 tr> <tr> <td style="text-decoration: underline;">zx</td> </tr> </tbody> </\
 table><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
 p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'
+            

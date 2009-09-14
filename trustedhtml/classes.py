@@ -189,7 +189,7 @@ class String(Rule):
     Validation will return striped string value if specified.
     """
     
-    def __init__(self, case_sensitive=False, strip=True, **kwargs):
+    def __init__(self, case_sensitive=False, strip=True, allow_empty=False, **kwargs):
         """
         ``strip`` if True than remove leading and trailing whitespace.
 
@@ -198,7 +198,7 @@ class String(Rule):
         This class don`t prepare ``value`` according to ``case_sensitive``.
         Just specified functions to do it.
         """
-        super(String, self).__init__(**kwargs)
+        super(String, self).__init__(allow_empty=allow_empty, **kwargs)
         if self.default is not None:
             self.default = unicode(self.default)
         self.case_sensitive = case_sensitive
@@ -567,7 +567,7 @@ class Complex(Sequence):
     Validation will return joined parts of value.
     """
 
-    def __init__(self, rules, allow_empty=False, **kwargs):
+    def __init__(self, rules, **kwargs):
         """
         ``rules`` is list of rules for validation.
         """
@@ -703,14 +703,19 @@ class Element(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
 
-    def __init__(self, rules={}, contents=[], allow_empty=False,
-        optional_start=False, optional_end=False, save_content=True, **kwargs):
+    def __init__(self, rules={}, contents=[], empty_element=False,
+        remove_element=False, optional_start=False, optional_end=False,
+        save_content=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
         
         ``contents`` list of elements allowed inside this one.
         List contains strings with names or True to allow text content.
+        
+        ``empty_element`` where element can contain no content.
+        
+        ``remove_element`` where element must be removed in any case.
 
         ``optional_start`` start of this element is optional.
 
@@ -719,14 +724,16 @@ class Element(Rule, Validator):
         ``save_content`` whether content of incorrect tag must be saved
         to parent tag. 
         """
-        if contents is None:
-            allow_empty = True
-        Rule.__init__(self, allow_empty=allow_empty, **kwargs)
+        Rule.__init__(self, **kwargs)
         Validator.__init__(self, rules=rules, **kwargs)
+        self.contents = contents
+        self.empty_element = empty_element
+        self.remove_element = remove_element
         self.optional_start = optional_start
         self.optional_end = optional_end
-        self.contents = contents
         self.save_content = save_content
+        if self.contents is None:
+            self.empty_element = True
         
     def preprocess(self, value, path):
         """Do it."""
@@ -784,7 +791,8 @@ class Html(String):
     
     BEAUTIFUL_SOUP = BeautifulSoup()
 
-    def __init__(self, rules, fix_number=2, prepare_number=2, root_tags=[], **kwargs):
+    def __init__(self, rules, fix_number=2, prepare_number=2, root_tags=[], 
+        allow_empty=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -795,7 +803,7 @@ class Html(String):
 
         ``root_tags`` list of tags that can be in the root of document.
         """
-        super(Html, self).__init__(**kwargs)
+        super(Html, self).__init__(allow_empty=True, **kwargs)
         self.rules = rules
         self.fix_number = fix_number
         self.prepare_number = prepare_number
@@ -803,7 +811,7 @@ class Html(String):
         self.nbsp_tags = []
         self.root_tags = root_tags
         for name, rule in self.rules.iteritems():
-            if rule.allow_empty or rule.default is not None:
+            if rule.empty_element or rule.default is not None:
                 self.empty_tags.append(name)
             if rule.default is not None:
                 self.nbsp_tags.append(name)
@@ -842,9 +850,11 @@ class Html(String):
             if isinstance(soup.contents[index], Tag):
                 rule = self.rules.get(soup.contents[index].name, None)
                 try:
-                    if rule is None:
-                        raise IncorrectException(self, None)
                     tag = soup.contents[index]
+                    if rule is None:
+                        raise IncorrectException(self, tag.attrs)
+                    if rule.remove_element:
+                        raise IncorrectException(self, tag.attrs)
                     tag.attrs = rule.validate(tag.attrs, path)
                 except TrustedException:
                     element = soup.contents[index].extract()
