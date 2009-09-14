@@ -247,11 +247,11 @@ def SGML_CHARACTER_REPL(match):
         elif dict['hex']:
             code = int(dict['hex'], 16)
         elif dict['name']:
-            code = CHARACTER_ENTITIES[dict['name'].lower()]
+            code = SGML_CHARACTER_ENTITIES[dict['name'].lower()]
         else:
             raise ValueError
         return unichr(code)
-    except (ValueError, IndexError, OverflowError):
+    except (ValueError, KeyError, OverflowError):
         return dict['string']
 
 SGML_SPACE_RE = re.compile(r'[\n\r\t]')
@@ -304,9 +304,35 @@ def get_style(value):
 #    value = STYLE_CHARACTER_RE.sub(STYLE_CHARACTER_REPL, value)
     return value
 
+GET_LINED_SPACE_RE = re.compile('[\n\r\t]')
+GET_LINED_SPACE_REPL = ' '
+
+GET_LINED_NEW_LINE_RE = re.compile('(<[a-zA-Z]+)')
+def GET_LINED_NEW_LINE_REPL(match):
+    return '\n%s' % match.group(0)
+
+def get_lined(value):
+    """
+    Return readable html, where each tag starts with new line. 
+    """
+    value = GET_LINED_SPACE_RE.sub(GET_LINED_SPACE_REPL, value)
+    value = GET_LINED_NEW_LINE_RE.sub(GET_LINED_NEW_LINE_REPL, value)
+    return value
+
 def get_dict(source, leave=None, remove=None, append={}):
     """
-    Return dictionary
+    Return dictionary.
+    
+    ``source`` is source dictionary.
+    
+    ``leave`` is list with key`s names to be leaved.
+    All other key will be removed.
+    If ``leave`` is None than no items will be removed. 
+    
+    ``remove`` is list with key`s names to be removed.
+    If ``remove`` is None than no items will be removed. 
+    
+    ``append`` is dictionary to update result dictionary.
     """
     result = {}
     for name, value in source.iteritems():
@@ -315,6 +341,5 @@ def get_dict(source, leave=None, remove=None, append={}):
         if remove is not None and name in remove:
             continue
         result[name] = value
-    for name, value in append.iteritems():
-        result[name] = value
+    result.update(append)
     return result

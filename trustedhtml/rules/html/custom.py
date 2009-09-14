@@ -151,7 +151,11 @@ rare_elements = [
 remove_attributes_for_all = [
     # It can overwrite sites accesskey:
     'accesskey',
-    # We don`t want to allow to use classes, reserved for core site functions.
+    # We don`t want to allow to use id,
+    # reserved for core site functions and view.
+    'id',
+    # We don`t want to allow to use classes,
+    # reserved for core site functions and view.
     'class',
     # It is deprecated and not used:
     'compact',

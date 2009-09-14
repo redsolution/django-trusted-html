@@ -278,6 +278,8 @@ class Html(unittest.TestCase):
         self.assertEqual(rules.html.values.values['type'].validate('text/html'), 'text/html')
         self.assertEqual(rules.html.values.values['type'].validate('application/x-shockwave-Flash'), 'application/x-shockwave-Flash')
         self.assertRaises(IncorrectException, rules.html.values.values['type'].validate, 'application/x-shockwave-FFlash')
+#        self.assertEqual(rules.html.values.values['id'].validate('a-b'), 'a-b')
+#        self.assertEqual(rules.html.values.values['id'].validate(u'a-\u0440\u0443\u0441\u0441\u043a\u0438\u0439'), 'a-\u0440\u0443\u0441\u0441\u043a\u0438\u0439')
 #        values['charset'],
 #        values['coords'],
 #        values['rel'],
@@ -363,9 +365,15 @@ class Html(unittest.TestCase):
             '<img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" />'),
             '<p><img style="float: left; border: 2px solid black; margin-top: 3px; margin-bottom: 3px; margin-left: 4px; margin-right: 4px;" src="/media/img/warning.png" alt="qwe" width="64" height="64" /></p>')
         self.assertEqual(rules.html.full.validate(tinymce_in), tinymce_full)
+        self.assertEqual(rules.html.full.validate(
+            '<a href="/search?text=ask&amp;page=2">HTML</a>'),
+            '<p><a href="/search?text=ask&amp;page=2">HTML</a></p>')
 
     def test_simple(self):
         self.assertEqual(rules.html.simple.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
+        self.assertEqual(rules.html.simple.validate(
+            '<form><p>t<select><option>e</option></select></p><p>s</p><form><p>t</p>'),
+            '<p>tes</p><p>t</p>')
         self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
 #        open('in.txt', 'w').write(get_lined(tinymce_in).encode('utf-8'))
 #        open('full.txt', 'w').write(get_lined(rules.html.full.validate(tinymce_in)).encode('utf-8'))
@@ -403,19 +411,6 @@ def get_html(html):
 </body>
 </html>
 """ % html
-
-GET_LINED_REMOVE_RE = re.compile('[\n\r\t]')
-GET_LINED_REMOVE_REPL = ' '
-
-GET_LINED_ADD_RE = re.compile('(<[a-zA-Z]+)')
-def GET_LINED_ADD_REPL(match):
-    return '\n%s' % match.group(0)
-
-def get_lined(value):
-    value = GET_LINED_REMOVE_RE.sub(GET_LINED_REMOVE_REPL, value)
-    value = GET_LINED_ADD_RE.sub(GET_LINED_ADD_REPL, value)
-    return value
-
 
 magic_hack_37 = '<p>-<i\0mg src="1.jpg">' + r'''
 0&#x26x26&#38#38+&#x26;x26;&#38;#38;
@@ -572,7 +567,7 @@ JJ
 </table>
 <p>&lt;img src="javascript:alert(1);"&gt;</p>
 text
-<p>русский<br />end</p>
+<p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>
 """        
 
 tinymce_full = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
