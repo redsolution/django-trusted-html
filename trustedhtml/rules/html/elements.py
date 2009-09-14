@@ -286,7 +286,7 @@ elements['samp'] = Element(
     rules=attributes['samp'], contents=contents['samp'])
 # sample program output, scripts, etc.
 
-elements['script'] = Element(
+elements['script'] = Element(invalid=True, save_content=False,
     rules=attributes['script'], contents=contents['script'])
 # script statements
 
@@ -310,7 +310,7 @@ elements['strong'] = Element(
     rules=attributes['strong'], contents=contents['strong'])
 # strong emphasis
 
-elements['style'] = Element(
+elements['style'] = Element(invalid=True, save_content=False,
     rules=attributes['style'], contents=contents['style'])
 # style info
 

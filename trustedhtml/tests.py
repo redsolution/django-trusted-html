@@ -157,7 +157,7 @@ class Classes(unittest.TestCase):
     def tearDown(self):
         pass
     
-class Css(unittest.TestCase):
+class CssRules(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -268,7 +268,7 @@ class Css(unittest.TestCase):
         pass
 
     
-class Html(unittest.TestCase):
+class HtmlRules(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -349,6 +349,9 @@ class Html(unittest.TestCase):
             '<p>t<foo>es</foo>t</p>'),
             '<p>test</p>')
         self.assertEqual(rules.html.full.validate(
+            '<p>t<foo>e<bar>s</bar></foo>t</p>'),
+            '<p>test</p>')
+        self.assertEqual(rules.html.full.validate(
             '<p>   t   <span>   e   </span>   <span>   s   </span>   t   </p>'), 
             '<p> t <span> e </span> <span> s </span> t </p>')
         self.assertEqual(rules.html.full.validate(
@@ -373,9 +376,9 @@ class Html(unittest.TestCase):
 
     def test_simple(self):
         self.assertEqual(rules.html.simple.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
-#        self.assertEqual(rules.html.simple.validate(
-#            '<form><p>t<select><option>e</option></select></p><p>s</p><select><option>t</option></select></form><p>.</p>'),
-#            '<p>te</p><p>s</p><p>t</p><p>.</p>')
+        self.assertEqual(rules.html.simple.validate(
+            '<form><p>t<select><option>e</option></select></p><p>s</p><select><option>t</option></select></form><p>.</p>'),
+            '<p>te</p><p>s</p><p>t</p><p>.</p>')
         self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
 
     def tearDown(self):
@@ -411,46 +414,44 @@ def get_html(html):
 </html>
 """ % html
 
-magic_hack_37 = '<p>-<i\0mg src="1.jpg">' + r'''
-0&#x26x26&#38#38+&#x26;x26;&#38;#38;
-1<IMG SRC='&#106&#0000097asdasd'>
-2<IMG SRC="javascript:alert('XSS');">
-3<IMG SRC=JaVaScRiPt:alert('XSS')>
-4<IMG """><SCRIPT>alert("XSS")</SCRIPT>">
-5<img src=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>
-6<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>
-7<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>
-8<A href="&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29">a</A>
-9<A href=%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%27%58%53%53%27%29>a</A>
-A<IMG SRC="jav   ascript:alert('XSS');">
-B<SCRIPT/XSS SRC="http://ha.ckers.org/xss.js"></SCRIPT>
-C<SCRIPT SRC=http://ha.ckers.org/xss.js?<B></SCRIPT>
-D<SCRIPT SRC=//ha.ckers.org/.j></SCRIPT>
-E<IMG SRC="javascript:alert('XSS')" <IMG SRC="1.jpg">
-F<BODY ONLOAD=alert('XSS')>BODY</BODY>
-G<IMG SRC='vbscript:msgbox("XSS")'>
-H<img style="xss:expr/*XSS*/ession(alert('XSS'))">
-I<!--[if gte IE 4]><SCRIPT>alert('XSS');</SCRIPT><![endif]-->
-J<A HREF="h
-tt''' + '\0' + r'''p://6&#9;6.000146.0x7.147/">XSS</A>
-K<IMG STYLE="exp/*<A STYLE='no\xss:noxss("*//*");xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))'>a</a>
-L<A HREF="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</A>
-M<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'))">div</div>
-N<DIV STYLE="background:#fff url(\0031.jpg);">NOXSS</div>
-O<DIV STYLE="background-image:url(javascript\3aalert(1))">XSS</DIV>
-O<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028'\0058'\0029'\0029">XSS</DIV>
-P<IMG SRC='%399.jpg'>
-Q<DIV STYLE="background-image:url('\x3c\x3C\u003c\u003C')>div</div>
-R<A HREF='%uff1cscript%uff1ealert("XSS")%uff1c/script%uff1e'>asd</A>
-S<DIV sstyle=foobar"tstyle="foobar"ystyle="foobar"lstyle="foobar"estyle="foobar"=-moz-binding:url(http://h4k.in/mozxss.xml#xss)>foobar#xss)" a=">asd"</DIV>
-T<IMG SRC='vbscript:Execute(MsgBox(chr(88)&chr(83)&chr(83)))'>
-U<A HREF='res://c:\\program%20files\\adobe\\acrobat%207.0\\acrobat\\acrobat.dll/#2/#210'>asd</A>
-V<A onclick=eval/**/(/ale/.source%2b/rt/.source%2b/(7)/.source);>asd</A>
-W<!--adasda<IMG SRC='1.jpg'> ->1w<!- adasda IMG SRC='1.jpg'>2w-->3w->4w> 
-X<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/transitional.dtd">
-Y<B attr='foo'>y1</b>,<b>y2</B><B Foo='bar'>y3</b><B Foob='bar'>y4</b>
-Z<html>foo<!bar</html>text
-</p>'''
+hack = {
+    '''<i\0mg src="1.jpg">''': '',
+    r'''&#x26x26&#38#38+&#x26;x26;&#38;#38;''': '',
+    r'''<IMG SRC='&#106&#0000097asdasd'>''': '',
+    r'''<IMG SRC="javascript:alert('XSS');">''': '',
+    r'''<IMG SRC=JaVaScRiPt:alert('XSS')>''': '',
+    r'''<IMG """><SCRIPT>alert("XSS")</SCRIPT>">''': '',
+    r'''<img src=&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;&#58;&#97;&#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>''': '',
+    r'''<IMG SRC=&#0000106&#0000097&#0000118&#0000097&#0000115&#0000099&#0000114&#0000105&#0000112&#0000116&#0000058&#0000097&#0000108&#0000101&#0000114&#0000116&#0000040&#0000039&#0000088&#0000083&#0000083&#0000039&#0000041>''': '',
+    r'''<IMG SRC=&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29>''': '',
+    r'''<A href="&#x6A&#x61&#x76&#x61&#x73&#x63&#x72&#x69&#x70&#x74&#x3A&#x61&#x6C&#x65&#x72&#x74&#x28&#x27&#x58&#x53&#x53&#x27&#x29">a</A>''': '',
+    r'''<A href=%6A%61%76%61%73%63%72%69%70%74%3A%61%6C%65%72%74%28%27%58%53%53%27%29>a</A>''': '',
+    r'''<IMG SRC="jav   ascript:alert('XSS');">''': '',
+    r'''<SCRIPT/XSS SRC="http://ha.ckers.org/xss.js"></SCRIPT>''': '',
+    r'''<SCRIPT SRC=http://ha.ckers.org/xss.js?<B></SCRIPT>''': '',
+    r'''<SCRIPT SRC=//ha.ckers.org/.j></SCRIPT>''': '',
+    r'''<IMG SRC="javascript:alert('XSS')" <IMG SRC="1.jpg">''': '',
+    r'''<BODY ONLOAD=alert('XSS')>BODY</BODY>''': '<p><body>BODY</body></p>',
+    r'''<IMG SRC='vbscript:msgbox("XSS")'>''': '',
+    r'''<img style="xss:expr/*XSS*/ession(alert('XSS'))">''': '',
+    r'''<!--[if gte IE 4]><SCRIPT>alert('XSS');</SCRIPT><![endif]-->''': '',
+    '''<A HREF="h\ntt\0p://6&#9;6.000146.0x7.147/">XSS</A>''': '',
+    r'''<IMG STYLE="exp/*<A STYLE='no\xss:noxss("*//*");xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))'>a</a>''': '',
+    r'''<A HREF="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">XSS</A>''': '',
+    r'''<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'))">div</div>''': '',
+    r'''<DIV STYLE="background:#fff url(\0031.jpg);">NOXSS</div>''': '',
+    r'''<DIV STYLE="background-image:url(javascript\3aalert(1))">XSS</DIV>''': '',
+    r'''<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028'\0058'\0029'\0029">XSS</DIV>''': '',
+    r'''<IMG SRC='%399.jpg'>''': '<p><img src="%399.jpg" /></p>',
+    r'''<DIV STYLE="background-image:url('\x3c\x3C\u003c\u003C')>div</div>''': '',
+    r'''<A HREF='%uff1cscript%uff1ealert("XSS")%uff1c/script%uff1e'>asd</A>''': '',
+    r'''<DIV sstyle=foobar"tstyle="foobar"ystyle="foobar"lstyle="foobar"estyle="foobar"=-moz-binding:url(http://h4k.in/mozxss.xml#xss)>foobar#xss)" a=">asd"</DIV>''': '',
+    r'''<IMG SRC='vbscript:Execute(MsgBox(chr(88)&chr(83)&chr(83)))'>''': '',
+    r'''<A HREF='res://c:\\program%20files\\adobe\\acrobat%207.0\\acrobat\\acrobat.dll/#2/#210'>asd</A>''': '',
+    r'''<A onclick=eval/**/(/ale/.source%2b/rt/.source%2b/(7)/.source);>asd</A>''': '',
+    r'''<!--adasda<IMG SRC='1.jpg'> ->1w<!- adasda IMG SRC='1.jpg'>2w-->3w->4w>''': '', 
+    r'''TEXT<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/transitional.dtd"><html>foo<!bar</html>text''': 'TEXTfootext',
+}
 
 tinymce_in=u"""
 <p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>
@@ -560,7 +561,7 @@ JJ
 <td style="background-color: #a2a1c4;" colspan="2" rowspan="2" align="center" valign="top">big</td>
 </tr>
 <tr>
-<td style="background-color: #c2a1a4; border-left: 2px solid red">zx</td>
+<td style="background-color: #c2a1a4; text-decoration:underline;border-left: 2px solid red">zx</td>
 </tr>
 </tbody>
 </table>
@@ -604,9 +605,9 @@ summary="asd"> <caption></caption> <tbody> <tr> <td>dd</td> <td>fd</td> \
 </tr> <tr> <td>fdf</td> <td>fd</td> </tr> </tbody> </table> </td> </tr> \
 <tr> <td></td> <td style="background-color: #a2a1c4;" colspan="2" rowspan="\
 2" align="center" valign="top">big</td> </tr> <tr> <td style="background-\
-color: #c2a1a4; border-left: 2px solid red;">zx</td> </tr> </tbody> </table\
-><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
-p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'
+color: #c2a1a4; text-decoration: underline; border-left: 2px solid red;">zx</\
+td> </tr> </tbody> </table><p>&lt;img src=&quot;javascript:alert(1);&quot;&\
+gt;</p><p> text </p><p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'
 
 tinymce_simple = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
 decoration: underline;">y</span>u<span style="text-decoration: line-through\
@@ -619,7 +620,7 @@ li> </ol><address>H</address><pre> J JJJJ JJ </pre><h1>1</h1><h2>2</h2><h3>3</\
 h3><h4>4</h4><h5>5</h5><h6>6</h6><p><a href="http://ya.ru">Z</a>X<a href="/\
 news" target="_blank">C</a>V<a href="#ANC">B</a>NM<img title="sb" src="/media\
 /img/search.jpg" alt="Search button" width="30" height="30" />&lt;</p><p><img \
-id="I1" style="float: right;" src="/media/img/logo.png" alt="" width="94" \
+style="float: right;" src="/media/img/logo.png" alt="" width="94" \
 height="94" /></p><p>And</p><p>this:</p><p> <object width="100" height="100" \
 data="http://www.youtube.com/watch?v=rAy8JbMitog" type="application/x-\
 shockwave-flash"> <param name="src" value="http://www.youtube.com/watch?v=\
@@ -632,11 +633,11 @@ value="10" /> <param name="hspace" value="30" /> </object> </p><p>&amp;\
 \u20ac\u03b4\xa0\u0398</p><blockquote> <p>asdas</p> </blockquote><p><del>b</\
 del><ins>c</ins>d<del>e</del>f</p><table> <tbody> <tr> <td>qq</td> <td \
 colspan="2"> <p>wwweeee</p> </td> </tr> <tr> <td>aaaa</td> <td>ss</td> <td>\
-ddd</td> </tr> </tbody> </table><table style=""> <caption></caption> <tbody> \
-<tr style="" align="right"> <td>ad</td> <td>qw</td> <td> <table style="" \
+ddd</td> </tr> </tbody> </table><table> <caption></caption> <tbody> \
+<tr align="right"> <td>ad</td> <td>qw</td> <td> <table \
 summary="asd"> <caption></caption> <tbody> <tr> <td>dd</td> <td>fd</td> </\
 tr> <tr> <td>fdf</td> <td>fd</td> </tr> </tbody> </table> </td> </tr> <tr> <\
-td style="" colspan="2" rowspan="2" align="center" valign="top">big</td> </\
-tr> <tr> <td style="border-left: 2px solid red;">zx</td> </tr> </tbody> </\
+td colspan="2" rowspan="2" align="center" valign="top">big</td> </\
+tr> <tr> <td style="text-decoration: underline;">zx</td> </tr> </tbody> </\
 table><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
 p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'

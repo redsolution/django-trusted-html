@@ -855,8 +855,10 @@ class Html(String):
                 except TrustedException:
                     element = soup.contents[index].extract()
                     if rule is None or getattr(rule, 'save_content', True):
-                        for content in element.contents:
-                            soup.insert(index, content)
+                        insert = index
+                        while len(element.contents):
+                            soup.insert(insert, element.contents[0])
+                            insert = insert + 1
                     continue
                 self.clear(soup.contents[index], path)
             elif soup.contents[index].__class__ is NavigableString:
