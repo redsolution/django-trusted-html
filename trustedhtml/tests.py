@@ -375,9 +375,6 @@ class Html(unittest.TestCase):
             '<form><p>t<select><option>e</option></select></p><p>s</p><form><p>t</p>'),
             '<p>tes</p><p>t</p>')
         self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
-#        open('in.txt', 'w').write(get_lined(tinymce_in).encode('utf-8'))
-#        open('full.txt', 'w').write(get_lined(rules.html.full.validate(tinymce_in)).encode('utf-8'))
-        
 
     def tearDown(self):
         pass
