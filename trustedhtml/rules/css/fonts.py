@@ -1,6 +1,6 @@
 """
 Colors and Backgrounds
-http://www.w3.org/TR/1998/REC-CSS2-19980512/colors.html
+http://www.w3.org/TR/1998/REC-CSS2-19980512/fonts.html
 """
 
 from trustedhtml.classes import List, RegExp, Or, Sequence, Complex
