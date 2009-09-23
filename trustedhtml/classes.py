@@ -348,6 +348,7 @@ class Uri(RegExp):
         
         ``cut_sites`` is list of sites for witch
         scheme and site`s name will be removed from url.
+        Cut operations will be applied before any other validations.
         
         ``cut_schemes`` is list of schemes that can be removed.
         Only urls with such scheme will be cut.
@@ -430,13 +431,13 @@ class Uri(RegExp):
         scheme_source, authority_source, path, query, fragment = urlsplit(value)
         scheme = self.lower_string(scheme_source)
         authority = self.lower_string(authority_source)
-        if not self.inlist(scheme, self.allow_schemes) or not self.inlist(authority, self.allow_sites):
-            raise IncorrectException(self, value)
         if self.inlist(scheme, self.cut_schemes) and self.inlist(authority, self.cut_sites):
             scheme = None
             authority = None
             if not path and not query and not fragment:
                 path = '/'
+        if not self.inlist(scheme, self.allow_schemes) or not self.inlist(authority, self.allow_sites):
+            raise IncorrectException(self, value)
         if scheme is None:
             check_scheme = 'http'
         else:
