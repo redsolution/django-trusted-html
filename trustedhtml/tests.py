@@ -6,6 +6,7 @@ import unittest
 from trustedhtml.classes import *
 from trustedhtml import rules
 from trustedhtml import signals
+from trustedhtml import urlparse
 
 class Classes(unittest.TestCase):
     def setUp(self):
@@ -47,20 +48,6 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('-12,34'), '34;-12')
         self.assertRaises(IncorrectException, rule.validate, '-12,34a')
         
-    def test_uri_core(self):
-        rule = Uri()
-        self.assertEqual(rule.preprocess('Q%WW%R%1TT%2%YYY%%34UU%a5%6A', None), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
-        uri = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
-        self.assertEqual(rule.split(uri),
-            ('http', 'www.ics.uci.edu', '/pub/ietf/uri/', 'arg1=value1&arg2=value2', 'Related'))
-        self.assertEqual(rule.split('http:/www.ics.uci.edu/'),
-            ('http', None, '/www.ics.uci.edu/', None, None))
-        self.assertEqual(rule.split('http:www.ics.uci.edu/'),
-            ('http', None, 'www.ics.uci.edu/', None, None))
-        self.assertEqual(rule.split('http/://www.ics.uci.edu/'),
-            (None, None, 'http/://www.ics.uci.edu/', None, None))
-        self.assertEqual(rule.build(*rule.split(uri)), uri)
-
     def test_uri_a(self):
         rule = Uri()
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
@@ -156,7 +143,23 @@ class Classes(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
+
+class Urlparse(unittest.TestCase):
+    def test_uri_core(self):
+        self.assertEqual(urlparse.fix('Q%WW%R%1TT%2%YYY%%34UU%a5%6A'), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
+        self.assertEqual(urlparse.split('http:/www.ics.uci.edu/'),
+            ('http', None, '/www.ics.uci.edu/', None, None))
+        self.assertEqual(urlparse.split('http:www.ics.uci.edu/'),
+            ('http', None, 'www.ics.uci.edu/', None, None))
+        self.assertEqual(urlparse.split('http/://www.ics.uci.edu/'),
+            (None, None, 'http/://www.ics.uci.edu/', None, None))
+        uri = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
+        self.assertEqual(urlparse.split(uri),
+            ('http', 'www.ics.uci.edu', '/pub/ietf/uri/', 'arg1=value1&arg2=value2', 'Related'))
+        self.assertEqual(urlparse.expand(*urlparse.split(uri)), uri)
+
+
 class CssRules(unittest.TestCase):
 
     def setUp(self):

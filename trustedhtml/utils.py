@@ -270,17 +270,6 @@ def get_cdata(value):
     value = SGML_SPACE_RE.sub(SGML_SPACE_REPL, value)
     return value
 
-URI_PERCENT_RE = re.compile(r'%(?![0-9A-Fa-f]{2})')
-URI_PERCENT_RELP = '%25'
-
-def get_uri(value):
-    """
-    Return unquoted URI.
-    
-    http://www.ietf.org/rfc/rfc2396.txt
-    """
-    return URI_PERCENT_RE.sub(URI_PERCENT_RELP, value)
-
 STYLE_COMMENT_RE = re.compile(r'\/\*[^*]*\*+([^/][^*]*\*+)*\/')
 STYLE_COMMENT_REPL = ''
 

@@ -7,7 +7,8 @@ from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
 from signals import rule_done, rule_exception
-from utils import get_cdata, get_uri, get_style
+from utils import get_cdata, get_style
+import urlparse
 
 BeautifulSoup.QUOTE_TAGS = {}
 BeautifulSoup.SELF_CLOSING_TAGS = buildTagMap(None, [
@@ -350,9 +351,7 @@ class Uri(RegExp):
         This class not support such validation,
         but this attribute can be used by signals.
         """
-        super(Uri, self).__init__(
-            regexp=r'^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?',
-            case_sensitive=False, **kwargs)
+        super(Uri, self).__init__(regexp='', case_sensitive=False, **kwargs)
         self.allow_sites = self.lower_list(allow_sites)
         self.allow_schemes = self.lower_list(allow_schemes)
         self.local_sites = self.lower_list(local_sites)
@@ -369,38 +368,13 @@ class Uri(RegExp):
         so we can trust prepared values.
         """
         value = super(Uri, self).preprocess(value, path)
-        value = get_uri(value)
+        value = urlparse.fix(value)
         return value
-
-    def split(self, uri):
-        """
-        Return tuple (scheme, authority, path, query, fragment) for given ``uri``.
-        """
-        match = self.compiled.match(uri)
-        return (match.group(2), match.group(4), match.group(5), match.group(7), match.group(9))
-
-    
-    def build(self, scheme, authority, path, query, fragment):
-        """
-        Return uri from given (scheme, authority, path, query, fragment).
-        """
-        result = ''
-        if scheme is not None:
-            result += scheme + ':'
-        if authority is not None:
-            result += '//' + authority
-        if path is not None:
-            result += path
-        if query is not None:
-            result += '?' + query
-        if fragment is not None:
-            result += '#' + fragment
-        return result
 
     def core(self, value, path):
         """Do it."""
         value = String.core(self, value, path)
-        scheme_source, authority_source, path, query, fragment = self.split(value)
+        scheme_source, authority_source, path, query, fragment = urlparse.split(value)
         scheme = self.lower_string(scheme_source)
         authority = self.lower_string(authority_source)
         if scheme is not None:
@@ -415,7 +389,7 @@ class Uri(RegExp):
             authority = None
             if not path and not query and not fragment:
                 path = '/'
-        value = self.build(scheme, authority, path, query, fragment)
+        value = urlparse.expand(scheme, authority, path, query, fragment)
         return value
 
 
