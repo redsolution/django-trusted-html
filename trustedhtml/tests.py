@@ -6,7 +6,7 @@ import unittest
 from trustedhtml.classes import *
 from trustedhtml import rules
 from trustedhtml import signals
-from trustedhtml import urlparse
+from trustedhtml import urlmethods
 
 class Classes(unittest.TestCase):
     def setUp(self):
@@ -59,7 +59,7 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
 
     def test_uri_a_local(self):
-        rule = Uri(local_sites=['local.com', 'local-mirror.com'])
+        rule = Uri(cut_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
         self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
         self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
@@ -79,7 +79,7 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
             
     def test_uri_img_local(self):
-        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], cut_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
         self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
         self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
@@ -89,7 +89,7 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
 
     def test_uri_ext(self):
-        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], local_sites=['local.com', 'local-mirror.com'])
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], cut_sites=['local.com', 'local-mirror.com'])
         self.assertEqual(rule.validate('http://local.com?qw'), '?qw')
         self.assertEqual(rule.validate('http://local.com'), '/')
 
@@ -145,20 +145,19 @@ class Classes(unittest.TestCase):
         pass
 
 
-class Urlparse(unittest.TestCase):
-    def test_uri_core(self):
-        self.assertEqual(urlparse.fix('Q%WW%R%1TT%2%YYY%%34UU%a5%6A'), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
-        self.assertEqual(urlparse.split('http:/www.ics.uci.edu/'),
+class Urlmethods(unittest.TestCase):
+    def test_core(self):
+        self.assertEqual(urlmethods.urlfix('Q%WW%R%1TT%2%YYY%%34UU%a5%6A'), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
+        self.assertEqual(urlmethods.urlsplit('http:/www.ics.uci.edu/'),
             ('http', None, '/www.ics.uci.edu/', None, None))
-        self.assertEqual(urlparse.split('http:www.ics.uci.edu/'),
+        self.assertEqual(urlmethods.urlsplit('http:www.ics.uci.edu/'),
             ('http', None, 'www.ics.uci.edu/', None, None))
-        self.assertEqual(urlparse.split('http/://www.ics.uci.edu/'),
+        self.assertEqual(urlmethods.urlsplit('http/://www.ics.uci.edu/'),
             (None, None, 'http/://www.ics.uci.edu/', None, None))
         uri = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
-        self.assertEqual(urlparse.split(uri),
+        self.assertEqual(urlmethods.urlsplit(uri),
             ('http', 'www.ics.uci.edu', '/pub/ietf/uri/', 'arg1=value1&arg2=value2', 'Related'))
-        self.assertEqual(urlparse.expand(*urlparse.split(uri)), uri)
-
+        self.assertEqual(urlmethods.urljoin(*urlmethods.urlsplit(uri)), uri)
 
 class CssRules(unittest.TestCase):
 

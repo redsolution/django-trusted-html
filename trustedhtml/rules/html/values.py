@@ -17,7 +17,7 @@ from trustedhtml.classes import RegExp, Sequence
 
 from trustedhtml.rules.html.types import name, name_required, idrefs,\
     idrefs_comma, number, number_required, positive_number, text,\
-    text_required, text_default, uri, uri_required, uri_image,\
+    text_required, text_default, uri, uri_required, uri_image, uri_object,\
     uri_image_required, uris, color, pixels, length, multi_length,\
     multi_lengths, length_required, coords, content_type, content_types,\
     content_type_required, language_code, charset, charsets, character,\
@@ -76,10 +76,10 @@ values['alt~i'] = text_default
 values['alt'] = text
 # short description (INPUT)
 
-values['archive~a'] = Sequence(rule=uri, regexp=r'\s*,\s*', join_string=',')
+values['archive~a'] = Sequence(rule=uri_object, regexp=r'\s*,\s*', join_string=',')
 # comma-separated archive list (APPLET); deprecated
 
-values['archive'] = Sequence(rule=uri, regexp=r'\s+', join_string=' ')
+values['archive'] = Sequence(rule=uri_object, regexp=r'\s+', join_string=' ')
 # space-separated list of URIs (OBJECT)
 
 values['axis'] = idrefs_comma
@@ -133,7 +133,7 @@ values['cite'] = uri
 values['class'] = idrefs
 # space-separated list of classes (All elements but BASE, BASEFONT, HEAD, HTML, META, PARAM, SCRIPT, STYLE, TITLE)
 
-values['classid'] = uri
+values['classid'] = uri_object
 # identifies an implementation (OBJECT)
 
 values['clear'] = RegExp(regexp=r'(left|all|right|none)$')
@@ -142,10 +142,10 @@ values['clear'] = RegExp(regexp=r'(left|all|right|none)$')
 values['code'] = text
 # applet class file (APPLET); deprecated
 
-values['codebase'] = uri
+values['codebase'] = uri_object
 # base URI for classid, data, archive (OBJECT)
 
-values['codebase'] = uri
+values['codebase'] = uri_object
 # optional base URI for applet (APPLET); deprecated - for security reasons
 
 values['codetype'] = content_type
@@ -175,7 +175,7 @@ values['coords'] = coords # Fix: The number and order of values depends on the s
 values['coords'] = coords
 # for use with client-side image maps (A)
 
-values['data'] = uri
+values['data'] = uri_object
 # reference to object's data (OBJECT)
 
 values['datetime'] = datetime

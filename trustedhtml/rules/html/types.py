@@ -26,6 +26,7 @@ uri = Uri()
 uri_required = Uri(element_exception=True)
 uri_image = Uri(is_image=True)
 uri_image_required = Uri(is_image=True, element_exception=True)
+uri_object = Uri(is_object=True)
 uris = Sequence(rule=Uri())
 
 color = RegExp(regexp=r'(%(color)s)$' % grammar)

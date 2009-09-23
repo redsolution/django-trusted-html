@@ -8,7 +8,7 @@ from django.dispatch import Signal
 
 from signals import rule_done, rule_exception
 from utils import get_cdata, get_style
-import urlparse
+from urlmethods import urlsplit, urljoin, urlfix, urlcheck
 
 BeautifulSoup.QUOTE_TAGS = {}
 BeautifulSoup.SELF_CLOSING_TAGS = buildTagMap(None, [
@@ -228,7 +228,7 @@ class String(Rule):
         
         Returns list of ``values`` in low case if ``case_sensitive`` is True.
         """
-        if values is None:
+        if values is None or values is False or values is True:
             return values
         return [self.lower_string(value)
             for value in values]
@@ -326,39 +326,92 @@ class Uri(RegExp):
     Validation will return correct URI.
     """
     
-    def __init__(self, allow_sites=None, allow_schemes=[
+    def __init__(self, allow_sites=True, allow_schemes=[
             'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
             'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
-        ], local_sites=[], local_schemes=['http', ], is_image=False, **kwargs):
+        ], cut_sites=False, cut_schemes=['http', ],
+        verify_sites=False, verify_schemes=['http', 'https', 'ftp', ],
+        verify_local=False, local_sites=False, local_schemes=['http', ], 
+        verify_user_agent='TrustedHtml',
+        is_image=False, is_object=False, **kwargs):
         """
-        ``allow_sites`` is list of allowed sites or is None to allow all sites.
+        All lists passed to this function can be:
+            list of strings with allowed values.
+            True to allow all values.
+            False or None to disable all values
 
-        To allow only your sites, you can use:
+        ``allow_sites`` is list with names of allowed sites.
+        You can use your registered sites like this:
         [site.domain for site in django.contrib.sites.models.Site.objects.all()]
-        
-        To disallow all sites (only paths will be available), you can use:
-        []
         
         ``allow_schemes`` is list of allowed schemes for URIs.
         
-        ``local_sites`` is list of sites for witch
-        scheme and site-name will be removed from uri.
+        ``cut_sites`` is list of sites for witch
+        scheme and site`s name will be removed from url.
         
-        ``local_schemes`` is list of schemes that can be removed.
-        Only uris with such scheme will be cut.
+        ``cut_schemes`` is list of schemes that can be removed.
+        Only urls with such scheme will be cut.
         
-        ``is_image`` indicate that this url must be as image.
+        ``verify_sites`` is list of sites to be verified.
+        Validation will try to fetch specified url for such sites. 
+        
+        ``verify_schemes`` is list of allowed schemes for verification.
+        
+        ``verify_local`` specify verification mechanism:
+            string to specify host to fetch urls without host name.
+            You can use:
+            django.contrib.sites.models.Site.objects.get_current().domain
+
+            False to disable any verification of local urls.
+
+            True to enable verification by using django.test.Client.
+            You must use it if your server is running in one thread
+            (and was not forked).
+            In such case requests to it self can`t be received.
+            
+        ``local_sites`` is list of sites to be recognized as local. 
+        
+        ``local_schemes`` is list of schemes for local verification.
+        
+        ``verify_user_agent`` is name of user agent for verification. 
+        
+        ``is_image`` indicate that this url must be an image.
         This class not support such validation,
-        but this attribute can be used by signals.
+        but this attribute can be used by rules or signals.
+        
+        ``is_object`` indicate that this url must be an embedded object. 
+        This class not support such validation,
+        but this attribute can be used by rules or signals.
         """
         super(Uri, self).__init__(regexp='', case_sensitive=False, **kwargs)
         self.allow_sites = self.lower_list(allow_sites)
         self.allow_schemes = self.lower_list(allow_schemes)
+        self.cut_sites = self.lower_list(cut_sites)
+        self.cut_schemes = self.lower_list(cut_schemes)
+        self.verify_sites = self.lower_list(verify_sites)
+        self.verify_schemes = self.lower_list(verify_schemes)
         self.local_sites = self.lower_list(local_sites)
-        if self.local_sites is None:
-            self.local_sites = []
         self.local_schemes = self.lower_list(local_schemes)
+        self.verify_local = verify_local
         self.is_image = is_image
+        self.is_object = is_object
+
+    def inlist(self, value, lst):
+        """
+        Check whether ``value`` is in ``lst``.
+        All lists passed to this function can be:
+            list of strings with allowed values.
+            True to allow all values.
+            False or None to disable all values
+        If ``value`` is None than it is empty list.
+        """
+        if value is None:
+            return True
+        if lst is True:
+            return True
+        if lst is None or lst is False:
+            return False
+        return value in lst
 
     def preprocess(self, value, path):
         """
@@ -368,28 +421,40 @@ class Uri(RegExp):
         so we can trust prepared values.
         """
         value = super(Uri, self).preprocess(value, path)
-        value = urlparse.fix(value)
+        value = urlfix(value)
         return value
-
+    
     def core(self, value, path):
         """Do it."""
         value = String.core(self, value, path)
-        scheme_source, authority_source, path, query, fragment = urlparse.split(value)
+        scheme_source, authority_source, path, query, fragment = urlsplit(value)
         scheme = self.lower_string(scheme_source)
         authority = self.lower_string(authority_source)
-        if scheme is not None:
-            if scheme not in self.allow_schemes:
-                raise IncorrectException(self, value)
-        if authority is not None and self.allow_sites is not None:
-            if authority not in self.allow_sites:
-                raise IncorrectException(self, value)
-        if (scheme is None or scheme in self.local_schemes)\
-            and (authority in self.local_sites):
+        if not self.inlist(scheme, self.allow_schemes) or not self.inlist(authority, self.allow_sites):
+            raise IncorrectException(self, value)
+        if self.inlist(scheme, self.cut_schemes) and self.inlist(authority, self.cut_sites):
             scheme = None
             authority = None
             if not path and not query and not fragment:
                 path = '/'
-        value = urlparse.expand(scheme, authority, path, query, fragment)
+        if scheme is None:
+            check_scheme = 'http'
+        else:
+            check_scheme = scheme
+        if self.inlist(scheme, self.local_schemes) and self.inlist(authority, self.local_sites):
+            if self.verify_local is True:
+                if not urllocal(path, query):
+                    raise IncorrectException(self, value)
+            elif self.verify_local is not False:
+                check = urljoin(check_scheme, self.verify_local, path, query, fragment)
+                if not urlfetch(check):
+                    raise IncorrectException(self, value)
+        elif self.inlist(scheme, self.verify_schemes) and self.inlist(authority, self.verify_sites):
+            if authority is not None:
+                check = urljoin(check_scheme, authority, path, query, fragment)
+                if not urlfetch(check):
+                    raise IncorrectException(self, value)
+        value = urljoin(scheme, authority, path, query, fragment)
         return value
 
 
@@ -972,3 +1037,5 @@ class Html(String):
         else:
             raise IncorrectException(self, 'Too much attempts to fix value')
         return value
+
+
