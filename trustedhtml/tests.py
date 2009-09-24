@@ -6,9 +6,8 @@ import unittest
 from trustedhtml.classes import *
 from trustedhtml import rules
 from trustedhtml import signals
-from trustedhtml import urlmethods
 
-class Classes(unittest.TestCase):
+class TestClasses(unittest.TestCase):
     def setUp(self):
         pass
         
@@ -48,51 +47,6 @@ class Classes(unittest.TestCase):
         self.assertEqual(rule.validate('-12,34'), '34;-12')
         self.assertRaises(IncorrectException, rule.validate, '-12,34a')
         
-    def test_uri_a(self):
-        rule = Uri()
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
-        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
-        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
-        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-
-    def test_uri_a_local(self):
-        rule = Uri(cut_sites=['local.com', 'local-mirror.com'])
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
-        self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
-        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-            
-    def test_uri_img(self):
-        rule = Uri(allow_sites=['local.com', 'local-mirror.com'])
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
-        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
-        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
-        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-            
-    def test_uri_img_local(self):
-        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], cut_sites=['local.com', 'local-mirror.com'])
-        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
-        self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
-        self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
-        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
-        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-
-    def test_uri_ext(self):
-        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], cut_sites=['local.com', 'local-mirror.com'])
-        self.assertEqual(rule.validate('http://local.com?qw'), '?qw')
-        self.assertEqual(rule.validate('http://local.com'), '/')
-
     def test_or(self):
         rule = Or(rules=[
             List(values=['a', 'aB', ]),
@@ -143,23 +97,76 @@ class Classes(unittest.TestCase):
 
     def tearDown(self):
         pass
+    
+class TestUri(unittest.TestCase):
+    def setUp(self):
+        pass
+        
+    def test_a(self):
+        rule = Uri()
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
 
+    def test_a_local(self):
+        rule = Uri(cut_sites=['local.com', 'local-mirror.com'])
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertEqual(rule.validate('http://foreign.com/img.jpg'), 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+            
+    def test_img(self):
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'])
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), 'http://local.com/img.jpg')
+        self.assertEqual(rule.validate('ftp://local.com/img.jpg'), 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
+            
+    def test_img_local(self):
+        rule = Uri(allow_sites=False, cut_sites=['local.com', 'local-mirror.com'])
+        self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
+        self.assertRaises(IncorrectException, rule.validate, 'http://foreign.com/img.jpg')
+        self.assertRaises(IncorrectException, rule.validate, 'ftp://local.com/img.jpg')
+        self.assertEqual(rule.validate('http://local.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
+        self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
 
-class Urlmethods(unittest.TestCase):
-    def test_core(self):
-        self.assertEqual(urlmethods.urlfix('Q%WW%R%1TT%2%YYY%%34UU%a5%6A'), u'Q%25WW%25R%251TT%252%25YYY%25%34UU%a5%6A')
-        self.assertEqual(urlmethods.urlsplit('http:/www.ics.uci.edu/'),
-            ('http', None, '/www.ics.uci.edu/', None, None))
-        self.assertEqual(urlmethods.urlsplit('http:www.ics.uci.edu/'),
-            ('http', None, 'www.ics.uci.edu/', None, None))
-        self.assertEqual(urlmethods.urlsplit('http/://www.ics.uci.edu/'),
-            (None, None, 'http/://www.ics.uci.edu/', None, None))
-        uri = 'http://www.ics.uci.edu/pub/ietf/uri/?arg1=value1&arg2=value2#Related'
-        self.assertEqual(urlmethods.urlsplit(uri),
-            ('http', 'www.ics.uci.edu', '/pub/ietf/uri/', 'arg1=value1&arg2=value2', 'Related'))
-        self.assertEqual(urlmethods.urljoin(*urlmethods.urlsplit(uri)), uri)
+    def test_ext(self):
+        rule = Uri(allow_sites=['local.com', 'local-mirror.com'], cut_sites=['local.com', 'local-mirror.com'])
+        self.assertEqual(rule.validate('http://local.com?qw'), '?qw')
+        self.assertEqual(rule.validate('http://local.com'), '/')
 
-class CssRules(unittest.TestCase):
+    def test_verify(self):
+        rule = Uri(verify_sites=True, local_sites=['local.com'])
+        self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
+        self.assertEqual(rule.validate('http://local.com/doesnotexists.html'), 'http://local.com/doesnotexists.html')
+        self.assertRaises(IncorrectException, rule.validate, 'http://doesnotexists.com')
+        self.assertEqual(rule.validate('/doesnotexists.html'), '/doesnotexists.html')
+
+    def test_local(self):
+        rule = Uri(verify_sites=True, verify_local=True, local_sites=['local.com'])
+        self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://local.com/doesnotexists.html')
+        self.assertRaises(IncorrectException, rule.validate, 'http://doesnotexists.com')
+        self.assertRaises(IncorrectException, rule.validate, '/doesnotexists.html')
+        self.assertEqual(rule.validate('http://local.com/response'), 'http://local.com/response')
+        self.assertEqual(rule.validate('http://local.com/redirect_response'), 'http://local.com/redirect_response')
+        self.assertRaises(IncorrectException, rule.validate, 'http://local.com/redirect_notfound')
+        self.assertEqual(rule.validate('http://local.com/request_true_response'), 'http://local.com/request_true_response')
+        self.assertEqual(rule.validate('http://local.com/request_false_response'), 'http://local.com/request_false_response')
+
+class TestCss(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -270,7 +277,7 @@ class CssRules(unittest.TestCase):
         pass
 
     
-class HtmlRules(unittest.TestCase):
+class TestHtml(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -471,7 +478,7 @@ class HtmlRules(unittest.TestCase):
         pass
     
     
-class Signals(unittest.TestCase):
+class TestSignals(unittest.TestCase):
     def setUp(self):
         def done(sender, **kwargs):
             pass
@@ -486,19 +493,19 @@ class Signals(unittest.TestCase):
         pass
 
 
-def get_html(html):
-    return """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+def get_html(html, type='Transitional'):
+    return """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 %s//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-%s.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>For w3c</title>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta http-equiv="Content-Language" content="ru" />
+<title>For w3c</title>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Language" content="en" />
 </head>
 <body>
 %s
 </body>
 </html>
-""" % html
+""" % (type, type.lower(), html)
 
 tinymce_in=u"""
 <p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>

@@ -1,0 +1,19 @@
+h1. Testing
+
+h2. django-url-methods
+
+Put django-url-methods to python paths.
+
+Also you can place this one near django-trusted-html, like this:
+
+<pre>
+$ ls
+django-trusted-html
+django-url-methods
+</pre> 
+
+h2. Run
+
+<pre>
+$ python example/manage.py test trustedhtml
+</pre>
