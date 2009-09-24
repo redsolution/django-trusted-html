@@ -1,16 +1,26 @@
 h1. Install
 
+h2. Required
+
+django-url-methods
+
 h2. Buildout
 
 <pre>
 [buildout]
 parts = ...
+        django-url-methods
         django-trusted-html
         
 [django]
 ...
 extra-paths = ...
+              ${django-url-methods:location}
               ${django-trusted-html:location}
+
+[django-url-methods]
+recipe = zerokspot.recipe.git
+repository = ssh://verne.redsolution.ru/srv/git/django-url-methods.git
 
 [django-trusted-html]
 recipe = zerokspot.recipe.git

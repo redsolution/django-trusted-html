@@ -8,7 +8,7 @@ from django.dispatch import Signal
 
 from signals import rule_done, rule_exception
 from utils import get_cdata, get_style
-from urlmethods import urlsplit, urljoin, urlfix, urlcheck
+from urlmethods import urlsplit, urljoin, urlfix, remote_check, local_check
 
 BeautifulSoup.QUOTE_TAGS = {}
 BeautifulSoup.SELF_CLOSING_TAGS = buildTagMap(None, [
@@ -444,16 +444,16 @@ class Uri(RegExp):
             check_scheme = scheme
         if self.inlist(scheme, self.local_schemes) and self.inlist(authority, self.local_sites):
             if self.verify_local is True:
-                if not urllocal(path, query):
+                if not local_check(path, query):
                     raise IncorrectException(self, value)
             elif self.verify_local is not False:
                 check = urljoin(check_scheme, self.verify_local, path, query, fragment)
-                if not urlfetch(check):
+                if not remote_check(check):
                     raise IncorrectException(self, value)
         elif self.inlist(scheme, self.verify_schemes) and self.inlist(authority, self.verify_sites):
             if authority is not None:
                 check = urljoin(check_scheme, authority, path, query, fragment)
-                if not urlfetch(check):
+                if not remote_check(check):
                     raise IncorrectException(self, value)
         value = urljoin(scheme, authority, path, query, fragment)
         return value
