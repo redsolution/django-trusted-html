@@ -21,4 +21,5 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'urlmethods',
     'trustedhtml',
+    'example',
 )
