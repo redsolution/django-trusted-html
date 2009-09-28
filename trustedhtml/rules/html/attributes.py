@@ -1808,3 +1808,6 @@ attributes['var'] = {
     'style': values['style'],
     'title': values['title'],
 }
+
+attributes['noindex'] = {}
+# This not w3c tag, but it is used by Yandex search engine

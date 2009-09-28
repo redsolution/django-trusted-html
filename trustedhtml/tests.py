@@ -395,6 +395,7 @@ class TestHtml(unittest.TestCase):
             '<form><p>t<select><option>e</option></select></p><p>s</p><select><option>t</option></select></form><p>.</p>'),
             '<p>te</p><p>s</p><p>t</p><p>.</p>')
         self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
+        self.assertEqual(rules.html.simple.validate('<p>a<noindex>b</noindex>c</p>'), '<p>a<noindex>b</noindex>c</p>')
         
     def test_hack(self):
         self.assertEqual(rules.html.full.validate(r'''<SCRIPT>alert("XSS")</SCRIPT>'''),
@@ -487,7 +488,11 @@ class TestSignals(unittest.TestCase):
             pass
 
         signals.rule_done.connect(done)        
-        signals.rule_exception.connect(exception)        
+        signals.rule_exception.connect(exception)
+        
+    def test_signals(self):
+        # Fix: add test        
+        pass
 
     def tearDown(self):
         pass

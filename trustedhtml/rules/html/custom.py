@@ -118,6 +118,7 @@ simple_elements = [
     'th',
     'tr',
     'ul',
+    'noindex', # This not w3c tag, but it is used by Yandex search engine
 ]
 
 # But we specified rare elements.

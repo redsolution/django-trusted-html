@@ -373,3 +373,7 @@ elements['ul'] = Element(
 elements['var'] = Element(
     rules=attributes['var'], contents=contents['var'])
 # instance of a variable or program argument
+
+elements['noindex'] = Element(
+    rules=attributes['noindex'], contents=contents['noindex'])
+# This not w3c tag, but it is used by Yandex search engine

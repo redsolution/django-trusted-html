@@ -28,7 +28,8 @@ list = ['ul', 'ol', 'dir', 'menu']
 preformatted = ['pre']
 block = heading + list + preformatted + ['p',
     'dl', 'div', 'center', 'noscript', 'noframes', 'blockquote',
-    'form', 'isindex', 'hr', 'table', 'fieldset', 'address']
+    'form', 'isindex', 'hr', 'table', 'fieldset', 'address'] + \
+    ['noindex'] # This not w3c tag, but it is used by Yandex search engine
 # Strict: heading + list + preformatted + ['p',
 #    'dl', 'div', 'noscript', 'blockquote',
 #    'form', 'hr', 'table', 'fieldset', 'address']
@@ -129,3 +130,4 @@ contents['tt'] = inline
 contents['u'] = inline
 contents['ul'] = ['li']
 contents['var'] = inline
+contents['noindex'] = flow # This not w3c tag, but it is used by Yandex search engine
