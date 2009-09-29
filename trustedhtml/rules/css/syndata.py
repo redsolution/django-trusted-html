@@ -95,7 +95,7 @@ color = Or(rules=[
 ])
 
 uri_base = Uri()
-uri_image = Uri(is_image=True)
+uri_image = Uri(type=Uri.IMAGE)
 uri_string1_in = RegExp(
     regexp=r'url\(%(w)s(%(string1)s)%(w)s\)' % grammar,
     expand=r'\g<string1>',

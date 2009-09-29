@@ -6,8 +6,9 @@ from beautifulsoup import BeautifulSoup, NavigableString, Tag, buildTagMap
 from django.utils.encoding import iri_to_uri
 from django.dispatch import Signal
 
-from signals import rule_done, rule_exception
-from utils import get_cdata, get_style
+from trustedhtml import settings
+from trustedhtml.signals import rule_done, rule_exception
+from trustedhtml.utils import get_cdata, get_style
 from urlmethods import urlsplit, urljoin, urlfix, remote_check, local_check
 
 BeautifulSoup.QUOTE_TAGS = {}
@@ -320,25 +321,33 @@ class RegExp(String):
         return value
 
 
-class Uri(RegExp):
+class Uri(String):
     """
     Rule suppose that value is correct if it is allowed URI.
     Validation will return correct URI.
     """
+    LINK = 0
+    IMAGE = 1
+    OBJECT = 2
     
-    def __init__(self, allow_sites=True, allow_schemes=[
-            'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
-            'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', 
-        ], cut_sites=False, cut_schemes=['http', ],
-        verify_sites=False, verify_schemes=['http', 'https', 'ftp', ],
-        verify_local=False, local_sites=False, local_schemes=['http', ], 
-        verify_user_agent='TrustedHtml',
-        is_image=False, is_object=False, **kwargs):
+    def __init__(self, type=LINK, allow_sites=None, allow_schemes=None,
+        cut_sites=None, cut_schemes=None, verify_sites=None, verify_schemes=None,
+        verify_local=None, local_sites=None, local_schemes=None, 
+        verify_user_agent=None, **kwargs):
         """
+        ``type`` indicate that this url must be an image.
+        This class not support such validation,
+        but this attribute can be used by rules or signals.
+        
+        ``is_object`` indicate that this url must be an embedded object. 
+        This class not support such validation,
+        but this attribute can be used by rules or signals.
+
         All lists passed to this function can be:
             list of strings with allowed values.
             True to allow all values.
-            False or None to disable all values
+            False or disable all values.
+            None is used not set default value (from settings.py).
 
         ``allow_sites`` is list with names of allowed sites.
         You can use your registered sites like this:
@@ -374,17 +383,39 @@ class Uri(RegExp):
         
         ``local_schemes`` is list of schemes for local verification.
         
-        ``verify_user_agent`` is name of user agent for verification. 
+        ``verify_user_agent`` is name of user agent for verification.
         
-        ``is_image`` indicate that this url must be an image.
-        This class not support such validation,
-        but this attribute can be used by rules or signals.
-        
-        ``is_object`` indicate that this url must be an embedded object. 
-        This class not support such validation,
-        but this attribute can be used by rules or signals.
+        This class ignore ``case_sensitive`` considered it is False.
         """
-        super(Uri, self).__init__(regexp='', case_sensitive=False, **kwargs)
+        super(Uri, self).__init__(case_sensitive=False, **kwargs)
+        if allow_sites is None:
+            if type == self.LINK:
+                allow_sites = settings.TRUSTEDHTML_LINK_SITES
+            elif type == self.IMAGE:
+                allow_sites = settings.TRUSTEDHTML_IMAGE_SITES
+            elif type == self.OBJECT:
+                allow_sites = settings.TRUSTEDHTML_OBJECT_SITES
+            else:
+                allow_sites = False
+        if allow_schemes is None:
+            allow_schemes = settings.TRUSTEDHTML_ALLOW_SCHEMES
+        if cut_sites is None:
+            cut_sites = settings.TRUSTEDHTML_CUT_SITES
+        if cut_schemes is None:
+            cut_schemes = settings.TRUSTEDHTML_CUT_SCHEMES
+        if verify_sites is None:
+            verify_sites = settings.TRUSTEDHTML_VERIFY_SITES
+        if verify_schemes is None:
+            verify_schemes = settings.TRUSTEDHTML_VERIFY_SCHEMES
+        if verify_local is None:
+            verify_local = settings.TRUSTEDHTML_VERIFY_LOCAL
+        if local_sites is None:
+            local_sites = settings.TRUSTEDHTML_LOCAL_SITES
+        if local_schemes is None:
+            local_schemes = settings.TRUSTEDHTML_LOCAL_SCHEMES
+        if verify_user_agent is None:
+            verify_user_agent = settings.TRUSTEDHTML_VERIFY_USER_AGENT
+        self.type = type
         self.allow_sites = self.lower_list(allow_sites)
         self.allow_schemes = self.lower_list(allow_schemes)
         self.cut_sites = self.lower_list(cut_sites)
@@ -394,8 +425,6 @@ class Uri(RegExp):
         self.local_sites = self.lower_list(local_sites)
         self.local_schemes = self.lower_list(local_schemes)
         self.verify_local = verify_local
-        self.is_image = is_image
-        self.is_object = is_object
 
     def inlist(self, value, lst):
         """

@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings
+from trustedhtml import settings
 from trustedhtml.classes import Html
 from trustedhtml.signals import rule_done, rule_exception
 
@@ -17,6 +17,6 @@ def log(sender, rule, value, source, **kwargs):
             result=value, sender=unicode(sender), rule=unicode(rule.__dict__))
     return value
 
-if getattr(settings, 'TRUSTEDHTML_ENABLE_LOG', False):
+if settings.TRUSTEDHTML_ENABLE_LOG:
     rule_done.connect(log, sender=Html)
     rule_exception.connect(log, sender=Html)

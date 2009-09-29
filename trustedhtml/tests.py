@@ -166,6 +166,47 @@ class TestUri(unittest.TestCase):
         self.assertEqual(rule.validate('http://local.com/request_true_response'), 'http://local.com/request_true_response')
         self.assertEqual(rule.validate('http://local.com/request_false_response'), 'http://local.com/request_false_response')
 
+    def test_settings(self):
+        link_sites = settings.TRUSTEDHTML_LINK_SITES
+        image_sites = settings.TRUSTEDHTML_IMAGE_SITES
+        object_sites = settings.TRUSTEDHTML_OBJECT_SITES
+        cut_sites = settings.TRUSTEDHTML_CUT_SITES
+        
+        rule = Uri()
+        self.assertEqual(rule.validate('http://link.com'), 'http://link.com')
+        self.assertEqual(rule.validate('http://image.com'), 'http://image.com')
+        self.assertEqual(rule.validate('http://object.com'), 'http://object.com')
+        self.assertEqual(rule.validate('http://cut.com'), 'http://cut.com')
+
+        settings.TRUSTEDHTML_LINK_SITES = ['link.com']
+        settings.TRUSTEDHTML_IMAGE_SITES = ['image.com']
+        settings.TRUSTEDHTML_OBJECT_SITES = ['object.com']
+        settings.TRUSTEDHTML_CUT_SITES = ['cut.com']
+        
+        rule = Uri(type=Uri.LINK)
+        self.assertEqual(rule.validate('http://link.com'), 'http://link.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://image.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://object.com')
+        self.assertEqual(rule.validate('http://cut.com'), '/')
+
+        rule = Uri(type=Uri.IMAGE)
+        self.assertRaises(IncorrectException, rule.validate, 'http://link.com')
+        self.assertEqual(rule.validate('http://image.com'), 'http://image.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://object.com')
+        self.assertEqual(rule.validate('http://cut.com'), '/')
+
+        rule = Uri(type=Uri.OBJECT)
+        self.assertRaises(IncorrectException, rule.validate, 'http://link.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://image.com')
+        self.assertEqual(rule.validate('http://object.com'), 'http://object.com')
+        self.assertEqual(rule.validate('http://cut.com'), '/')
+
+        settings.TRUSTEDHTML_LINK_SITES = link_sites
+        settings.TRUSTEDHTML_IMAGE_SITES = image_sites
+        settings.TRUSTEDHTML_OBJECT_SITES = object_sites
+        settings.TRUSTEDHTML_CUT_SITES = cut_sites
+
+
 class TestCss(unittest.TestCase):
 
     def setUp(self):
