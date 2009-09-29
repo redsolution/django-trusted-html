@@ -1,0 +1,51 @@
+h1. Django-Trusted-Html
+
+h2. Sanitizing
+
+This is application for sanitizing HTML from:
+* javascript injections
+* objectionable CSS styles
+* objectionable tags
+* objectionable or inaccessible links, images and embedded objects
+
+For example you can:
+* remove scripts from user`s content posted to your site
+* remove user-specified fonts and colors to make your site looks pretty 
+* allow user to post video only from 'youtube.com'
+* disable images arranged not on your own site
+
+
+h2. Valid HTML
+
+This is application for making valid HTML:
+* remove incorrect tags, attributes, css-properties and css-values not allowed to this property
+* check and remove broken link, and do some more things with them
+
+For example you can:
+* make all your content w3c valid
+* remove broken links to other sites
+* remove links to your site even on developer server (working in only one thread)
+* remove host name for links to you site.
+
+
+h2. Custom
+
+You can:
+* choose one of presets
+* specify settings of validation
+* custom rules of validation
+
+
+h2. Usage lyric
+
+Suppose that some users can post content to your site.
+And you want to allow them to post formatted text, images, tables and videos.
+The best way is using HTML as native format and WYSIWYG editor as user interface.
+So your users will create content easy and will be happy.
+They will be able to cut-and-paste content from other sites or GUI-Editors.
+So your users will create content easy and will be happy.
+They will be able to copy-and-paste content from other sites or GUI-Editors.
+But you can become unhappy. Your site can looks not homogeneous because of
+different font-families, colors, indents in copy-and-pasted content.
+Also you can want to protect your site from JavaScript injections.
+In this way you can use django-trusted-html.
