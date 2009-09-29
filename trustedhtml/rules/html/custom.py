@@ -80,9 +80,9 @@ remove_elements_with_content = [
 ]
 
 
-# We must specified css rules for all elements.
+# We must specified css rules in design of our site for all elements.
 # So, we want to use as little elements as possible.
-simple_elements = [
+pretty_elements = [
     'a',
     'address',
     'blockquote',
@@ -431,8 +431,8 @@ def get_elements(leave):
         result[name] = element
     return result
     
-simple = get_elements(simple_elements)
-normal = get_elements(simple_elements + rare_elements)
+pretty = get_elements(pretty_elements)
+normal = get_elements(pretty_elements + rare_elements)
 
 # Fix: anchors (in this order, because of empty_element)
 #replace_elements['a'] = Or(rules=[

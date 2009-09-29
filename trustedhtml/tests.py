@@ -334,7 +334,7 @@ class TestHtml(unittest.TestCase):
         lst = rules.html.custom.docement_elements + rules.html.custom.frame_elements + \
             rules.html.custom.form_elements + rules.html.custom.remove_elements + \
             rules.html.custom.remove_elements_with_content + \
-            rules.html.custom.simple_elements + rules.html.custom.rare_elements 
+            rules.html.custom.pretty_elements + rules.html.custom.rare_elements 
         append = []
         remove = [name for name in rules.html.attributes.attributes.iterkeys()]
         for item in lst:
@@ -389,13 +389,13 @@ class TestHtml(unittest.TestCase):
             '<p> </p><p>&nbsp;</p><p> </p><p>   &nbsp;   &nbsp; a&nbsp;&nbsp;  &nbsp; </p><p> </p>'),
             u'<p>\xa0a\xa0</p>')
 
-    def test_simple(self):
-        self.assertEqual(rules.html.simple.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
-        self.assertEqual(rules.html.simple.validate(
+    def test_pretty(self):
+        self.assertEqual(rules.html.pretty.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
+        self.assertEqual(rules.html.pretty.validate(
             '<form><p>t<select><option>e</option></select></p><p>s</p><select><option>t</option></select></form><p>.</p>'),
             '<p>te</p><p>s</p><p>t</p><p>.</p>')
-        self.assertEqual(rules.html.simple.validate(tinymce_in), tinymce_simple)
-        self.assertEqual(rules.html.simple.validate('<p>a<noindex>b</noindex>c</p>'), '<p>a<noindex>b</noindex>c</p>')
+        self.assertEqual(rules.html.pretty.validate(tinymce_in), tinymce_pretty)
+        self.assertEqual(rules.html.pretty.validate('<p>a<noindex>b</noindex>c</p>'), '<p>a<noindex>b</noindex>c</p>')
         
     def test_hack(self):
         self.assertEqual(rules.html.full.validate(r'''<SCRIPT>alert("XSS")</SCRIPT>'''),
@@ -668,7 +668,7 @@ color: #c2a1a4; text-decoration: underline; border-left: 2px solid red;">zx</\
 td> </tr> </tbody> </table><p>&lt;img src=&quot;javascript:alert(1);&quot;&\
 gt;</p><p> text </p><p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'
 
-tinymce_simple = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
+tinymce_pretty = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
 decoration: underline;">y</span>u<span style="text-decoration: line-through\
 ;">i</span>o<span style="text-decoration: line-through;"><span style="text-\
 decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</\
