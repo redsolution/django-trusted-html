@@ -6,8 +6,8 @@ from trustedhtml.signals import rule_done, rule_exception
 class Log(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     valid = models.BooleanField()
-    source = models.TextField()
-    result = models.TextField()
+    source = models.TextField(null=True)
+    result = models.TextField(null=True)
     sender = models.CharField(max_length=100)
     rule = models.TextField()
 
