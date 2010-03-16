@@ -422,7 +422,7 @@ def get_elements(leave):
         replace.update(replace_attributes_for_all)
         replace.update(replace_attributes_for_element.get(name, {}))
         rules = get_dict(attributes[name], remove=remove, append=replace)
-        element = Element(rules=rules, empty_element=value.empty_element,
+        element = Element(rules=rules, empty_element=value.empty_element, default=value.default,
             optional_start=value.optional_start, optional_end=value.optional_end,
             contents=value.contents, save_content=value.save_content)
         result[name] = element
@@ -430,7 +430,7 @@ def get_elements(leave):
         element = Element(remove_element=True, save_content=False)
         result[name] = element
     return result
-    
+
 pretty = get_elements(pretty_elements)
 normal = get_elements(pretty_elements + rare_elements)
 

@@ -10,7 +10,7 @@ from trustedhtml import signals
 class TestClasses(unittest.TestCase):
     def setUp(self):
         pass
-        
+
     def test_rule(self):
         rule = Rule()
         class Test(object):
@@ -23,13 +23,13 @@ class TestClasses(unittest.TestCase):
         self.assertRaises(EmptyException, string.validate, '')
         self.assertEqual(string.validate('qwe'), 'qwe')
         self.assertEqual(string.validate('  qw e '), 'qw e')
-        
+
     def test_list(self):
         rule = List(values=['a', 'aB', ], strip=True)
         self.assertRaises(IncorrectException, rule.validate, 'ac')
         self.assertEqual(rule.validate('  a '), 'a')
         self.assertEqual(rule.validate('  Ab '), 'aB')
-        
+
     def test_list_case(self):
         rule = List(values=['a', 'aB', ], return_defined=False, case_sensitive=True)
         self.assertRaises(IncorrectException, rule.validate, 'ac')
@@ -41,12 +41,12 @@ class TestClasses(unittest.TestCase):
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertRaises(IncorrectException, rule.validate, '@@@-')
         self.assertEqual(rule.validate('  @@@-12@ '), '-12')
-        
+
     def test_regexp_expand(self):
         rule = RegExp(regexp=r'([-+]?\d*),(?P<a>\d*)$', expand=r'\g<a>;\1')
         self.assertEqual(rule.validate('-12,34'), '34;-12')
         self.assertRaises(IncorrectException, rule.validate, '-12,34a')
-        
+
     def test_or(self):
         rule = Or(rules=[
             List(values=['a', 'aB', ]),
@@ -56,7 +56,7 @@ class TestClasses(unittest.TestCase):
         self.assertRaises(IncorrectException, rule.validate, '-')
         self.assertEqual(rule.validate('  -12 '), '-12')
         self.assertEqual(rule.validate('  Ab '), 'aB')
-        
+
     def test_or_empty(self):
         rule = Or(rules=[
             List(values=['a', 'aB', ]),
@@ -80,12 +80,12 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(rule.validate('  !!cD '), 'Cd')
 
     def test_style(self):
-        text_decoration = List(values=['underline', 'line-through'], )
+        text_decoration = List(values=['underline', 'line-through'],)
         simple_margin_top = RegExp(regexp=r'(\w+)$')
         rule = Style(rules={
             'text-decoration': text_decoration,
             'margin-top': simple_margin_top,
-        }, )
+        },)
         self.assertEqual(
             rule.validate(
                 'text-decoration: line-through; foo: line-through;'
@@ -97,11 +97,11 @@ class TestClasses(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
 class TestUri(unittest.TestCase):
     def setUp(self):
         pass
-        
+
     def test_a(self):
         rule = Uri()
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
@@ -121,7 +121,7 @@ class TestUri(unittest.TestCase):
         self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-            
+
     def test_img(self):
         rule = Uri(allow_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
@@ -131,7 +131,7 @@ class TestUri(unittest.TestCase):
         self.assertEqual(rule.validate('http://local-mirror.com/img.jpg'), 'http://local-mirror.com/img.jpg')
         self.assertEqual(rule.validate('/img.jpg'), '/img.jpg')
         self.assertEqual(rule.validate('img.jpg'), 'img.jpg')
-            
+
     def test_img_local(self):
         rule = Uri(allow_sites=False, cut_sites=['local.com', 'local-mirror.com'])
         self.assertRaises(IncorrectException, rule.validate, 'script:alert("hack")')
@@ -171,7 +171,7 @@ class TestUri(unittest.TestCase):
         image_sites = settings.TRUSTEDHTML_IMAGE_SITES
         object_sites = settings.TRUSTEDHTML_OBJECT_SITES
         cut_sites = settings.TRUSTEDHTML_CUT_SITES
-        
+
         rule = Uri()
         self.assertEqual(rule.validate('http://link.com'), 'http://link.com')
         self.assertEqual(rule.validate('http://image.com'), 'http://image.com')
@@ -182,7 +182,7 @@ class TestUri(unittest.TestCase):
         settings.TRUSTEDHTML_IMAGE_SITES = ['image.com']
         settings.TRUSTEDHTML_OBJECT_SITES = ['object.com']
         settings.TRUSTEDHTML_CUT_SITES = ['cut.com']
-        
+
         rule = Uri(type=Uri.LINK)
         self.assertEqual(rule.validate('http://link.com'), 'http://link.com')
         self.assertRaises(IncorrectException, rule.validate, 'http://image.com')
@@ -211,7 +211,7 @@ class TestCss(unittest.TestCase):
 
     def setUp(self):
         pass
-    
+
     def test_re(self):
         self.assertEqual(re.match('%(escape)s$' % rules.css.grammar.grammar, '\\\a'), None)
         self.assertNotEqual(re.match('%(escape)s$' % rules.css.grammar.grammar, u'\\\u044f'), None)
@@ -242,7 +242,7 @@ class TestCss(unittest.TestCase):
         self.assertEqual(rules.css.syndata.color.validate('#fff'), '#fff')
         self.assertEqual(rules.css.syndata.color.validate('#aaafff'), '#aaafff')
         self.assertRaises(IncorrectException, rules.css.syndata.color.validate, '#aazfff')
-        
+
     def test_uri(self):
         self.assertEqual(rules.css.syndata.uri.validate('url( img.jpg  )'), 'url(img.jpg)')
         self.assertEqual(rules.css.syndata.uri.validate('url( http://ya.ru/img.jpg   )'), 'url(http://ya.ru/img.jpg)')
@@ -295,13 +295,13 @@ class TestCss(unittest.TestCase):
 
     def test_full(self):
         self.assertEqual(rules.css.full.validate(
-            'color:black;font-family:sans-serif;'), 
+            'color:black;font-family:sans-serif;'),
             'color: black; font-family: sans-serif;')
         self.assertEqual(rules.css.full.validate(
             'background:#FDFEFF url(/media/img/header.gif) repeat-x scroll center;'
             'height:auto; margin:0; padding:2; ppading: 2px; width:auto;'),
             'background: #FDFEFF url(/media/img/header.gif) repeat-x scroll center; height: auto; margin: 0; width: auto;')
-        
+
     def test_custom(self):
         lst = rules.css.custom.disabled + rules.css.custom.for_table + \
             rules.css.custom.for_image + rules.css.custom.allowed
@@ -317,12 +317,12 @@ class TestCss(unittest.TestCase):
     def tearDown(self):
         pass
 
-    
+
 class TestHtml(unittest.TestCase):
 
     def setUp(self):
         pass
-    
+
     def test_values(self):
         self.assertEqual(rules.html.values.values['type'].validate('text/html'), 'text/html')
         self.assertEqual(rules.html.values.values['type'].validate('application/x-shockwave-Flash'), 'application/x-shockwave-Flash')
@@ -375,7 +375,7 @@ class TestHtml(unittest.TestCase):
         lst = rules.html.custom.docement_elements + rules.html.custom.frame_elements + \
             rules.html.custom.form_elements + rules.html.custom.remove_elements + \
             rules.html.custom.remove_elements_with_content + \
-            rules.html.custom.pretty_elements + rules.html.custom.rare_elements 
+            rules.html.custom.pretty_elements + rules.html.custom.rare_elements
         append = []
         remove = [name for name in rules.html.attributes.attributes.iterkeys()]
         for item in lst:
@@ -384,7 +384,7 @@ class TestHtml(unittest.TestCase):
             self.assertTrue(item in remove, repr(item))
             remove.remove(item)
         self.assertFalse(remove)
-    
+
     def test_full(self):
         self.assertEqual(rules.html.full.validate(
             '<p>test</p>'),
@@ -402,17 +402,20 @@ class TestHtml(unittest.TestCase):
             '<p>t<foo>e<bar>s</bar></foo>t</p>'),
             '<p>test</p>')
         self.assertEqual(rules.html.full.validate(
-            '<p>   t   <span>   e   </span>   <span>   s   </span>   t   </p>'), 
+            '<p>   t   <span>   e   </span>   <span>   s   </span>   t   </p>'),
             '<p> t <span> e </span> <span> s </span> t </p>')
         self.assertEqual(rules.html.full.validate(
-            '<p>   te   <span></span>   <span>   s   </span>   t   </p>'), 
+            '<p>   te   <span></span>   <span>   s   </span>   t   </p>'),
             '<p> te <span> s </span> t </p>')
         self.assertEqual(rules.html.full.validate(
-            '<p> te<span> </span> <span> </span> st </p>'), 
+            '<p> te<span> </span> <span> </span> st </p>'),
             '<p> te st </p>')
         self.assertEqual(rules.html.full.validate(
-            ' te<span> </span> <span> </span> st '), 
+            ' te<span> </span> <span> </span> st '),
             '<p>te st</p>')
+        self.assertEqual(rules.html.pretty.validate(
+            '<tr><td></td><td>a</td><td><span> </span> <span> </span> </td></tr>'),
+            '<p><tr><td>&nbsp;</td><td>a</td><td>&nbsp;</td></tr></p>')
         self.assertEqual(rules.html.full.validate(
             '<img />'),
             '')
@@ -437,7 +440,7 @@ class TestHtml(unittest.TestCase):
             '<p>te</p><p>s</p><p>t</p><p>.</p>')
         self.assertEqual(rules.html.pretty.validate(tinymce_in), tinymce_pretty)
         self.assertEqual(rules.html.pretty.validate('<p>a<noindex>b</noindex>c</p>'), '<p>a<noindex>b</noindex>c</p>')
-        
+
     def test_hack(self):
         self.assertEqual(rules.html.full.validate(r'''<SCRIPT>alert("XSS")</SCRIPT>'''),
             r'')
@@ -518,8 +521,8 @@ class TestHtml(unittest.TestCase):
 
     def tearDown(self):
         pass
-    
-    
+
+
 class TestSignals(unittest.TestCase):
     def setUp(self):
         def done(sender, **kwargs):
@@ -528,9 +531,9 @@ class TestSignals(unittest.TestCase):
         def exception(sender, **kwargs):
             pass
 
-        signals.rule_done.connect(done)        
+        signals.rule_done.connect(done)
         signals.rule_exception.connect(exception)
-        
+
     def test_signals(self):
         # Fix: add test        
         pass
@@ -553,7 +556,7 @@ def get_html(html, type='Transitional'):
 </html>
 """ % (type, type.lower(), html)
 
-tinymce_in=u"""
+tinymce_in = u"""
 <p>q<strong>w</strong>e<em>r</em>t<span style="text-decoration: underline;">y</span>u<span style="text-decoration: line-through;">i</span>o<span style="text-decoration: line-through;"><span style="text-decoration: underline;"><em><strong>p</strong></em></span></span>[]a<sub>s</sub>d<sup>f</sup>g&amp;hjkl;'</p>
 <p><a name="ANC"></a>a</p>
 <ul>
@@ -668,7 +671,7 @@ JJ
 <p>&lt;img src="javascript:alert(1);"&gt;</p>
 text
 <p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>
-"""        
+"""
 
 tinymce_full = u'<p>q<strong>w</strong>e<em>r</em>t<span style="text-\
 decoration: underline;">y</span>u<span style="text-decoration: line-\
@@ -703,7 +706,7 @@ img/content-corner.gif);" align="right"> <td>ad</td> <td>qw</td> <td> <table \
 style="height: 100px;" width="40" frame="lhs" rules="cols" align="left" \
 summary="asd"> <caption></caption> <tbody> <tr> <td>dd</td> <td>fd</td> \
 </tr> <tr> <td>fdf</td> <td>fd</td> </tr> </tbody> </table> </td> </tr> \
-<tr> <td></td> <td style="background-color: #a2a1c4;" colspan="2" rowspan="\
+<tr> <td>&nbsp;</td> <td style="background-color: #a2a1c4;" colspan="2" rowspan="\
 2" align="center" valign="top">big</td> </tr> <tr> <td style="background-\
 color: #c2a1a4; text-decoration: underline; border-left: 2px solid red;">zx</\
 td> </tr> </tbody> </table><p>&lt;img src=&quot;javascript:alert(1);&quot;&\
@@ -737,8 +740,7 @@ ddd</td> </tr> </tbody> </table><table> <caption></caption> <tbody> \
 <tr align="right"> <td>ad</td> <td>qw</td> <td> <table \
 summary="asd"> <caption></caption> <tbody> <tr> <td>dd</td> <td>fd</td> </\
 tr> <tr> <td>fdf</td> <td>fd</td> </tr> </tbody> </table> </td> </tr> <tr> <\
-td colspan="2" rowspan="2" align="center" valign="top">big</td> </\
-tr> <tr> <td style="text-decoration: underline;">zx</td> </tr> </tbody> </\
-table><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
+td>&nbsp;</td> <td colspan="2" rowspan="2" align="center" valign="top">big</\
+td> </tr> <tr> <td style="text-decoration: underline;">zx</td> </tr> </tbody> \
+</table><p>&lt;img src=&quot;javascript:alert(1);&quot;&gt;</p><p> text </p><\
 p>\u0440\u0443\u0441\u0441\u043a\u0438\u0439<br />end</p>'
-            

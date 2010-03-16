@@ -31,7 +31,7 @@ class EmptyException(TrustedException):
     This exception means that attribute must be removed. 
     """
     pass
- 
+
 class IncorrectException(TrustedException):
     """
     Raised when value is incorrect. 
@@ -39,7 +39,7 @@ class IncorrectException(TrustedException):
     This exception means that attribute must be removed. 
     """
     pass
- 
+
 class InvalidException(TrustedException):
     """
     Raised when value pass check and invalid flag is True.
@@ -47,7 +47,7 @@ class InvalidException(TrustedException):
     This exception means that hole item must be removed.
     """
     pass
-    
+
 class ElementException(TrustedException):
     """
     Raised when value fail check and tag_exception flag is True.
@@ -56,14 +56,14 @@ class ElementException(TrustedException):
     This exception will raise throw all rules to element-rule.
     """
     pass
-    
+
 class Rule(object):
     """
     Base rule class.
     All rules inherit it and overwrite ``core`` or ``__init__`` functions.
     """
 
-    def __init__(self, allow_empty=True, default=None, invalid=False, 
+    def __init__(self, allow_empty=True, default=None, invalid=False,
         element_exception=False, data=None):
         """
         Sets behaviour for the rule:
@@ -166,7 +166,7 @@ class Rule(object):
         if not self.allow_empty and not value:
             raise EmptyException(self, value)
         return value
-    
+
     def postprocess(self, value, path):
         """
         This function is called while validation after ``core``.
@@ -190,7 +190,7 @@ class String(Rule):
     Rule suppose that any string value is correct.
     Validation will return striped string value if specified.
     """
-    
+
     def __init__(self, case_sensitive=False, strip=True, allow_empty=False, **kwargs):
         """
         ``strip`` if True than remove leading and trailing whitespace.
@@ -206,7 +206,7 @@ class String(Rule):
         self.case_sensitive = case_sensitive
         self.strip = strip
 
-    
+
     def lower_string(self, value):
         """
         ``value`` is an object with __unicode__ method.
@@ -250,7 +250,7 @@ class List(String):
     """
     Rule suppose that value is correct if it is in ``values``.
     Validation will return corresponding item from ``values``.
-    """    
+    """
 
     def __init__(self, values, return_defined=True, **kwargs):
         """
@@ -329,10 +329,10 @@ class Uri(String):
     LINK = 0
     IMAGE = 1
     OBJECT = 2
-    
+
     def __init__(self, type=LINK, allow_sites=None, allow_schemes=None,
         cut_sites=None, cut_schemes=None, verify_sites=None, verify_schemes=None,
-        verify_local=None, local_sites=None, local_schemes=None, 
+        verify_local=None, local_sites=None, local_schemes=None,
         verify_user_agent=None, **kwargs):
         """
         ``type`` indicate that this url must be an image.
@@ -453,7 +453,7 @@ class Uri(String):
         value = super(Uri, self).preprocess(value, path)
         value = urlfix(value)
         return value
-    
+
     def core(self, value, path):
         """Do it."""
         value = String.core(self, value, path)
@@ -493,7 +493,7 @@ class No(Rule):
     Rule suppose that value never is correct.
     Validation always will raise IncorrectException.
     """
-    
+
     def core(self, value, path):
         """Do it."""
         raise IncorrectException(self, value)
@@ -506,14 +506,14 @@ class And(Rule):
     First rule will validate specified ``value``,
     second rule will validate result of first validation, etc.
     """
-    
+
     def __init__(self, rules, **kwargs):
         """
         ``rules`` is list of rules to validate specified ``value``.
         """
         super(And, self).__init__(**kwargs)
         self.rules = rules
-    
+
     def core(self, value, path):
         """Do it."""
         value = super(And, self).core(value, path)
@@ -530,14 +530,14 @@ class Or(Rule):
     If validation for all ``rules`` will fail than raise last exception.
     If rule raise ElementException it will be immediately raised.
     """
-    
+
     def __init__(self, rules, **kwargs):
         """
         ``rules`` is list of rules to validate specified ``value``.
         """
         super(Or, self).__init__(**kwargs)
         self.rules = rules
-    
+
     def core(self, value, path):
         """Do it."""
         value = super(Or, self).core(value, path)
@@ -559,8 +559,8 @@ class Sequence(String):
     divided by ``regexp`` matches specified ``rule``.
     Validation will return joined parts of value.
     """
-    
-    def __init__(self, rule, regexp=r'\s+', flags=0, min_split=0, max_split=0, 
+
+    def __init__(self, rule, regexp=r'\s+', flags=0, min_split=0, max_split=0,
         join_string=' ', prepend_string='', append_string='', **kwargs):
         """
         ``rule`` is the rule that will be called to validate each path of value.
@@ -645,7 +645,7 @@ class Complex(Sequence):
 
     def sequence(self, values, path):
         """Do it."""
-        return self.complex(values, path, 0, 0)    
+        return self.complex(values, path, 0, 0)
 
     def complex(self, values, path, value_index, rule_index):
         """
@@ -682,7 +682,7 @@ class Validator(object):
     by corresponding rules.
     """
 
-    def __init__(self, rules,  **kwargs):
+    def __init__(self, rules, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -743,7 +743,7 @@ class Style(Sequence, Validator):
         Sequence.__init__(self, rule=None, regexp=r'\s*;\s*',
             join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, **kwargs)
-        
+
     def preprocess(self, value, path):
         """Do it."""
         value = super(Style, self).preprocess(value, path)
@@ -757,7 +757,7 @@ class Style(Sequence, Validator):
             if ':' not in value:
                 continue
             property_name = value[:value.find(':')].strip()
-            property_value = value[value.find(':')+1:].strip()
+            property_value = value[value.find(':') + 1:].strip()
             properties.append((property_name, property_value))
         properties = self.check(properties, path)
         return ['%s: %s' % (property_name, property_value)
@@ -803,7 +803,7 @@ class Element(Rule, Validator):
         self.save_content = save_content
         if self.contents is None:
             self.empty_element = True
-        
+
     def preprocess(self, value, path):
         """Do it."""
         # Don`t call super to avoid raise EmptyException
@@ -842,25 +842,25 @@ class Html(String):
         ('>', '&gt;'),
         #(NBSP_CHAR, NBSP_TEXT),
     ]
-    PLAIN_CHARS = [SPECIAL_CHARS[index] for index in range(len(SPECIAL_CHARS)-1, -1, -1)]
+    PLAIN_CHARS = [SPECIAL_CHARS[index] for index in range(len(SPECIAL_CHARS) - 1, -1, -1)]
     CODE_RE = re.compile('&#(([0-9]+);?|x([0-9A-Fa-f]+);?)')
-    CODE_RE_SPECIAL = dict([(0, '')] + 
-        [(ord(char), string) for char, string in SPECIAL_CHARS])  
+    CODE_RE_SPECIAL = dict([(0, '')] +
+        [(ord(char), string) for char, string in SPECIAL_CHARS])
     SYSTEM_RE = re.compile('[\x01-\x1F\s]+')
 
     NBSP_CHAR = u'\xa0'
     NBSP_TEXT = '&nbsp;'
     NBSP_RE = re.compile('[' + NBSP_CHAR + ' ]{2,}')
-    
+
     DEFAULT_ROOT_TAG = 'p'
-    
+
     MARKUP_MASSAGE = BeautifulSoup.MARKUP_MASSAGE + [
         (re.compile('<!-([^-])'), lambda match: '<!--' + match.group(1))
     ]
-    
+
     BEAUTIFUL_SOUP = BeautifulSoup()
 
-    def __init__(self, rules, fix_number=2, prepare_number=2, root_tags=[], 
+    def __init__(self, rules, fix_number=2, prepare_number=2, root_tags=[],
         allow_empty=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
@@ -876,14 +876,7 @@ class Html(String):
         self.rules = rules
         self.fix_number = fix_number
         self.prepare_number = prepare_number
-        self.empty_tags = []
-        self.nbsp_tags = []
         self.root_tags = root_tags
-        for name, rule in self.rules.iteritems():
-            if rule.empty_element or rule.default is not None:
-                self.empty_tags.append(name)
-            if rule.default is not None:
-                self.nbsp_tags.append(name)
         if self.DEFAULT_ROOT_TAG not in self.root_tags:
             self.root_tags.append(self.DEFAULT_ROOT_TAG)
 
@@ -971,25 +964,32 @@ class Html(String):
             while index < len(soup.contents):
                 if isinstance(soup.contents[index], Tag):
                     self.collapse(soup.contents[index])
-                    if (not self.BEAUTIFUL_SOUP.isSelfClosingTag(soup.contents[index].name)
-                        and soup.contents[index].name not in self.empty_tags):
+                    if not self.BEAUTIFUL_SOUP.isSelfClosingTag(soup.contents[index].name):
                         text = soup.contents[index].renderContents(encoding=None)
                         # encoding=None: Fix bug in BeautifulSoup (don`t work with unicode)
                         text = self.correct(text)
-                        if not text or (text == ' ') or (text == self.NBSP_CHAR 
-                            and soup.contents[index].name not in self.nbsp_tags):
-                            changed = True
-                            if text:
-                                soup.contents[index].replaceWith(text)
+                        if not text or text == ' ' or text == self.NBSP_CHAR:
+                            rule = self.rules[soup.contents[index].name]
+                            if rule.default and text != rule.default:
+                                changed = True
+                                text = rule.default
+                                while soup.contents[index].contents:
+                                    soup.contents[index].contents[0].extract()
+                                soup.contents[index].append(text)
                             else:
-                                soup.contents[index].extract()
-                                continue
+                                if not rule.empty_element:
+                                    changed = True
+                                    if text:
+                                        soup.contents[index].replaceWith(text)
+                                    else:
+                                        soup.contents[index].extract()
+                                        continue
                 index = index + 1
             if not changed:
                 if self.join(soup):
                     changed = True
         return soup
-        
+
     def collapse_root(self, soup):
         index = 0
         while index < len(soup.contents):
@@ -1007,11 +1007,11 @@ class Html(String):
             if content.name in self.root_tags:
                 return False
         else:
-            if not for_next and (content.string == '' 
+            if not for_next and (content.string == ''
                 or content.string == ' ' or content.string == self.NBSP_CHAR):
                 return False
         return True
-    
+
     def wrap(self, soup):
         index = 0
         while index < len(soup.contents):
@@ -1025,7 +1025,7 @@ class Html(String):
                 start.append(content)
             soup.insert(index, start)
         return soup
-        
+
     def get_plain_text(self, soup):
         result = u''
         for content in soup:
