@@ -2,6 +2,8 @@ from django.db import models
 from trustedhtml import settings
 from trustedhtml.classes import Html
 from trustedhtml.signals import rule_done, rule_exception
+import trustedhtml.fields
+import trustedhtml.widgets
 
 class Log(models.Model):
     date = models.DateTimeField(auto_now_add=True)

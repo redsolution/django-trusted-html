@@ -1,13 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from django import forms
+from django.db import models
+from django.contrib.admin.widgets import AdminTextareaWidget
 
-from trustedhtml.classes import TrustedHtml
-from trustedhtml.rules import html
+from trustedhtml import pretty
+from trustedhtml.widgets import TrustedWidget, AdminTrustedWidget
 
-class TrustedHtmlField(forms.CharField):
-    """Use max_length to avoid expensing CPU and MEM resources"""
-    
-    def clean(self, value):
-        value = TrustedHtml(value, trusted_dictionary=html).html
-        return super(_ArticleCharField, self).clean(value)
+class TrustedField(models.TextField):
+    """
+    TextField with build-in validation.
+    """
+    def __init__(self, validator=pretty, *args, **kwargs):
+        super(TrustedField, self).__init__(*args, **kwargs)
+        self.validator = validator
+
+    def formfield(self, **kwargs):
+        defaults = {'widget': TrustedWidget(validator=self.validator)}
+        defaults.update(kwargs)
+
+        if defaults['widget'] == AdminTextareaWidget:
+            defaults['widget'] = AdminTrustedWidget(validator=self.validator)
+
+        return super(TrustedField, self).formfield(**defaults)
