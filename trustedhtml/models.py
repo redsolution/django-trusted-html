@@ -1,6 +1,6 @@
 from django.db import models
 from trustedhtml import settings
-from trustedhtml.classes import Html
+from trustedhtml.classes import Html, Uri
 from trustedhtml.signals import rule_done, rule_exception
 from trustedhtml.fields import TrustedField
 from trustedhtml.importpath import importpath
@@ -22,6 +22,14 @@ def log(sender, rule, value, source, **kwargs):
 if settings.TRUSTEDHTML_ENABLE_LOG:
     rule_done.connect(log, sender=Html)
     rule_exception.connect(log, sender=Html)
+
+if settings.TRUSTEDHTML_USE_MODELURL:
+    from modelurl.utils import ReplaceByView
+
+    def url_done(sender, rule, value, source, **kwargs):
+        return ReplaceByView().url(value)
+
+    rule_done.connect(url_done, sender=Uri)
 
 for model_options in settings.TRUSTEDHTML_MODELS:
     model = importpath(model_options['model'], 'TRUSTEDHTML_MODELS')
