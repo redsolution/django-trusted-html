@@ -7,7 +7,7 @@ TRUSTEDHTML_IMAGE_SITES = getattr(settings, 'TRUSTEDHTML_IMAGE_SITES', True)
 TRUSTEDHTML_OBJECT_SITES = getattr(settings, 'TRUSTEDHTML_OBJECT_SITES', True)
 
 TRUSTEDHTML_ALLOW_SCHEMES = getattr(settings, 'TRUSTEDHTML_ALLOW_SCHEMES', [
-    'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',  
+    'http', 'https', 'shttp', 'ftp', 'sftp', 'file', 'mailto',
     'svn', 'svn+ssh', 'telnet', 'mms', 'ed2k', ])
 
 TRUSTEDHTML_CUT_SITES = getattr(settings, 'TRUSTEDHTML_CUT_SITES', False)
@@ -25,3 +25,5 @@ TRUSTEDHTML_LOCAL_SCHEMES = getattr(settings, 'TRUSTEDHTML_LOCAL_SCHEMES', [
     'http', ],)
 
 TRUSTEDHTML_VERIFY_USER_AGENT = getattr(settings, 'TRUSTEDHTML_VERIFY_USER_AGENT', 'TrustedHtml')
+
+TRUSTEDHTML_MODELS = getattr(settings, 'TRUSTEDHTML_MODELS', [])

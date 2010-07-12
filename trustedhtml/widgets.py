@@ -21,7 +21,9 @@ class TrustedWidget(Textarea):
         return self.validator.validate(value)
 
 class AdminTrustedWidget(AdminTextareaWidget, TrustedWidget):
-    pass
+    def __init__(self, validator=pretty, *args, **kwargs):
+        super(AdminTrustedWidget, self).__init__(*args, **kwargs)
+        self.validator = validator
 
 try:
     from pages.widgets_registry import register_widget
