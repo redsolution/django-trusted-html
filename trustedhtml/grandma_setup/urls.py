@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from django.conf.urls.defaults import patterns, url
+
+urlpatterns = patterns('',
+    url(r'^$', 'trustedhtml.grandma_setup.views.index', name='trustedhtml_index'),
+)

@@ -1,0 +1,40 @@
+{% extends "grandma/base.html" %}
+{% load i18n %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data" action="">
+        <table>
+          {{ form.as_table }}
+        </table>
+        <table>
+            <tr>
+                <th>{% trans 'Cut domains' %}</th>
+                <th>{% trans 'Delete' %}</th>
+            </tr>
+            {% for form in cut_formset.forms %}
+                <tr>
+                    <td>{{ form.cut_site }}</td>
+                    <td class="center">{{ form.DELETE }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <table class="table-margin">
+            <tr>
+                <th>{% trans 'Object domains' %}</th>
+                <th>{% trans 'Delete' %}</th>
+            </tr>
+            {% for form in object_formset.forms %}
+                <tr>
+                    <td>{{ form.object_site }}</td>
+                    <td class="center">{{ form.DELETE }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <div>
+            {{ cut_formset.management_form }}
+            {{ object_formset.management_form }}
+            <a href="{% url custom %}" class="button-link floated-button">{% trans 'Back' %}</a>
+            <input type="submit" value="{% trans 'Done' %}" class="input-bg floated-button" />
+        </div>
+    </form>
+{% endblock %}
