@@ -14,7 +14,7 @@
             {% for form in cut_formset.forms %}
                 <tr>
                     <td>{{ form.cut_site }}</td>
-                    <td class="center">{{ form.DELETE }}</td>
+                    <td class="center">{{ form.DELETE }}{{ form.settings }}{{ form.id }}</td>
                 </tr>
             {% endfor %}
         </table>
@@ -26,7 +26,7 @@
             {% for form in object_formset.forms %}
                 <tr>
                     <td>{{ form.object_site }}</td>
-                    <td class="center">{{ form.DELETE }}</td>
+                    <td class="center">{{ form.DELETE }}{{ form.settings }}{{ form.id }}</td>
                 </tr>
             {% endfor %}
         </table>
