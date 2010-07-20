@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls.defaults import patterns, url
+from trustedhtml.grandma_setup.admin import TrustedSettingsAdmin
+
+admin_instance = TrustedSettingsAdmin()
 
 urlpatterns = patterns('',
-    url(r'^$', 'trustedhtml.grandma_setup.views.index', name='trustedhtml_index'),
+    url(r'^$', admin_instance.change_view, name='trustedhtml_index'),
 )

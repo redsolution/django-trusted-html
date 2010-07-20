@@ -9,4 +9,5 @@ class Make(BaseMake):
         grandma_settings = GrandmaSettings.objects.get_settings()
         grandma_settings.render_to('settings.py', 'trustedhtml/grandma/settings.py', {
             'trustedhtml_settings': trustedhtml_settings,
-        })
+            'server_config_was_installed': grandma_settings.package_was_installed('grandma.django-server-config'),
+         })

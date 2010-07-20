@@ -30,9 +30,15 @@ class TrustedCutSite(models.Model):
     settings = models.ForeignKey(TrustedSettings, related_name='cut_sites')
     cut_site = models.CharField(verbose_name=_('Cut site'), max_length=255)
 
+    def __unicode__(self):
+        return self.cut_site
+
 class TrustedObjectSite(models.Model):
     settings = models.ForeignKey(TrustedSettings, related_name='object_sites')
     object_site = models.CharField(verbose_name=_('Object site'), max_length=255)
+
+    def __unicode__(self):
+        return self.object_site
 
 class TrustedModel(models.Model):
     settings = models.ForeignKey(TrustedSettings, related_name='models')
