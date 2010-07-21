@@ -98,23 +98,23 @@ In your models:
 
 Also you can specify one of predefined validators::
 
-	from trustedhtml import full, normal, pretty
+	from trustedhtml.rules import full, normal, pretty
 	from trustedhtml.fields import TrustedField
 
 	class MyModel(models.Model):
 	    html = TrustedField(validator=pretty)
 
-``trustedhtml.full`` rule will safe all html tags and css style described by w3c.
+``trustedhtml.rules.full`` rule will safe all html tags and css style described by w3c.
 
-``trustedhtml.normal`` rule will remove dangerous html element, or elements that can break you design.
+``trustedhtml.rules.normal`` rule will remove dangerous html element, or elements that can break you design.
 
-``trustedhtml.pretty`` rule also will remove colors, fonts, aligns, margins and other css and html attributes.
+``trustedhtml.rules.pretty`` rule also will remove colors, fonts, aligns, margins and other css and html attributes.
 
 By the way, if you as using django-tinymce, than TrustedField will by default use tinymce widget.
 
 2. You can validate html before it will be saved::
 
-	from trustedhtml import pretty
+	from trustedhtml.rules import pretty
 
 	class MyModel(models.Model):
 	    html = models.TextField()
@@ -124,7 +124,7 @@ By the way, if you as using django-tinymce, than TrustedField will by default us
 
 Or::
 
-	from trustedhtml import pretty
+	from trustedhtml.rules import pretty
 	from someapp.models import SomeModel
 
 	def content_save(sender, instance, **kwargs):

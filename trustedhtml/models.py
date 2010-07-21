@@ -24,12 +24,14 @@ if settings.TRUSTEDHTML_ENABLE_LOG:
     rule_exception.connect(log, sender=Html)
 
 if settings.TRUSTEDHTML_USE_MODELURL:
-    from modelurl.utils import ReplaceByView
-
-    def url_done(sender, rule, value, source, **kwargs):
-        return ReplaceByView().url(value)
-
-    rule_done.connect(url_done, sender=Uri)
+    try:
+        from modelurl.utils import ReplaceByView
+    except ImportError:
+        pass
+    else:
+        def url_done(sender, rule, value, source, **kwargs):
+            return ReplaceByView().url(value)
+        rule_done.connect(url_done, sender=Uri)
 
 for model_options in settings.TRUSTEDHTML_MODELS:
     model = importpath(model_options['model'], 'TRUSTEDHTML_MODELS')
