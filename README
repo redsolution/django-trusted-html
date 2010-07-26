@@ -110,7 +110,7 @@ Also you can specify one of predefined validators::
 
 ``trustedhtml.rules.pretty`` rule also will remove colors, fonts, aligns, margins and other css and html attributes.
 
-By the way, if you as using django-tinymce, than TrustedField will by default use tinymce widget.
+By the way, if you have django-tinymce in INSTALLED_APPS, than you can use TrustedHTMLField.
 
 2. You can validate html before it will be saved::
 
@@ -147,6 +147,11 @@ If you are using django-pages-cms, you can just use TrustedWidget in templates::
 Or for old django-pages-cms::
 
 	{% placeholder main_content with trustedhtml.widgets.TrustedTextarea %}
+	
+Also if you are using TinyMCE::
+
+    {% placeholder main_content with trustedhtml.widgets.TrustedTinyMCE %}
+
 
 4. You can just ask trusted html to validate specified fields in specified models.
 
