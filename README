@@ -91,18 +91,18 @@ In your models:
 
 1. You can use TrustedField in your model::
 
-	from trustedhtml.fields import TrustedField
+	from trustedhtml.fields import TrustedTextField
 
 	class MyModel(models.Model):
-	    html = TrustedField()
+	    html = TrustedTextField()
 
 Also you can specify one of predefined validators::
 
 	from trustedhtml.rules import full, normal, pretty
-	from trustedhtml.fields import TrustedField
+	from trustedhtml.fields import TrustedTextField
 
 	class MyModel(models.Model):
-	    html = TrustedField(validator=pretty)
+	    html = TrustedTextField(validator=pretty)
 
 ``trustedhtml.rules.full`` rule will safe all html tags and css style described by w3c.
 
@@ -119,7 +119,7 @@ By the way, if you as using django-tinymce, than TrustedField will by default us
 	class MyModel(models.Model):
 	    html = models.TextField()
 	    def save(self, *args, **kwargs):
-	        self.html = ReplaceByView().html(self.html)
+	        self.html = pretty.validate(self.html)
 	        super(MyModel, self).save(*args, **kwargs)
 
 Or::
@@ -135,18 +135,18 @@ Or::
 3. You can validate html by using widget::
 
 	from django import forms
-	from trustedhtml.widgets import TrustedWidget
+	from trustedhtml.widgets import TrustedTextarea
 
 	class FormField(forms.TextField):
-		widget = TrustedWidget
+		widget = TrustedTextarea
 
 If you are using django-pages-cms, you can just use TrustedWidget in templates::
 
-	{% placeholder main_content with TrustedWidget %}
+	{% placeholder main_content with TrustedTextarea %}
 
 Or for old django-pages-cms::
 
-	{% placeholder main_content with TrustedWidget %}
+	{% placeholder main_content with trustedhtml.widgets.TrustedTextarea %}
 
 4. You can just ask trusted html to validate specified fields in specified models.
 
