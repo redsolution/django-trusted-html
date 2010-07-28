@@ -2,9 +2,14 @@ from django.db import models
 from trustedhtml import settings
 from trustedhtml.classes import Html, Uri
 from trustedhtml.signals import rule_done, rule_exception
-from trustedhtml.fields import TrustedTextField
+from trustedhtml.fields import TrustedTextField, TrustedCharField, TrustedHTMLField
 from trustedhtml.importpath import importpath
 from django.db.models.fields import FieldDoesNotExist
+
+try:
+    from tinymce.models import HTMLField
+except ImportError:
+    from django.db.models.fields import TextField as HTMLField
 
 class Log(models.Model):
     date = models.DateTimeField(auto_now_add=True)
@@ -50,7 +55,13 @@ for model_options in settings.TRUSTEDHTML_MODELS:
                     'unique_for_year', 'choices', 'help_text',
                     'db_column', 'db_tablespace', 'auto_created']:
                     kwargs[attr_name] = getattr(current_field, attr_name)
-                field = TrustedTextField(**kwargs)
+                if isinstance(current_field, models.CharField):
+                    field = TrustedCharField(**kwargs)
+                elif isinstance(current_field, HTMLField):
+                    field = TrustedHTMLField(**kwargs)
+                else:
+                    field = TrustedTextField(**kwargs)
+
                 current_model.add_to_class(field.name, field)
                 if current_model != model:
                     if hasattr(model._meta, '_m2m_cache'):
