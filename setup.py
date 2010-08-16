@@ -10,7 +10,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name="grandma.django-trusted-html",
+    name="redsolutioncms.django-trusted-html",
     version="0.1.0",
     description=("Django html and css validator" +
         " with GrandmaCMS integration"),
@@ -26,17 +26,18 @@ setup(
     url="http://packages.python.org/django-trusted-html",
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Framework :: Buildout',
         'Intended Audience :: Developers',
         'License :: Freely Distributable',
         'Natural Language :: Russian',
+        'Natural Language :: English',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: Unix',
-        'Programming Language :: Python :: 2.5',
-        'Topic :: Software Development :: Version Control',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP :: Site Management',
+        'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking',
     ],
     packages=find_packages(),
-    install_requires=[],
+    install_requires=['django-url-methods==0.1.0'],
     include_package_data=True,
     zip_safe=False,
     long_description=open('README').read(),
