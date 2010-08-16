@@ -13,7 +13,7 @@ setup(
     name="redsolutioncms.django-trusted-html",
     version="0.1.0",
     description=("Django html and css validator" +
-        " with GrandmaCMS integration"),
+        " with RedsolutionCMS integration"),
     license="LGPL",
     keywords="django html validation",
 
