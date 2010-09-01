@@ -45,6 +45,10 @@ try:
 except ImportError:
     class TrustedTinyMCE(TrustedTextarea):
         pass
+
+    class AdminTrustedTinyMCE(AdminTextareaWidget):
+        pass
+
 else:
     class TrustedTinyMCE(TinyMCE):
         """
