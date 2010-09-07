@@ -43,6 +43,6 @@ setup(
     zip_safe=False,
     long_description=open('README').read(),
     entry_points={
-        'grandma_setup': ['trustedhtml = trustedhtml.grandma_setup', ],
+        'redsolutioncms': ['trustedhtml = trustedhtml.redsolution_setup', ],
     }
 )
