@@ -11,3 +11,5 @@ class Make(BaseMake):
             'trustedhtml_settings': trustedhtml_settings,
             'server_config_was_installed': redsolution_settings.package_was_installed('redsolutioncms.django-server-config'),
          })
+
+make = Make()
