@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.conf.urls.defaults import patterns, url
-from trustedhtml.grandma_setup.admin import TrustedSettingsAdmin
+from trustedhtml.redsolution_setup.admin import TrustedSettingsAdmin
 
 admin_instance = TrustedSettingsAdmin()
 

@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from grandma.models import GrandmaSettings, BaseSettings
+from redsolutioncms.models import CMSSettings, BaseSettings
 
 class TrustedSettingsManager(models.Manager):
     def get_settings(self):
@@ -14,10 +14,10 @@ class TrustedSettingsManager(models.Manager):
             TrustedCutSite.objects.create(settings=trusted_settings, cut_site='localhost:8000')
             TrustedObjectSite.objects.create(settings=trusted_settings, object_site='youtube.com')
             TrustedObjectSite.objects.create(settings=trusted_settings, object_site='www.youtube.com')
-            grandma_settings = GrandmaSettings.objects.get_settings()
-            if not grandma_settings.package_was_installed('grandma.django-server-config'):
-                TrustedCutSite.objects.create(settings=trusted_settings, cut_site='%s.com' % grandma_settings.project_name)
-                TrustedCutSite.objects.create(settings=trusted_settings, cut_site='www.%s.com' % grandma_settings.project_name)
+            cms_settings = CMSSettings.objects.get_settings()
+            if not cms_settings.package_was_installed('redsolutioncms.django-server-config'):
+                TrustedCutSite.objects.create(settings=trusted_settings, cut_site='%s.com' % cms_settings.project_name)
+                TrustedCutSite.objects.create(settings=trusted_settings, cut_site='www.%s.com' % cms_settings.project_name)
             return trusted_settings
 
 class TrustedSettings(BaseSettings):

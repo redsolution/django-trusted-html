@@ -1,6 +1,6 @@
 from django.contrib import admin
-from trustedhtml.grandma_setup.models import TrustedSettings, TrustedCutSite, TrustedObjectSite, TrustedModel, TrustedField
-from grandma.admin import GrandmaBaseAdmin
+from trustedhtml.redsolution_setup.models import TrustedSettings, TrustedCutSite, TrustedObjectSite, TrustedModel, TrustedField
+from redsolutioncms.admin import CMSBaseAdmin
 
 class TrustedCutSiteInline(admin.TabularInline):
     model = TrustedCutSite
@@ -8,7 +8,7 @@ class TrustedCutSiteInline(admin.TabularInline):
 class TrustedObjectSiteInline(admin.TabularInline):
     model = TrustedObjectSite
 
-class TrustedSettingsAdmin(GrandmaBaseAdmin):
+class TrustedSettingsAdmin(CMSBaseAdmin):
     model = TrustedSettings
     inlines = [TrustedCutSiteInline, TrustedObjectSiteInline]
 
