@@ -7,13 +7,15 @@ from setuptools import setup, find_packages
 # README file and 2) it's easier to type in the README file than to put a raw
 # string in below ...
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    try:
+        return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    except IOError:
+        return ''
 
 setup(
     name="redsolutioncms.django-trusted-html",
-    version="0.1.0",
-    description=("Django html and css validator" +
-        " with RedsolutionCMS integration"),
+    version=__import__('trustedhtml').__version__,
+    description=read('DESCRIPTION'),
     license="LGPL",
     keywords="django html validation",
 
@@ -23,7 +25,7 @@ setup(
     maintainer='Alexander Ivanov',
     maintainer_email='alexander.ivanov@redsolution.ru',
 
-    url="http://packages.python.org/django-trusted-html",
+#    url="http://packages.python.org/django-trusted-html",
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -37,11 +39,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Site Management',
         'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking',
     ],
-    packages=find_packages(),
+    packages=find_packages(exclude=['example', 'example.*']),
     install_requires=['django-url-methods==0.1.0'],
     include_package_data=True,
     zip_safe=False,
-    long_description=open('README').read(),
+    long_description=read('README'),
     entry_points={
         'redsolutioncms': ['trustedhtml = trustedhtml.redsolution_setup', ],
     }

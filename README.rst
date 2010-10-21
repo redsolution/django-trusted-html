@@ -3,9 +3,10 @@ django-trusted-html
 ===================
 
 Django-trusted-html will make your html correct, pretty and safe.
+-----------------------------------------------------------------
 
-Usage lyric
------------
+Usage lyrics
+============
 
 Suppose that some users can post content to your site.
 And you want to allow them to post formatted text, images, tables and videos.
@@ -15,7 +16,8 @@ They will be able to copy-and-paste content from other sites or GUI-Editors.
 But you can become unhappy. Your site can looks not homogeneous because of
 different font-families, colors, indents that will come with copy-and-pasted content.
 Also you can want to protect your site from JavaScript injections.
-In this way you can use django-trusted-html.
+In this way you might want to use django-trusted-html.
+
 
 Sanitizing
 ----------
@@ -57,8 +59,7 @@ You can:
 
 1. choose one of presets
 2. specify settings of validation
-2. customize rules of validation
-
+3. customize rules of validation
 
 Installation:
 =============
@@ -73,15 +74,6 @@ Installation:
 
 To learn more about settings read ``trustedhtml/settings.py``. 
 
-Required
---------
-
-1. django-url-methods
-
-Recommended
------------
-
-2. django-model-url
 
 Usage:
 ======
@@ -89,14 +81,14 @@ Usage:
 In your models:
 ---------------
 
-1. You can use TrustedField in your model::
+1. You can use TrustedField in your model ::
 
 	from trustedhtml.fields import TrustedTextField
 
 	class MyModel(models.Model):
 	    html = TrustedTextField()
 
-Also you can specify one of predefined validators::
+Also you can specify one of predefined validators ::
 
 	from trustedhtml.rules import full, normal, pretty
 	from trustedhtml.fields import TrustedTextField
@@ -144,7 +136,7 @@ If you are using django-pages-cms, you can just use TrustedWidget in templates::
 
 	{% placeholder main_content with TrustedTextarea %}
 
-Or for old django-pages-cms::
+Or for older versions of django-pages-cms::
 
 	{% placeholder main_content with trustedhtml.widgets.TrustedTextarea %}
 	
@@ -152,6 +144,10 @@ Also if you are using TinyMCE::
 
     {% placeholder main_content with trustedhtml.widgets.TrustedTinyMCE %}
 
+Or for older versions of django-pages-cms::
+
+    {% placeholder main_content with TrustedTinyMCE %}
+    
 
 4. You can just ask trusted html to validate specified fields in specified models.
 
@@ -169,3 +165,10 @@ In your ``settings.py``::
 	        'fields': ['description', ],
 	    },
     ]
+
+Classifiers:
+-------------
+
+`Content plugins`_
+
+.. _`Content plugins`: http://www.redsolutioncms.org/classifiers/content
