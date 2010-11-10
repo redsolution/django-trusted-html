@@ -16,7 +16,7 @@ setup(
     name="redsolutioncms.django-trusted-html",
     version=__import__('trustedhtml').__version__,
     description=read('DESCRIPTION'),
-    license="LGPL",
+    license="GPLv3",
     keywords="django html validation",
 
     author="Alexander Ivanov",
