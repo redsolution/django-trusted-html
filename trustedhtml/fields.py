@@ -56,3 +56,21 @@ class TrustedHTMLField(models.TextField):
             defaults['widget'] = AdminTrustedTinyMCE(validator=self.validator)
 
         return super(TrustedHTMLField, self).formfield(**defaults)
+
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([
+        (
+            [TrustedTextField, TrustedCharField, TrustedHTMLField],
+            [],
+            {
+                "validator": ["validator", {"default": pretty}],
+            },
+        ),
+    ], [
+        "^trustedhtml\.fields\.TrustedTextField",
+        "^trustedhtml\.fields\.TrustedCharField",
+        "^trustedhtml\.fields\.TrustedHTMLField",
+    ])
+except ImportError:
+    pass
