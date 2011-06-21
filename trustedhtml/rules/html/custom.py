@@ -73,8 +73,6 @@ remove_elements = [
 remove_elements_with_content = [
     # It is deprecated, and it is security hole.
     'applet',
-    # It is security hole.
-    'iframe',
     # Strange, but we don`t want to allow it.
     'script',
 ]
@@ -102,6 +100,7 @@ pretty_elements = [
     'img',
     'li',
     'object',
+    'iframe',
     'ol',
     'p',
     'pre',

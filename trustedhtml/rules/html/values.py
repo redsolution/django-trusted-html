@@ -15,12 +15,12 @@ We do it to parse descriptions and generate ``map.py``.
 
 from trustedhtml.classes import RegExp, Sequence
 
-from trustedhtml.rules.html.types import name, name_required, idrefs,\
-    idrefs_comma, number, number_required, positive_number, text,\
-    text_required, text_default, uri, uri_required, uri_image, uri_object,\
-    uri_image_required, uris, color, pixels, length, multi_length,\
-    multi_lengths, length_required, coords, content_type, content_types,\
-    content_type_required, language_code, charset, charsets, character,\
+from trustedhtml.rules.html.types import name, name_required, idrefs, \
+    idrefs_comma, number, number_required, positive_number, text, \
+    text_required, text_default, uri, uri_required, uri_image, uri_object, \
+    uri_image_required, uris, color, pixels, length, multi_length, \
+    multi_lengths, length_required, coords, content_type, content_types, \
+    content_type_required, language_code, charset, charsets, character, \
     datetime, link_types, media_descs, style_sheet, frame_target, script
 
 values = {}
@@ -478,7 +478,7 @@ values['src'] = uri
 values['src~i'] = uri_image
 # for fields with images (INPUT)
 
-values['src'] = uri
+values['src~f'] = uri_object
 # source of frame content (FRAME, IFRAME)
 
 values['src~r'] = uri_image_required
