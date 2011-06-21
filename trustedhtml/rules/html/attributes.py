@@ -638,7 +638,7 @@ attributes['frame'] = {
     'name': values['name'],
     'noresize': values['noresize'],
     'scrolling': values['scrolling'],
-    'src': values['src'],
+    'src': values['src~f'],
     'style': values['style'],
     'title': values['title'],
 }
@@ -839,7 +839,7 @@ attributes['iframe'] = {
     'marginwidth': values['marginwidth'],
     'name': values['name'],
     'scrolling': values['scrolling'],
-    'src': values['src'],
+    'src': values['src~f'],
     'style': values['style'],
     'title': values['title'],
     'width': values['width'],

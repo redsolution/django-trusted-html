@@ -432,6 +432,10 @@ class TestHtml(unittest.TestCase):
         self.assertEqual(rules.html.full.validate(
             '<p> </p><p>&nbsp;</p><p> </p><p>   &nbsp;   &nbsp; a&nbsp;&nbsp;  &nbsp; </p><p> </p>'),
             u'<p>\xa0a\xa0</p>')
+        self.assertEqual(rules.html.full.validate(
+            '<iframe width="425" height="349" src="http://www.youtube.com/embed/oFYhDogAzdM" frameborder="0" allowfullscreen></iframe>'),
+            '<p><iframe width="425" height="349" src="http://www.youtube.com/embed/oFYhDogAzdM" frameborder="0"></iframe></p>')
+
 
     def test_pretty(self):
         self.assertEqual(rules.html.pretty.validate('a<dl><dd>b</dd></dl>c'), '<p>abc</p>')
@@ -440,6 +444,13 @@ class TestHtml(unittest.TestCase):
             '<p>te</p><p>s</p><p>t</p><p>.</p>')
         self.assertEqual(rules.html.pretty.validate(tinymce_in), tinymce_pretty)
         self.assertEqual(rules.html.pretty.validate('<p>a<noindex>b</noindex>c</p>'), '<p>a<noindex>b</noindex>c</p>')
+        self.assertEqual(rules.html.pretty.validate(
+            '<iframe width="425" height="349" src="http://www.youtube.com/embed/oFYhDogAzdM" frameborder="0" allowfullscreen></iframe>'),
+            '<p><iframe width="425" height="349" src="http://www.youtube.com/embed/oFYhDogAzdM"></iframe></p>')
+        self.assertEqual(rules.html.pretty.validate(
+            '<iframe width="425" height="349" src="http://www.youtu.be.com/embed/oFYhDogAzdM" frameborder="0" allowfullscreen></iframe>'),
+            '')
+
 
     def test_hack(self):
         self.assertEqual(rules.html.full.validate(r'''<SCRIPT>alert("XSS")</SCRIPT>'''),
