@@ -171,6 +171,7 @@ Changelog:
 
 * 0.1.0 - Initial release
 * 0.1.1 - Allow <iframe> elements from trusted sits (for youtube movies)
+* 0.1.2 - Setup for RedsolutionCMS execute in postmake and write settings in the end of settings.py
 
 Classifiers:
 -------------
