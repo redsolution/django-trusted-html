@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-import copy
 from beautifulsoup import BeautifulSoup, NavigableString, Tag, buildTagMap
-from django.utils.encoding import iri_to_uri
-from django.dispatch import Signal
 
 from trustedhtml import settings
 from trustedhtml.signals import rule_done, rule_exception
@@ -18,11 +15,13 @@ BeautifulSoup.SELF_CLOSING_TAGS = buildTagMap(None, [
     # I don`t what is: 'spacer',
 ])
 
+
 class TrustedException(ValueError):
     """
     Base trustedhtml exception.
     """
     pass
+
 
 class EmptyException(TrustedException):
     """
@@ -32,6 +31,7 @@ class EmptyException(TrustedException):
     """
     pass
 
+
 class IncorrectException(TrustedException):
     """
     Raised when value is incorrect. 
@@ -40,6 +40,7 @@ class IncorrectException(TrustedException):
     """
     pass
 
+
 class InvalidException(TrustedException):
     """
     Raised when value pass check and invalid flag is True.
@@ -47,6 +48,7 @@ class InvalidException(TrustedException):
     This exception means that hole item must be removed.
     """
     pass
+
 
 class ElementException(TrustedException):
     """
@@ -57,14 +59,16 @@ class ElementException(TrustedException):
     """
     pass
 
+
 class Rule(object):
     """
     Base rule class.
     All rules inherit it and overwrite ``core`` or ``__init__`` functions.
     """
 
-    def __init__(self, allow_empty=True, default=None, invalid=False,
-        element_exception=False, data=None):
+    def __init__(
+            self, allow_empty=True, default=None, invalid=False,
+            element_exception=False, data=None):
         """
         Sets behaviour for the rule:
 
@@ -123,17 +127,18 @@ class Rule(object):
                 else:
                     raise exception
 
-            results = rule_done.send(sender=self.__class__, rule=self,
+            results = rule_done.send(
+                sender=self.__class__, rule=self,
                 path=path, value=value, source=source)
             for receiver, response in results:
                 value = response
 
         except TrustedException, exception:
-            rule_exception.send(sender=self.__class__, rule=self,
+            rule_exception.send(
+                sender=self.__class__, rule=self,
                 path=path, value=value, source=source, exception=exception)
             raise exception
         return value
-
 
     def core(self, value, path):
         """
@@ -148,7 +153,6 @@ class Rule(object):
         Return correct value or raise TrustedException (or subclasses).
         """
         return value
-
 
     def preprocess(self, value, path):
         """
@@ -206,7 +210,6 @@ class String(Rule):
         self.case_sensitive = case_sensitive
         self.strip = strip
 
-
     def lower_string(self, value):
         """
         ``value`` is an object with __unicode__ method.
@@ -221,7 +224,6 @@ class String(Rule):
         else:
             return unicode(value).lower()
 
-
     def lower_list(self, values):
         """
         ``values`` is list of objects.
@@ -231,9 +233,9 @@ class String(Rule):
         """
         if values is None or values is False or values is True:
             return values
-        return [self.lower_string(value)
+        return [
+            self.lower_string(value)
             for value in values]
-
 
     def preprocess(self, value, path):
         """Do it."""
@@ -262,7 +264,6 @@ class List(String):
         self.source_values = values
         self.return_defined = return_defined
         self.values = self.lower_list(self.source_values)
-
 
     def core(self, value, path):
         """Do it."""
@@ -330,10 +331,11 @@ class Uri(String):
     IMAGE = 1
     OBJECT = 2
 
-    def __init__(self, type=LINK, allow_sites=None, allow_schemes=None,
-        cut_sites=None, cut_schemes=None, verify_sites=None, verify_schemes=None,
-        verify_local=None, local_sites=None, local_schemes=None,
-        verify_user_agent=None, **kwargs):
+    def __init__(
+            self, type=LINK, allow_sites=None, allow_schemes=None,
+            cut_sites=None, cut_schemes=None, verify_sites=None, verify_schemes=None,
+            verify_local=None, local_sites=None, local_schemes=None,
+            verify_user_agent=None, **kwargs):
         """
         ``type`` indicate that this url must be an image.
         This class not support such validation,
@@ -560,8 +562,9 @@ class Sequence(String):
     Validation will return joined parts of value.
     """
 
-    def __init__(self, rule, regexp=r'\s+', flags=0, min_split=0, max_split=0,
-        join_string=' ', prepend_string='', append_string='', **kwargs):
+    def __init__(
+            self, rule, regexp=r'\s+', flags=0, min_split=0, max_split=0,
+            join_string=' ', prepend_string='', append_string='', **kwargs):
         """
         ``rule`` is the rule that will be called to validate each path of value.
         
@@ -740,7 +743,8 @@ class Style(Sequence, Validator):
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
         """
-        Sequence.__init__(self, rule=None, regexp=r'\s*;\s*',
+        Sequence.__init__(
+            self, rule=None, regexp=r'\s*;\s*',
             join_string='; ', append_string=';', **kwargs)
         Validator.__init__(self, rules=rules, **kwargs)
 
@@ -760,7 +764,8 @@ class Style(Sequence, Validator):
             property_value = value[value.find(':') + 1:].strip()
             properties.append((property_name, property_value))
         properties = self.check(properties, path)
-        return ['%s: %s' % (property_name, property_value)
+        return [
+            '%s: %s' % (property_name, property_value)
             for property_name, property_value in properties]
 
 
@@ -772,9 +777,10 @@ class Element(Rule, Validator):
     Validation will return list of valid pairs (attribute_name, attribute_value).
     """
 
-    def __init__(self, rules={}, contents=[], empty_element=False,
-        remove_element=False, optional_start=False, optional_end=False,
-        save_content=True, **kwargs):
+    def __init__(
+            self, rules={}, contents=[], empty_element=False,
+            remove_element=False, optional_start=False, optional_end=False,
+            save_content=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -807,7 +813,8 @@ class Element(Rule, Validator):
     def preprocess(self, value, path):
         """Do it."""
         # Don`t call super to avoid raise EmptyException
-        value = [(attribute_name, get_cdata(attribute_value))
+        value = [
+            (attribute_name, get_cdata(attribute_value))
             for attribute_name, attribute_value in value]
         return value
 
@@ -835,7 +842,7 @@ class Html(String):
 
     # All constants must be lowered. 
     SPECIAL_CHARS = [
-        ('&', '&amp;'), # Must be first element in list
+        ('&', '&amp;'),  # Must be first element in list
         ('"', '&quot;'),
         ("'", '&apos;'),
         ('<', '&lt;'),
@@ -844,8 +851,8 @@ class Html(String):
     ]
     PLAIN_CHARS = [SPECIAL_CHARS[index] for index in range(len(SPECIAL_CHARS) - 1, -1, -1)]
     CODE_RE = re.compile('&#(([0-9]+);?|x([0-9A-Fa-f]+);?)')
-    CODE_RE_SPECIAL = dict([(0, '')] +
-        [(ord(char), string) for char, string in SPECIAL_CHARS])
+    CODE_RE_SPECIAL = dict(
+        [(0, '')] + [(ord(char), string) for char, string in SPECIAL_CHARS])
     SYSTEM_RE = re.compile('[\x01-\x1F\s]+')
 
     NBSP_CHAR = u'\xa0'
@@ -860,8 +867,9 @@ class Html(String):
 
     BEAUTIFUL_SOUP = BeautifulSoup()
 
-    def __init__(self, rules, fix_number=2, prepare_number=2, root_tags=[],
-        allow_empty=True, **kwargs):
+    def __init__(
+            self, rules, fix_number=2, prepare_number=2, root_tags=[],
+            allow_empty=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -905,7 +913,6 @@ class Html(String):
         value = self.remove_spaces(value)
         return value
 
-
     def clear(self, soup, path):
         index = 0
         while index < len(soup.contents):
@@ -924,7 +931,7 @@ class Html(String):
                         insert = index
                         while len(element.contents):
                             soup.insert(insert, element.contents[0])
-                            insert = insert + 1
+                            insert += 1
                     continue
                 self.clear(soup.contents[index], path)
             elif soup.contents[index].__class__ is NavigableString:
@@ -937,15 +944,16 @@ class Html(String):
             else:
                 soup.contents[index].extract()
                 continue
-            index = index + 1
+            index += 1
         return soup
 
     def join(self, soup):
         changed = False
         index = 0
         while index < len(soup.contents) - 1:
-            if (not isinstance(soup.contents[index + 1], Tag)
-                and not isinstance(soup.contents[index], Tag)):
+            if (
+                    not isinstance(soup.contents[index + 1], Tag)
+                    and not isinstance(soup.contents[index], Tag)):
                 text = soup.contents[index].string + soup.contents[index + 1].string
                 text = self.correct(text)
                 if text != soup.contents[index].string:
@@ -953,7 +961,7 @@ class Html(String):
                 soup.contents[index + 1].extract()
                 changed = True
                 continue
-            index = index + 1
+            index += 1
         return changed
 
     def collapse(self, soup):
@@ -984,7 +992,7 @@ class Html(String):
                                     else:
                                         soup.contents[index].extract()
                                         continue
-                index = index + 1
+                index += 1
             if not changed:
                 if self.join(soup):
                     changed = True
@@ -999,7 +1007,7 @@ class Html(String):
                 if not text or (text == ' ') or (text == self.NBSP_CHAR):
                     soup.contents[index].extract()
                     continue
-            index = index + 1
+            index += 1
         return soup
 
     def need_wrap(self, content, for_next):
@@ -1007,8 +1015,9 @@ class Html(String):
             if content.name in self.root_tags:
                 return False
         else:
-            if not for_next and (content.string == ''
-                or content.string == ' ' or content.string == self.NBSP_CHAR):
+            if not for_next and (
+                    content.string == ''
+                    or content.string == ' ' or content.string == self.NBSP_CHAR):
                 return False
         return True
 
@@ -1040,7 +1049,8 @@ class Html(String):
 
     def fix(self, value, path):
         source = value
-        soup = BeautifulSoup(value, markupMassage=self.MARKUP_MASSAGE,
+        soup = BeautifulSoup(
+            value, markupMassage=self.MARKUP_MASSAGE,
             convertEntities=BeautifulSoup.ALL_ENTITIES)
         soup = self.clear(soup, path)
         soup = self.collapse(soup)
@@ -1067,5 +1077,3 @@ class Html(String):
         else:
             raise IncorrectException(self, 'Too much attempts to fix value')
         return value
-
-
