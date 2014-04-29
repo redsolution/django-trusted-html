@@ -75,6 +75,13 @@ Installation:
 To learn more about settings read ``trustedhtml/settings.py``. 
 
 
+Requirements:
+=============
+
+Django 1.3+ is required.
+For Django < 1.3 please check out django-trusted-html 0.1.2.
+
+
 Usage:
 ======
 
