@@ -93,8 +93,7 @@ class Rule(object):
         self.element_exception = element_exception
         self.data = data
 
-
-    def validate(self, value, path=[]):
+    def validate(self, value, path=None):
         """
         Main interface function. Call it to validate specified ``value``.
         
@@ -107,6 +106,8 @@ class Rule(object):
         ``postprocess`` functions.
         They can be overwritten by subclasses.
         """
+        if path is None:
+            path = []
         source = value
         try:
             try:
@@ -335,7 +336,7 @@ class Uri(String):
             self, type=LINK, allow_sites=None, allow_schemes=None,
             cut_sites=None, cut_schemes=None, verify_sites=None, verify_schemes=None,
             verify_local=None, local_sites=None, local_schemes=None,
-            verify_user_agent=None, **kwargs):
+            **kwargs):
         """
         ``type`` indicate that this url must be an image.
         This class not support such validation,
@@ -415,8 +416,6 @@ class Uri(String):
             local_sites = settings.TRUSTEDHTML_LOCAL_SITES
         if local_schemes is None:
             local_schemes = settings.TRUSTEDHTML_LOCAL_SCHEMES
-        if verify_user_agent is None:
-            verify_user_agent = settings.TRUSTEDHTML_VERIFY_USER_AGENT
         self.type = type
         self.allow_sites = self.lower_list(allow_sites)
         self.allow_schemes = self.lower_list(allow_schemes)
@@ -428,7 +427,8 @@ class Uri(String):
         self.local_schemes = self.lower_list(local_schemes)
         self.verify_local = verify_local
 
-    def inlist(self, value, lst):
+    @staticmethod
+    def inlist(value, lst):
         """
         Check whether ``value`` is in ``lst``.
         All lists passed to this function can be:
@@ -685,7 +685,7 @@ class Validator(object):
     by corresponding rules.
     """
 
-    def __init__(self, rules, **kwargs):
+    def __init__(self, rules):
         """
         ``rules`` is dictionary in witch key is name of property
         (or tag attribute) and value is corresponding rule.
@@ -746,7 +746,7 @@ class Style(Sequence, Validator):
         Sequence.__init__(
             self, rule=None, regexp=r'\s*;\s*',
             join_string='; ', append_string=';', **kwargs)
-        Validator.__init__(self, rules=rules, **kwargs)
+        Validator.__init__(self, rules=rules)
 
     def preprocess(self, value, path):
         """Do it."""
@@ -778,7 +778,7 @@ class Element(Rule, Validator):
     """
 
     def __init__(
-            self, rules={}, contents=[], empty_element=False,
+            self, rules=None, contents=None, empty_element=False,
             remove_element=False, optional_start=False, optional_end=False,
             save_content=True, **kwargs):
         """
@@ -799,8 +799,12 @@ class Element(Rule, Validator):
         ``save_content`` whether content of incorrect tag must be saved
         to parent tag. 
         """
+        if rules is None:
+            rules = {}
+        if contents is None:
+            contents = []
         Rule.__init__(self, **kwargs)
-        Validator.__init__(self, rules=rules, **kwargs)
+        Validator.__init__(self, rules=rules)
         self.contents = contents
         self.empty_element = empty_element
         self.remove_element = remove_element
@@ -868,7 +872,7 @@ class Html(String):
     BEAUTIFUL_SOUP = BeautifulSoup()
 
     def __init__(
-            self, rules, fix_number=2, prepare_number=2, root_tags=[],
+            self, rules, fix_number=2, prepare_number=2, root_tags=None,
             allow_empty=True, **kwargs):
         """
         ``rules`` is dictionary in witch key is name of property
@@ -880,7 +884,9 @@ class Html(String):
 
         ``root_tags`` list of tags that can be in the root of document.
         """
-        super(Html, self).__init__(allow_empty=True, **kwargs)
+        if root_tags is None:
+            root_tags = []
+        super(Html, self).__init__(allow_empty=allow_empty, **kwargs)
         self.rules = rules
         self.fix_number = fix_number
         self.prepare_number = prepare_number
@@ -1048,7 +1054,6 @@ class Html(String):
         return result
 
     def fix(self, value, path):
-        source = value
         soup = BeautifulSoup(
             value, markupMassage=self.MARKUP_MASSAGE,
             convertEntities=BeautifulSoup.ALL_ENTITIES)
