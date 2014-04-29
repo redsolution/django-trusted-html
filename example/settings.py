@@ -2,8 +2,12 @@ import os
 
 DEBUG = False
 
-DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = 'trustedhtml.sqlite'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'trustedhtml.sqlite',
+    }
+}
 SITE_ID = 1
 
 SECRET_KEY = 'x(qov*3gam=fi_o&wz1ndzz3g^e2qmplsa*6v8z6zmmzhf!ch8'

@@ -172,6 +172,7 @@ Changelog:
 * 0.1.0 - Initial release
 * 0.1.1 - Allow <iframe> elements from trusted sits (for youtube movies)
 * 0.1.2 - Setup for RedsolutionCMS execute in postmake and write settings in the end of settings.py
+* 0.2.0 - Django 1.6 compatibility.
 
 Classifiers:
 -------------
