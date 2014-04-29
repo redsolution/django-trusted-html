@@ -462,7 +462,8 @@ class Uri(String):
         scheme_source, authority_source, path, query, fragment = urlsplit(value)
         scheme = self.lower_string(scheme_source)
         authority = self.lower_string(authority_source)
-        if self.inlist(scheme, self.cut_schemes) and self.inlist(authority, self.cut_sites):
+        if self.inlist(scheme, self.cut_schemes) and self.inlist(authority, self.cut_sites) and (
+                scheme is not None or authority is not None):
             scheme = None
             authority = None
             if not path and not query and not fragment:

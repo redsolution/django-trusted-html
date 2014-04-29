@@ -144,6 +144,13 @@ class TestUri(unittest.TestCase):
         rule = Uri(allow_sites=['local.com', 'local-mirror.com'], cut_sites=['local.com', 'local-mirror.com'])
         self.assertEqual(rule.validate('http://local.com?qw'), '?qw')
         self.assertEqual(rule.validate('http://local.com'), '/')
+        self.assertEqual(rule.validate('http://local.com?'), '/?')
+        self.assertEqual(rule.validate('http://local.com#'), '/#')
+        self.assertEqual(rule.validate('?qw'), '?qw')
+        self.assertEqual(rule.validate('/'), '/')
+        self.assertEqual(rule.validate('?'), '?')
+        self.assertEqual(rule.validate('#'), '#')
+        self.assertRaises(EmptyException, rule.validate, '')
 
     def test_verify(self):
         rule = Uri(verify_sites=True, local_sites=['local.com'])
