@@ -23,3 +23,8 @@ INSTALLED_APPS = (
     'trustedhtml',
     'example',
 )
+
+TRUSTEDHTML_OBJECT_SITES = [
+    'youtube.com',
+    'www.youtube.com',
+]

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-#import rpdb2; rpdb2.start_embedded_debugger('1')
 
-import re
 import unittest
 from trustedhtml.classes import *
 from trustedhtml import rules
@@ -449,7 +447,7 @@ class TestHtml(unittest.TestCase):
             '<p><iframe width="425" height="349" src="http://www.youtube.com/embed/oFYhDogAzdM"></iframe></p>')
         self.assertEqual(rules.html.pretty.validate(
             '<iframe width="425" height="349" src="http://www.youtu.be.com/embed/oFYhDogAzdM" frameborder="0" allowfullscreen></iframe>'),
-            '')
+            '<p><iframe width="425" height="349"></iframe></p>')
 
 
     def test_hack(self):
