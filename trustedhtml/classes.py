@@ -478,7 +478,7 @@ class Uri(String):
             if self.verify_local is True:
                 if not path and query is not None:
                     raise IncorrectException(self, value)
-                if not local_check(path, query):
+                if path and not local_check(path, query):
                     raise IncorrectException(self, value)
             elif self.verify_local is not False:
                 check = urljoin(check_scheme, self.verify_local, path, query, fragment)
