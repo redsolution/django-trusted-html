@@ -476,6 +476,8 @@ class Uri(String):
             check_scheme = scheme
         if self.inlist(scheme, self.local_schemes) and self.inlist(authority, self.local_sites):
             if self.verify_local is True:
+                if not path and query is not None:
+                    raise IncorrectException(self, value)
                 if not local_check(path, query):
                     raise IncorrectException(self, value)
             elif self.verify_local is not False:

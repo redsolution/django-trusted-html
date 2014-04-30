@@ -156,20 +156,27 @@ class TestUri(unittest.TestCase):
         rule = Uri(verify_sites=True, local_sites=['local.com'])
         self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
         self.assertEqual(rule.validate('http://local.com/doesnotexists.html'), 'http://local.com/doesnotexists.html')
-        self.assertRaises(IncorrectException, rule.validate, 'http://doesnotexists.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://does.not.exist.example.com')
         self.assertEqual(rule.validate('/doesnotexists.html'), '/doesnotexists.html')
 
     def test_local(self):
         rule = Uri(verify_sites=True, verify_local=True, local_sites=['local.com'])
         self.assertEqual(rule.validate('http://example.com'), 'http://example.com')
         self.assertRaises(IncorrectException, rule.validate, 'http://local.com/doesnotexists.html')
-        self.assertRaises(IncorrectException, rule.validate, 'http://doesnotexists.com')
+        self.assertRaises(IncorrectException, rule.validate, 'http://does.not.exist.example.com')
         self.assertRaises(IncorrectException, rule.validate, '/doesnotexists.html')
         self.assertEqual(rule.validate('http://local.com/response'), 'http://local.com/response')
         self.assertEqual(rule.validate('http://local.com/redirect_response'), 'http://local.com/redirect_response')
         self.assertRaises(IncorrectException, rule.validate, 'http://local.com/redirect_notfound')
         self.assertEqual(rule.validate('http://local.com/request_true_response'), 'http://local.com/request_true_response')
         self.assertEqual(rule.validate('http://local.com/request_false_response'), 'http://local.com/request_false_response')
+        self.assertEqual(rule.validate('/response'), '/response')
+        self.assertEqual(rule.validate('/response?'), '/response?')
+        self.assertEqual(rule.validate('/response?query'), '/response?query')
+        self.assertRaises(IncorrectException, rule.validate, 'response')
+        self.assertRaises(IncorrectException, rule.validate, '?')
+        self.assertRaises(IncorrectException, rule.validate, '?query')
+        self.assertRaises(EmptyException, rule.validate, '')
 
     def test_settings(self):
         link_sites = settings.TRUSTEDHTML_LINK_SITES
