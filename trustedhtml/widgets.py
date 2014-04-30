@@ -46,8 +46,10 @@ except ImportError:
     class TrustedTinyMCE(TrustedTextarea):
         pass
 
-    class AdminTrustedTinyMCE(AdminTextareaWidget):
-        pass
+    class AdminTrustedTinyMCE(AdminTextareaWidget, TrustedTinyMCE):
+        def __init__(self, validator=pretty, *args, **kwargs):
+            super(AdminTrustedTinyMCE, self).__init__(*args, **kwargs)
+            self.validator = validator
 
 else:
     class TrustedTinyMCE(TinyMCE):
