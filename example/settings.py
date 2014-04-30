@@ -20,6 +20,7 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
@@ -37,3 +38,10 @@ MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'media')
 MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'static')
 STATIC_URL = '/static/'
+
+TRUSTEDHTML_MODELS = [
+    {
+        'model': 'example.models.ExternalModel',
+        'fields': ['description', 'name', ],
+    },
+]
