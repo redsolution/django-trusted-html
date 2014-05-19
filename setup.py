@@ -40,7 +40,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Site Management :: Link Checking',
     ],
     packages=find_packages(exclude=['example', 'example.*']),
-    install_requires=['django-url-methods==0.2.0'],
+    install_requires=['django-url-methods>=0.2.0,<0.3'],
     include_package_data=True,
     zip_safe=False,
     long_description=read('README.rst'),
