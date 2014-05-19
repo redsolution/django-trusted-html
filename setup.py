@@ -25,7 +25,7 @@ setup(
     maintainer='Alexander Ivanov',
     maintainer_email='alexander.ivanov@redsolution.ru',
 
-#    url="http://packages.python.org/django-trusted-html",
+    url="https://github.com/redsolution/django-trusted-html",
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -43,7 +43,7 @@ setup(
     install_requires=['django-url-methods==0.2.0'],
     include_package_data=True,
     zip_safe=False,
-    long_description=read('README'),
+    long_description=read('README.rst'),
     entry_points={
         'redsolutioncms': ['trustedhtml = trustedhtml.redsolution_setup', ],
     }
