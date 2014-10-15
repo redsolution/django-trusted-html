@@ -13,7 +13,8 @@ except ImportError:
 
 class Log(models.Model):
     date = models.DateTimeField(auto_now_add=True)
-    valid = models.BooleanField()
+    # Set a default value on BooleanField to mute Django 1.6 warning (1_6.W002)
+    valid = models.BooleanField(default=None)
     source = models.TextField(null=True)
     result = models.TextField(null=True)
     sender = models.CharField(max_length=100)
